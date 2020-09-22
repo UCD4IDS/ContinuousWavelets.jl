@@ -55,12 +55,12 @@ end
 struct ContOrtho{OWT} <: ContWaveClass where OWT<:OrthoFilter
     o::OWT
 end
-ContOrtho(o::WT) where WT = ContOrtho{typeof(wavelet(o))}(wavelet(o))
+ContOrtho(o::W) where W<:WT.OrthoWaveletClass = ContOrtho{typeof(wavelet(o))}(wavelet(o))
 class(a::ContOrtho{OWT}) where OWT = "Continuous $(class(a.o))"
 name(a::ContOrtho{OWT}) where OWT = "c$(name(a.o))"
 vanishingmoments(a::ContOrtho{OWT}) where OWT = vanishingmoments(a.o)
 qmf(w::ContOrtho) = w.o.qmf
-
+Base.show(io::IO, x::ContOrtho{W}) where W = print(io,"Continuous $(x.o.name)")
 
 # Single classes
 const cHaar = ContOrtho(WT.haar)

@@ -9,9 +9,9 @@ function getNWavelets(n1, c::CWT)
     nOctaves = getNOctaves(n1,c)
     n,nSpace = setn(n1,c)
     isAve = (c.averagingLength > 0 && !(typeof(c.averagingType) <: NoAve)) ? 1 : 0
-    if round(nOctaves) < 0
-        totalWavelets = 0
-        sRanges = Array{Array{Float64,1},1}(undef,0)
+    if round(nOctaves) <= 0
+        totalWavelets = isAve
+        sRanges = [1.0] 
         sWidth = [1.0]
         return nOctaves, totalWavelets, sRanges, sWidth
     end
@@ -36,7 +36,6 @@ function getNOctaves(n1,c::CWT{W,T, Morlet, N}) where {W, T, N}
 end
 
 function getNOctaves(n1,c::CWT{W,T, <:Paul, N}) where {W, T, N}
-    println(getStd(c))
     nOctaves = log2(max(n1*2π/getStd(c), 2)) - c.averagingLength - 1
 end
 
@@ -48,7 +47,7 @@ end
 
 function getNOctaves(n1,c::CWT{W,T, <:ContOrtho, N}) where {W, T, N}
     # choose the number of octaves so the smallest support is still 16
-    nOctaves = log2(n1) - 4 - c.averagingLength + 1
+    nOctaves = log2(n1) - 2 - c.averagingLength + 1
 end
 
 function varianceAdjust(this::CWT{W,T, M, N}, totalWavelets) where {W,T,N, M}
@@ -95,11 +94,11 @@ end
 adjust the length of the storage based on the boundary conditions
 """
 function setn(n1, c)
-    if boundaryType(c)() == WT.padded
+    if boundaryType(c)() == padded
         base2 = round(Int,log(n1 + 1)/log(2));   # power of 2 nearest to n1
         nSpace = 2^(base2+1)
         n = nSpace>>1 + 1
-    elseif boundaryType(c)() == WT.DEFAULT_BOUNDARY
+    elseif boundaryType(c)() == DEFAULT_BOUNDARY
         # n1+1 rather than just n1 because this is going to be used in an rfft
         # for real data
         n = n1 + 1
@@ -131,11 +130,8 @@ end
 function locationShift(c::CWT{W, T, <:Dog, N}, s, ω, sWidth) where {W,T,N}    
     μNoS = getMean(c)
     μLast = μNoS * (2s) 
-    #println(c.α, "  ", μLast, "  ", μAveSis1, "  ", varSis1)
-    #println("(varSis1 - μAveSis1^2)  $(varSis1) - $(μAveSis1^2))")
     s0 = μLast / 2 / getStd(c) 
     μ = μNoS * s0 
-    println("s0 = $(s0), s = $(s), sWidth = $(sWidth) μ = $(μ)")
     ω_shift = ω .+ μ
     return (s0, ω_shift)
 end

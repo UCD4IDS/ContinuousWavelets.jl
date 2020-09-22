@@ -4,25 +4,27 @@ using Interpolations
 using AbstractFFTs
 using FFTW
 using LinearAlgebra
+using SpecialFunctions
 
-import Wavelets.wavelet, Wavelets.getNWavelets, Wavelets.computeWavelets # yo ho yo ho
+import Wavelets.wavelet, Wavelets.getNWavelets, Wavelets.computeWavelets,
+   Wavelets.cwt # yo ho yo ho
 import Wavelets.WT.name, Wavelets.WT.name, Wavelets.WT.class,
    Wavelets.WT.vanishingmoments 
 
-export ContWave 
+export ContWave, CWT, cwt, icwt
 
 # Boundaries
 export WaveletBoundary, PerBoundary, ZPBoundary, NullBoundary, SymBoundary,
     Periodic, DEFAULT_BOUNDARY, padded, NaivePer, SymBound
-# waveletTypes (note there are also export statements in the for loops)
+# waveletTypes (note there are also export statements in the for loops of waveletTypes.jl)
 export Morlet, Paul, Dog, ContOrtho, name, vanishingmoments, ContOrtho
-export cHaar, cBeyl, cVaid
+export cHaar, cBeyl, cVaid, morl
 # averaging types
 export Average, Dirac, Father, NoAve
 # CWT constructors
 export wavelet, waveletType
 # general utilities
-export qmf, computeWavelets
+export qmf, computeWavelets, getNWavelets
 
 
 abstract type ContWave{Boundary,T} end # equivalent to ContinuousWavelet in Wavelets.jl

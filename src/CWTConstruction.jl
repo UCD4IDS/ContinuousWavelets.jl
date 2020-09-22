@@ -27,7 +27,7 @@ struct CWT{B, S, W<:ContWaveClass, N} <: ContWave{B, S}
                              # larger than 1
 end
 
-""" 
+@doc """ 
     CWT(wave::WC, scalingFactor::S=8.0, averagingType::Symbol=:Father,
         boundary::T=DEFAULT_BOUNDARY, averagingLength::Int =
         floor(Int,2*scalingFactor), frameBound::Float64=1.0,

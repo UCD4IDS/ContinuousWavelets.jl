@@ -80,11 +80,11 @@ function findAveraging(c::CWT, ω, averagingType::Father, sWidth)
 end
 
 function findAveraging(c::CWT{B, T, W}, ω, averagingType::Father, 
-                       fullVersion, sRange, N) where {W <: ContOrtho, B,T}
+                       fullVersion, s, N) where {W <: ContOrtho, B,T}
     itp = genInterp(fullVersion)
 
     φ = itp(range(1, stop= length(fullVersion), 
-                  step = length(fullVersion)/N * sRange[1]))
+                  step = length(fullVersion)/N * s))
     φ = circshift(padTo(φ, N), -round(Int,length(φ)/2))
 end
 
@@ -105,7 +105,7 @@ end
 
 @doc """
       (daughters, ω) = computeWavelets(n1::Integer, c::CWT{W}; T=Float64, J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Real,
-                                                                   W<:WT.WaveletBoundary, V}
+                                                                   W<:WaveletBoundary, V}
 just precomputes the wavelets used by transform c::CWT{W}. For details, see cwt
 """
 function computeWavelets(n1::Integer, c::CWT{B, CT, W}; T=Float64, J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Real,
@@ -137,7 +137,7 @@ function computeWavelets(n1::Integer, c::CWT{B, CT, W}; T=Float64, J1::Int64=-1,
 
     # if the nOctaves is small enough there are none not covered by the
     # averaging, just use that
-    if round(nOctaves) < 0
+    if round(nOctaves) <= 0
         father = findAveraging(c,ω, c.averagingType, sWidth[1])
         return father, ω
     end
@@ -186,8 +186,8 @@ function computeWavelets(n1::Integer, c::CWT{B, CT, W};
     itpψ = genInterp(ψ)
     # if the nOctaves is small enough there are none not covered by the
     # averaging, so just use that
-    if round(nOctaves) < 0
-        father = findAveraging(c, ω, c.averagingType, φ, sRange, nSpace)
+    if round(nOctaves) <= 0
+        father = findAveraging(c, ω, c.averagingType, φ, c.averagingLength, nSpace)
         return rfft(father,1), ω
     end
     
@@ -195,7 +195,7 @@ function computeWavelets(n1::Integer, c::CWT{B, CT, W};
         daughters[:,curWave+isAve] = Mother(c, s, itpψ, ω, nSpace)
     end
     if isAve>0 # should we include the father?
-        daughters[:, 1] = findAveraging(c, ω, c.averagingType, φ, sRange, 
+        daughters[:, 1] = findAveraging(c, ω, c.averagingType, φ, sRange[1], 
                                         nSpace)
     end
     # switch to fourier domain and normalize appropriately
@@ -240,17 +240,17 @@ end
 # it's ok to just hand the total size, even if we're not transforming across
 # all dimensions
 function computeWavelets(Y::Tuple, c::CWT{W}; T=Float64) where {S<:Real,
-                                                     W<:WT.WaveletBoundary}
+                                                     W<:WaveletBoundary}
     return computeWavelets(Y[1], c; T=T)
 end
 function computeWavelets(Y::AbstractArray{<:Integer}, c::CWT{W}; T=Float64) where {S<:Real,
-                                                     W<:WT.WaveletBoundary}
+                                                     W<:WaveletBoundary}
     return computeWavelets(Y[1], c, T=T)
 end
 
 # also ok to just hand the whole thing being transformed
 function computeWavelets(Y::AbstractArray{<:Number}, c::CWT{W}; T=Float64) where {S<:Real,
-                                                     W<:WT.WaveletBoundary}
+                                                     W<:WaveletBoundary}
     return computeWavelets(size(Y)[1], c, T=T)
 end
 

@@ -6,9 +6,9 @@
              plan_rfft([1]), fftPlan = plan_fft([1])) where {N, T<:Real,
                                                              S<:Real,
                                                              U<:Number,
-                                                             W<:WT.WaveletBoundary,
-                                                             WT<:Union{<:WT.Morlet,
-                                                                       <:WT.Paul}}
+                                                             W<:WaveletBoundary,
+                                                             WT<:Union{<:Morlet,
+                                                                       <:Paul}}
 
   return the continuous wavelet transform along the first axis with averaging.
   `wave`, is (signalLength)×(nscales+1)×(previous dimensions), of type T of
@@ -25,9 +25,9 @@
 function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::AbstractFFTs.Plan =
              plan_rfft([1]), fftPlan = plan_fft([1])) where {N, T<:Real,
                                                              S<:Real,
-                                                             W<:WT.WaveletBoundary,
-                                                             WaTy<:Union{<:WT.Morlet,
-                                                                         <:WT.Paul}}
+                                                             W<:WaveletBoundary,
+                                                             WaTy<:Union{<:Morlet,
+                                                                         <:Paul}}
     # This is for analytic wavelets, so we need to treat the positive and
     # negative frequencies differently, even for real data
 
@@ -40,8 +40,7 @@ function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::Abs
     n1 = size(Y, 1);
     
     _, nScales, _ = getNWavelets(n1, c)
-    @debug "" nScales
-    #....construct time series to analyze, pad if necessary
+    #construct time series to analyze, pad if necessary
     x = reflect(Y, boundaryType(c)()) #this function is defined below
 
     # check if the plans we were given are dummies or not
@@ -78,7 +77,7 @@ end
 
 function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan =
              plan_rfft([1])) where {N, T<:Real, S<:Real, U<:Number,
-                                    W<:WT.WaveletBoundary, WaTy<:WT.Dog}
+                                    W<:WaveletBoundary, WaTy<:Union{<:ContOrtho, Dog}}
     # Dog doesn't need a fft because it is strictly real
     # TODO: complex input version of this
     @assert typeof(N)<:Integer
@@ -130,10 +129,10 @@ end
 
 function reflect(Y, bt)
     n1 = size(Y, 1)
-    if bt == WT.padded
+    if bt == padded
         base2 = round(Int,log(n1)/log(2));   # power of 2 nearest to N
         x = cat(Y, zeros(2^(base2+1)-n1, size(Y)[2:end]...), dims=1)
-    elseif bt == WT.DEFAULT_BOUNDARY
+    elseif bt == DEFAULT_BOUNDARY
         x = cat(Y, reverse(Y,dims = 1), dims = 1)
     else
         x = Y
@@ -141,9 +140,9 @@ function reflect(Y, bt)
     return x
 end
 
-function actuallyTransform!(wave, daughters, x̂, fftPlan, analytic::Union{<:WT.Morlet,
-                                                                         <:WT.Paul},
-                            averagingType::Union{WT.Father, WT.Dirac})
+function actuallyTransform!(wave, daughters, x̂, fftPlan, analytic::Union{<:Morlet,
+                                                                         <:Paul},
+                            averagingType::Union{Father, Dirac})
     outer = axes(x̂)[2:end]
     n1 = size(x̂, 1)
     isSourceOdd = mod(size(wave,1)+1,2)
@@ -159,9 +158,8 @@ function actuallyTransform!(wave, daughters, x̂, fftPlan, analytic::Union{<:WT.
         wave[:, outer..., j] = fftPlan \ (wave[:, outer..., j])  # wavelet transform
     end
 end
-function actuallyTransform!(wave, daughters, x̂, fftPlan, analytic::Union{<:WT.Morlet,
-                                                                         <:WT.Paul},
-                            averagingType::WT.NoAve)
+function actuallyTransform!(wave, daughters, x̂, fftPlan, 
+                            analytic::Union{<:Morlet, <:Paul}, averagingType::NoAve)
     outer = axes(x̂)[2:end]
     n1 = size(x̂, 1)
     # the no averaging version
@@ -171,10 +169,12 @@ function actuallyTransform!(wave, daughters, x̂, fftPlan, analytic::Union{<:WT.
     end
 end
 
-function actuallyTransform!(wave, daughters, x̂, rfftPlan, analytic::Union{<:WT.Dog})
+
+function actuallyTransform!(wave, daughters, x̂, rfftPlan, 
+                            analytic::Union{<:Dog, <:ContOrtho})
     outer = axes(x̂)[2:end]
     n1 = size(x̂, 1)
-    for j in 1:size(daughters,2)
+    for j in 1:size(daughters, 2)
         wave[1:n1, outer..., j] = x̂ .* daughters[:,j]
         wave[:, outer..., j] = rfftPlan \ (wave[1:n1, outer..., j])  # wavelet transform
     end
@@ -183,18 +183,18 @@ end
 
 
 function cwt(Y::AbstractArray{T}, c::CWT{W}; varArgs...) where {T<:Number, S<:Real, V<: Real,
-                                                                                        W<:WT.WaveletBoundary}
+                                                                                        W<:WaveletBoundary}
     daughters,ω = computeWavelets(size(Y, 1), c; varArgs...) 
     return cwt(Y, c, daughters)
 end
 
 
 """
-period,scale, coi = caveats(Y::AbstractArray{T}, c::CWT{W}; J1::S=NaN) where {T<:Real, S<:Real, W<:WT.WaveletBoundary}
+period,scale, coi = caveats(Y::AbstractArray{T}, c::CWT{W}; J1::S=NaN) where {T<:Real, S<:Real, W<:WaveletBoundary}
 
 returns the period, the scales, and the cone of influence for the given wavelet transform. If you have sampling information, you will need to scale the vector scale appropriately by 1/δt, and the actual transform by δt^(1/2).
 """
-function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Real, W<:WT.WaveletBoundary, V <: Real}
+function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Real, W<:WaveletBoundary, V <: Real}
     # don't alter scaling with sampling information if it doesn't exists
     fλ = (4*π) / (c.σ[1] + sqrt(2 + c.σ[1]^2))
     if isnan(dt) || (dt<0)
@@ -222,10 +222,10 @@ function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Re
         J1=floor(Int,(log2(n1))*c.scalingFactor);
     end
     #....construct time series to analyze, pad if necessary
-    if boundaryType(c) == WT.ZPBoundary
+    if boundaryType(c) == ZPBoundary
         base2 = round(Int,log(n1)/log(2));   # power of 2 nearest to N
         n = length(Y)+2^(base2+1)-n1
-    elseif boundaryType(c) == WT.PerBoundary
+    elseif boundaryType(c) == PerBoundary
         n = length(Y)*2
     end
     ω = [0:floor(Int, n/2); -floor(Int,n/2)+1:-1]*2π
@@ -236,15 +236,15 @@ function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Re
 end
 cwt(Y::AbstractArray{T}, w::ContWaveClass; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {T<:Real, S<:Real, V<:Real} = cwt(Y,CWT(w),J1=J1,dt=dt,s0=s0)
 caveats(Y::AbstractArray{T}, w::ContWaveClass; J1::S=NaN) where {T<: Real, S<: Real} = caveats(Y,CWT(w),J1=J1)
-cwt(Y::AbstractArray{T}) where T<:Real = cwt(Y,WT.Morlet())
-caveats(Y::AbstractArray{T}) where T<:Real = caveats(Y,WT.Morlet())
+cwt(Y::AbstractArray{T}) where T<:Real = cwt(Y,Morlet())
+caveats(Y::AbstractArray{T}) where T<:Real = caveats(Y,Morlet())
 
 """
     icwt(W::AbstractArray{T}, c::CWT{W}, sj::AbstractArray; dt::S=NaN,
-         dj::V=1/12) where {S<:Real, V<:Real, W<:WT.WaveletBoundary}
+         dj::V=1/12) where {S<:Real, V<:Real, W<:WaveletBoundary}
     icwt(W::AbstractArray{T}, c::CWT{W}; dt::S=NaN, s0::S
          dj::V=1/12) where {T<:Real, S<:Real, V<:Real,
-                            W<:WT.WaveletBoundary} 
+                            W<:WaveletBoundary} 
 
 
 return the inverse continuous wavelet transform
@@ -256,12 +256,9 @@ function icwt(W::AbstractArray, c::CWT, sj::AbstractArray; dt::S=NaN,
     end
 
     # Torrence and Compo (1998), eq. (11)
-    n,nSpace = WT.setn(size(W,1), c)
+    n,nSpace = setn(size(W,1), c)
     ω = (0:(n-1))*2π
-    ψ = WT.Mother(c, 1, 1, ω)[1:(end-1)]
-    println("size(sj) = $(size(sj))")
-    println("size(W) = $(size(W))")
-    println("size(ψ) = $(size(ψ))")
+    ψ = Mother(c, 1, 1, ω)[1:(end-1)]
     iW = (dj * sqrt(dt) / 0.776 * psi(c,0)) .* sum((real.(W) ./ sqrt.(sj')), dims=2)
 
     return iW
@@ -275,7 +272,7 @@ function icwt(W::AbstractArray, c::CWT; dt::Real=NaN, dj::Real=1/12, J1::Real=Na
         J1=floor(Int,(log2(n1))*c.scalingFactor);
     end
 
-    sj =  WT.getScales(n1, c)
+    sj =  getScales(n1, c)
 
     if isnan(dt) || (dt<0)
         dt = 1
@@ -285,9 +282,9 @@ function icwt(W::AbstractArray, c::CWT; dt::Real=NaN, dj::Real=1/12, J1::Real=Na
 end
 icwt(Y::AbstractArray, w::ContWaveClass; dj::T=1/12, dt::S=NaN,
      s0::V=NaN) where {S<:Real, T<:Real, V<:Real} = icwt(Y,CWT(w))
-icwt(Y::AbstractArray) = icwt(Y,WT.Morlet())
+icwt(Y::AbstractArray) = icwt(Y,Morlet())
 
-function psi(c::CWT{W}, t::Int64) where W<:WT.WaveletBoundary
+function psi(c::CWT{W}, t::Int64) where W<:WaveletBoundary
     return real.(π^(-0.25) * exp.(im*c.σ[1]*t - t^2 / 2))
 end
 
