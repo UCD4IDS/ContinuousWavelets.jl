@@ -1,8 +1,8 @@
 # CWT (continuous wavelet transform)
-# cwt(Y::AbstractVector, ::ContinuousWavelet)
+# cwt(Y::AbstractVector, ::ContWave)
 
 @doc """
-     wave = cwt(Y::AbstractArray{T,N}, c::CFW{W, S, WT}, daughters, rfftPlan =
+     wave = cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WT}, daughters, rfftPlan =
              plan_rfft([1]), fftPlan = plan_fft([1])) where {N, T<:Real,
                                                              S<:Real,
                                                              U<:Number,
@@ -22,7 +22,7 @@
   you will need to scale wave by δt^(1/2).
 
   """
-function cwt(Y::AbstractArray{T,N}, c::CFW{W, S, WaTy}, daughters, rfftPlan::AbstractFFTs.Plan =
+function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::AbstractFFTs.Plan =
              plan_rfft([1]), fftPlan = plan_fft([1])) where {N, T<:Real,
                                                              S<:Real,
                                                              W<:WT.WaveletBoundary,
@@ -76,7 +76,7 @@ function cwt(Y::AbstractArray{T,N}, c::CFW{W, S, WaTy}, daughters, rfftPlan::Abs
 end
 
 
-function cwt(Y::AbstractArray{T,N}, c::CFW{W, S, WaTy}, daughters, rfftPlan =
+function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan =
              plan_rfft([1])) where {N, T<:Real, S<:Real, U<:Number,
                                     W<:WT.WaveletBoundary, WaTy<:WT.Dog}
     # Dog doesn't need a fft because it is strictly real
@@ -182,7 +182,7 @@ end
 
 
 
-function cwt(Y::AbstractArray{T}, c::CFW{W}; varArgs...) where {T<:Number, S<:Real, V<: Real,
+function cwt(Y::AbstractArray{T}, c::CWT{W}; varArgs...) where {T<:Number, S<:Real, V<: Real,
                                                                                         W<:WT.WaveletBoundary}
     daughters,ω = computeWavelets(size(Y, 1), c; varArgs...) 
     return cwt(Y, c, daughters)
@@ -190,11 +190,11 @@ end
 
 
 """
-period,scale, coi = caveats(Y::AbstractArray{T}, c::CFW{W}; J1::S=NaN) where {T<:Real, S<:Real, W<:WT.WaveletBoundary}
+period,scale, coi = caveats(Y::AbstractArray{T}, c::CWT{W}; J1::S=NaN) where {T<:Real, S<:Real, W<:WT.WaveletBoundary}
 
 returns the period, the scales, and the cone of influence for the given wavelet transform. If you have sampling information, you will need to scale the vector scale appropriately by 1/δt, and the actual transform by δt^(1/2).
 """
-function caveats(n1, c::CFW{W}; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Real, W<:WT.WaveletBoundary, V <: Real}
+function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Real, W<:WT.WaveletBoundary, V <: Real}
     # don't alter scaling with sampling information if it doesn't exists
     fλ = (4*π) / (c.σ[1] + sqrt(2 + c.σ[1]^2))
     if isnan(dt) || (dt<0)
@@ -234,29 +234,29 @@ function caveats(n1, c::CFW{W}; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Re
     coi = c.coi*scale  # COI [Sec.3g]
     return sj, freqs, period, scale, coi
 end
-cwt(Y::AbstractArray{T}, w::WT.ContinuousWaveletClass; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {T<:Real, S<:Real, V<:Real} = cwt(Y,CFW(w),J1=J1,dt=dt,s0=s0)
-caveats(Y::AbstractArray{T}, w::WT.ContinuousWaveletClass; J1::S=NaN) where {T<: Real, S<: Real} = caveats(Y,CFW(w),J1=J1)
+cwt(Y::AbstractArray{T}, w::ContWaveClass; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {T<:Real, S<:Real, V<:Real} = cwt(Y,CWT(w),J1=J1,dt=dt,s0=s0)
+caveats(Y::AbstractArray{T}, w::ContWaveClass; J1::S=NaN) where {T<: Real, S<: Real} = caveats(Y,CWT(w),J1=J1)
 cwt(Y::AbstractArray{T}) where T<:Real = cwt(Y,WT.Morlet())
 caveats(Y::AbstractArray{T}) where T<:Real = caveats(Y,WT.Morlet())
 
 """
-    icwt(W::AbstractArray{T}, c::CFW{W}, sj::AbstractArray; dt::S=NaN,
+    icwt(W::AbstractArray{T}, c::CWT{W}, sj::AbstractArray; dt::S=NaN,
          dj::V=1/12) where {S<:Real, V<:Real, W<:WT.WaveletBoundary}
-    icwt(W::AbstractArray{T}, c::CFW{W}; dt::S=NaN, s0::S
+    icwt(W::AbstractArray{T}, c::CWT{W}; dt::S=NaN, s0::S
          dj::V=1/12) where {T<:Real, S<:Real, V<:Real,
                             W<:WT.WaveletBoundary} 
 
 
 return the inverse continuous wavelet transform
 """
-function icwt(W::AbstractArray, c::CFW, sj::AbstractArray; dt::S=NaN,
+function icwt(W::AbstractArray, c::CWT, sj::AbstractArray; dt::S=NaN,
               dj::V=1/12) where {S<:Real, V<:Real} 
     if isnan(dt) || (dt<0)
         dt = 1
     end
 
     # Torrence and Compo (1998), eq. (11)
-    n = WT.setn(size(W,1), c)
+    n,nSpace = WT.setn(size(W,1), c)
     ω = (0:(n-1))*2π
     ψ = WT.Mother(c, 1, 1, ω)[1:(end-1)]
     println("size(sj) = $(size(sj))")
@@ -266,7 +266,7 @@ function icwt(W::AbstractArray, c::CFW, sj::AbstractArray; dt::S=NaN,
 
     return iW
 end
-function icwt(W::AbstractArray, c::CFW; dt::Real=NaN, dj::Real=1/12, J1::Real=NaN)
+function icwt(W::AbstractArray, c::CWT; dt::Real=NaN, dj::Real=1/12, J1::Real=NaN)
 
     fλ = (4*π) / (c.σ[1] + sqrt(2 + c.σ[1]^2))
     n1 = size(W, 1);
@@ -283,11 +283,11 @@ function icwt(W::AbstractArray, c::CFW; dt::Real=NaN, dj::Real=1/12, J1::Real=Na
 
     return icwt(W, c, sj, dt=dt, dj=1/(c.scalingFactor))
 end
-icwt(Y::AbstractArray, w::WT.ContinuousWaveletClass; dj::T=1/12, dt::S=NaN,
-     s0::V=NaN) where {S<:Real, T<:Real, V<:Real} = icwt(Y,CFW(w))
+icwt(Y::AbstractArray, w::ContWaveClass; dj::T=1/12, dt::S=NaN,
+     s0::V=NaN) where {S<:Real, T<:Real, V<:Real} = icwt(Y,CWT(w))
 icwt(Y::AbstractArray) = icwt(Y,WT.Morlet())
 
-function psi(c::CFW{W}, t::Int64) where W<:WT.WaveletBoundary
+function psi(c::CWT{W}, t::Int64) where W<:WT.WaveletBoundary
     return real.(π^(-0.25) * exp.(im*c.σ[1]*t - t^2 / 2))
 end
 
@@ -297,4 +297,4 @@ end
 # CWT (continuous wavelet transform directly) TODO: direct if sufficiently small
 
 # TODO: continuous inverse, when defined
-#icwt(::AbstractVector, ::ContinuousWavelet)
+#icwt(::AbstractVector, ::ContWave)

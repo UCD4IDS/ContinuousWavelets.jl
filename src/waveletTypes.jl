@@ -1,7 +1,7 @@
 
 
 
-struct Morlet <: ContinuousWaveletClass
+struct Morlet <: ContWaveClass
     σ::Float64 # \sigma is the time/space trade-off. as sigma->0, the spacial resolution increases; below 5, there is a danger of being non-analytic. Default is 5.8
     κσ::Float64
     cσ::Float64
@@ -25,8 +25,8 @@ Base.show(io::IO, x::Morlet) = print(io,"Morlet mean $(x.σ)")
 
 # Parameterized classes
 
-# abstract type Dog <: ContinuousWaveletClass end
-# abstract type Paul <: ContinuousWaveletClass end
+# abstract type Dog <: ContWaveClass end
+# abstract type Paul <: ContWaveClass end
 
 # continuous parameterized
 for (TYPE, NAMEBASE, MOMENTS, RANGE) in (
@@ -34,7 +34,7 @@ for (TYPE, NAMEBASE, MOMENTS, RANGE) in (
         (:Dog, "dog",  -1, 0:6), # moments?
         )
     @eval begin
-        struct $TYPE{N} <: ContinuousWaveletClass end#$TYPE end
+        struct $TYPE{N} <: ContWaveClass end#$TYPE end
         class(::$TYPE) = $(string(TYPE))
         name(::$TYPE{N}) where N = string($NAMEBASE,N)
         vanishingmoments(::$TYPE{N}) where N = -1
@@ -45,26 +45,28 @@ for (TYPE, NAMEBASE, MOMENTS, RANGE) in (
         CONSTNAME = Symbol(NAMEBASE,NUM)
         @eval begin
             const $CONSTNAME = $TYPE{$NUM}()                  # type shortcut
+            export $CONSTNAME
         end
     end
 end
 
 
-
-
 # adapting the orthogonal wavelet classes to the continuous case
-struct ContOrtho{OWT} <: ContinuousWaveletClass
+struct ContOrtho{OWT} <: ContWaveClass where OWT<:OrthoFilter
     o::OWT
 end
-ContOrtho(o::WT) where WT <: Union{OrthoWaveletClass,BiOrthoWaveletClass} = ContOrtho{WT}(o)
-class(a::ContOrtho{OWT}) = "Continuous $(class(a.o))"
-name(a::ContOrtho{OWT}) = "c$(name(a.o))"
-vanishingmoments(a::ContOrtho{OWT}) = vanishingmoments(a.o)
+ContOrtho(o::WT) where WT = ContOrtho{typeof(wavelet(o))}(wavelet(o))
+class(a::ContOrtho{OWT}) where OWT = "Continuous $(class(a.o))"
+name(a::ContOrtho{OWT}) where OWT = "c$(name(a.o))"
+vanishingmoments(a::ContOrtho{OWT}) where OWT = vanishingmoments(a.o)
+qmf(w::ContOrtho) = w.o.qmf
+
+
 # Single classes
 const cHaar = ContOrtho(WT.haar)
 const cBeyl = ContOrtho(WT.beyl)
 const cVaid = ContOrtho(WT.vaid)
-
+# parametric orthogonal 
 for (TYPE, NAMEBASE, RANGE) in (
         (:Daubechies, "Db", 1:10),
         (:Coiflet, "Coif", 2:2:8),
@@ -75,6 +77,7 @@ for (TYPE, NAMEBASE, RANGE) in (
         CONSTNAME = Symbol(string("c", NAMEBASE, NUM))
         @eval begin
             const $CONSTNAME = ContOrtho(WT.$TYPE{$NUM}())        # type shortcut
+            export $CONSTNAME
         end
     end
 end
@@ -85,7 +88,7 @@ end
 
 
 
-### averaging types
+### averaging types (for now this is already exported by wavelets, so just use that)
 
 abstract type Average end
 struct Dirac <: Average end
