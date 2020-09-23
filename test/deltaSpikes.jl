@@ -1,4 +1,4 @@
-
+n = 2039
 @testset "Delta Spikes" begin
     @testset "at $k, with type $(wav.waveType)" for k in (1093, 408), wav in (wavelet(cDb2), wavelet(cCoif4), wavelet(cBeyl))
         x = zeros(n); x[k]=1
