@@ -169,3 +169,36 @@ function makinWavelet(h::AbstractVector, N::Integer=8)
     end
     return rmul!(phi,sc/sqrt(2)), rmul!(psi,sc/sqrt(2)), range(0, stop=length(h)-1, length=length(psi))
 end
+# comparing the wavelet computed by Wavelets.jl with the store ones made by computeWavelet.jl
+# getting the right norm here is proving difficult, as they are somewhat different, which is to be expected
+Ŵ, ω = computeWavelets(n, wav)
+W = irfft(Ŵ, 2n,1)
+ϕ,ψ,t = makewavelet(wav.waveType.o,6); size(ϕ)
+plot(W[:,1])
+plot(ifftshift(W[:,1])[1300:1700])
+plot(ifftshift(W[abs.(W[:,1]) .> 1e-19,1]))
+W[700,1]
+n/174
+2n/2^(wav.averagingLength)
+abs.(W[30:end,1])
+itpϕ = interpolate(ϕ,BSpline(Quadratic(Reflect(OnGrid()))))
+firstLength = round(Int,2n/2^wav.averagingLength)
+reϕ = itpϕ(range(1, stop = length(ϕ),length=firstLength))
+justSupport = circshift(W[:,1], ceil(Int,firstLength/2))[1:firstLength]
+(reϕ .- justSupport .* (norm(reϕ)/norm(justSupport)) ) ./ abs.(reϕ)
+plot(reϕ ./ norm(reϕ) .- justSupport ./norm(justSupport))
+plot([reϕ./norm(reϕ),justSupport ./norm(justSupport)])
+plot(reϕ)
+size(reϕ)
+firstLength
+plot(circshift(W[:,1], ceil(Int,firstLength/2)))
+plot(circshift(W[:,1], firstLength)[1:firstLength])
+ϕ,ψ,t = makewavelet(wav.waveType.o, 6)
+size(ϕ)
+wav = wavelet(cVaid, averagingLength = 2,normalization=2)
+Ŵ,ω = computeWavelets(Int(length(ϕ)/2),wav)
+W = irfft(Ŵ,length(ϕ),1)
+
+plot(W,legend=false)
+makewavelet()
+cVaid
