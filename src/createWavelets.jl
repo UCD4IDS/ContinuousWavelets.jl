@@ -214,6 +214,7 @@ function computeWavelets(n1::Integer, c::CWT{B, CT, W};
     testFourierDomainProperties(daughters, isAve)
     return (daughters, ω)
 end
+
 # not
 function analyticOrNot(c::CWT{W, T, <:Union{Dog, ContOrtho}, N}, n, totalWavelets) where {W,T,N}
     ω = (0:(n-1))*2π

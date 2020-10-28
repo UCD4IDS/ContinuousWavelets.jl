@@ -152,7 +152,7 @@ function actuallyTransform!(wave, daughters, x̂, fftPlan, analytic::Union{<:Mor
     wave[(n1+1):end, outer..., 1] = reverse(conj.(tmpWave[2:end-isSourceOdd,
                                                           outer...]),dims=1)
     wave[1:n1, outer..., 1] = tmpWave
-    wave[:, outer..., 1] = fftPlan \ (wave[:, outer..., 1])  # wavelet transform
+    wave[:, outer..., 1] = fftPlan \ (wave[:, outer..., 1])  # averaging
     for j in 2:size(daughters,2)
         wave[1:n1, outer..., j] = x̂ .* daughters[:,j]
         wave[:, outer..., j] = fftPlan \ (wave[:, outer..., j])  # wavelet transform

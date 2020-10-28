@@ -113,14 +113,14 @@ end
 
 name(s::CWT) = name(s.waveType)
 
-function eltypes(::CWT{W, T, WT, N}) where {W, T, WT, N}
+function eltypes(::CWT{B, T,W, N}) where {B, T,W, N}
     T
 end
-function boundaryType(::CWT{W, T, WT, N}) where {W, T, WT, N}
-    W
+function boundaryType(::CWT{B, T,W, N}) where {B, T,W, N}
+    B
 end
-function waveletType(::CWT{W, T, WT, N}) where {W, T, WT, N}
-    WT
+function waveletType(::CWT{B, T,W, N}) where {B, T,W, N}
+    W
 end
 
 function Base.show(io::IO, cf::CWT{W,S,WT,N}) where {W,S,WT,N}

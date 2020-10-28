@@ -81,6 +81,26 @@ function polySpacing(nOct, c)
     return b .* (samplePoints).^(1/p)
 end
 
+# a utility to just get the start, stop, and step size used in polySpacing. Only used for explanatory purposes
+function genSamplePoints(nOct, c)
+    a =c.averagingLength; O = nOct
+    p = c.decreasing
+    Q = c.scalingFactor
+    # x is the index, y is the scale
+    # y= aveLength + b*x^(1/p), solve for a and b with 
+    # (x₀,y₀)=(0,aveLength-1)
+    # dy/dx = 1/s, so the Quality factor gives the slope at the last frequency
+    b = (p/Q)^(1/p) * (O+a)^((p-1)/p)
+    # the point x so that the second condition holds
+    lastWavelet = Q * (O+a)/p
+    # the point so that the first wavelet is at a
+    firstWavelet = (a/b)^p
+    # step size so that there are actually Q wavelets in the last octave
+    startOfLastOctave = ((nOct+a-1)/b)^p
+    stepSize = (lastWavelet - startOfLastOctave)/Q
+    firstWavelet, lastWavelet, stepSize
+end
+
 function getNScales(n1, c)
     nOctaves = log2(max(n1, 2)) - c.averagingLength
     nWaveletsInOctave = reverse([max(1, round(Int,
@@ -94,18 +114,20 @@ end
 adjust the length of the storage based on the boundary conditions
 """
 function setn(n1, c)
-    if boundaryType(c)() == padded
+    if boundaryType(c) <: ZPBoundary
         base2 = round(Int,log(n1 + 1)/log(2));   # power of 2 nearest to n1
         nSpace = 2^(base2+1)
         n = nSpace>>1 + 1
-    elseif boundaryType(c)() == DEFAULT_BOUNDARY
+    elseif boundaryType(c) <: PerBoundary
         # n1+1 rather than just n1 because this is going to be used in an rfft
         # for real data
         n = n1 + 1
         nSpace = 2*n1
-    else
+    elseif boundaryType(c) <: SymBoundary || boundaryType(c) <: NullBoundary
         n= n1>>1 + 1
         nSpace = n1
+    else
+        error("No such boundary as $(boundaryType(c))")
     end
     return n, nSpace
 end
