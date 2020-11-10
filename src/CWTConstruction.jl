@@ -29,31 +29,32 @@ end
 # aliased = ((:Q,:s,:scalingFactor), (:β,:decreasing), (:p, :normalization))
 function processKeywordArgs(Q,β,p;kwargs...)
     keysVarg = keys(kwargs)
-    if :s in keys
+    if :s in keysVarg
         Q = kwargs[:s]
-        if :scalingFactor in keys
+        if :scalingFactor in keysVarg
             error("you used two names for Q")
         end
-    elseif :scalingFactor in keys
+    elseif :scalingFactor in keysVarg
         Q = kwargs[:scalingFactor]
     end
 
-    if :decreasing in keys
+    if :decreasing in keysVarg
         β = kwargs[:decreasing]
     end
 
-    if :normalization in keys
+    if :normalization in keysVarg
         p = kwargs[:normalization]
     end
     return Q,β,p
 end
 
 
-@doc """ 
-    CWT(wave::WC, Q::S=8.0, averagingType::Symbol=:Father,
-        boundary::T=SymBoundary(), averagingLength::Int =
-        4, frameBound::Float64=-1.0, p::Float=Inf) where {WC<:ContWaveClass, T<:WaveletBoundary, S<:Real}
-
+@doc """
+    CWT(wave::WC, Q=8, boundary::T=SymBoundary(),
+        averagingType::A = Father(),
+        averagingLength::Int = 4, frameBound=1, p::N=Inf,
+        β=4) where {WC<:ContWaveClass, A <: Average,
+                    T <: WaveletBoundary, N <: Real}
 """
 function CWT(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
              averagingType::A = Father(),
@@ -63,7 +64,7 @@ function CWT(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
                                   T <: WaveletBoundary, N <: Real}
     Q,β,p = processKeywordArgs(Q, β, p; kwargs...) # some names are redundant
     @assert β > 0
-    @assert normalization >= 1
+    @assert p >= 1
     nameWavelet = name(wave)[1:3]
     tdef = calculateProperties(wave)
 
@@ -74,11 +75,11 @@ function CWT(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
 
     # S is the most permissive type of the listed variables
     S = promote_type(typeof(Q), typeof(β),
-                     typeof(frameBound), typeof(normalization),
+                     typeof(frameBound), typeof(p),
                      typeof(tdef[1]), typeof(tdef[2]))
     return CWT{T, S, WC, N}(S(Q), S(β), tdef...,
                             averagingLength, averagingType, S(frameBound),
-                            S(normalization))
+                            S(p))
 end
 function calculateProperties(w::Morlet)
     σ = w.σ
@@ -139,11 +140,11 @@ wavelet(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
                                    T <: WaveletBoundary, N <: Real}
 A constructor for the CWT type, using keyword rather than positional options.
 """
-function wavelet(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
+function wavelet(wave::WC; Q=8, boundary::T=DEFAULT_BOUNDARY,
                  averagingType::A = Father(), averagingLength::Int = 4,
                  frameBound=1, p::N=Inf, β=4,
                  kwargs...) where {WC<:ContWaveClass, A <: Average,
                                    T <: WaveletBoundary, N <: Real}
-    return CWT(cw, Q, boundary, averagingType, averagingLength, frameBound,
-               normalization, β,kwargs...)
+    return CWT(wave, Q, boundary, averagingType, averagingLength, frameBound,
+               p, β, kwargs...)
 end
