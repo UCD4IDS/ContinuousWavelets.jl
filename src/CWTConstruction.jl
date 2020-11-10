@@ -26,21 +26,24 @@ struct CWT{B, S, W<:ContWaveClass, N} <: ContWave{B, S}
                              # larger than 1
 end
 
-aliased = ((:Q,:s,:scalingFactor), (:β,:decreasing), (:normalization, :p))
+# aliased = ((:Q,:s,:scalingFactor), (:β,:decreasing), (:p, :normalization))
 function processKeywordArgs(Q,β,p;kwargs...)
-    keysVarg = keys(varargs)
-    for aliases in aliased # loop over each alias group
-        wasAlreadySet=false
-        for isSet in keysVarg # loop over the things they handed
-            if wasAlreadySet
-                error("you used two names for the same thing")
-            end
-
-            if isSet in aliases # is this alias in
-                eval(aliases[1]) = varargs[isSet]
-                wasAlreadySet=true
-            end
+    keysVarg = keys(kwargs)
+    if :s in keys
+        Q = kwargs[:s]
+        if :scalingFactor in keys
+            error("you used two names for Q")
         end
+    elseif :scalingFactor in keys
+        Q = kwargs[:scalingFactor]
+    end
+
+    if :decreasing in keys
+        β = kwargs[:decreasing]
+    end
+
+    if :normalization in keys
+        p = kwargs[:normalization]
     end
     return Q,β,p
 end
