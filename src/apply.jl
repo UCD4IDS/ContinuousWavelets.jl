@@ -129,10 +129,10 @@ end
 
 function reflect(Y, bt)
     n1 = size(Y, 1)
-    if bt == padded
-        base2 = round(Int,log(n1)/log(2));   # power of 2 nearest to N
+    if typeof(bt) <: ZPBoundary
+        base2 = round(Int, log(n1)/log(2));   # power of 2 nearest to N
         x = cat(Y, zeros(2^(base2+1)-n1, size(Y)[2:end]...), dims=1)
-    elseif bt == DEFAULT_BOUNDARY
+    elseif typeof(bt) <: SymBoundary
         x = cat(Y, reverse(Y,dims = 1), dims = 1)
     else
         x = Y
@@ -205,7 +205,7 @@ function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Re
     if isnan(s0) || (s0<0)
         s0 = 2 * dt / fλ
     end
-    sj = s0 * 2.0.^(collect(0:J1)./c.scalingFactor)
+    sj = s0 * 2.0.^(collect(0:J1)./c.Q)
     # Fourier equivalent frequencies
     freqs = 1 ./ (fλ .* sj)
 
@@ -219,7 +219,7 @@ function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Re
     n1 = length(Y);
     # J1 is the total number of elements
     if isnan(J1) || (J1<0)
-        J1=floor(Int,(log2(n1))*c.scalingFactor);
+        J1=floor(Int,(log2(n1))*c.Q);
     end
     #....construct time series to analyze, pad if necessary
     if boundaryType(c) == ZPBoundary
@@ -229,7 +229,7 @@ function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Re
         n = length(Y)*2
     end
     ω = [0:floor(Int, n/2); -floor(Int,n/2)+1:-1]*2π
-    period = c.fourierFactor*2 .^((0:J1)/c.scalingFactor)
+    period = c.fourierFactor*2 .^((0:J1)/c.Q)
     scale = [1E-5; 1:((n1+1)/2-1); reverse((1:(n1/2-1)),dims=1); 1E-5]
     coi = c.coi*scale  # COI [Sec.3g]
     return sj, freqs, period, scale, coi
@@ -269,7 +269,7 @@ function icwt(W::AbstractArray, c::CWT; dt::Real=NaN, dj::Real=1/12, J1::Real=Na
     n1 = size(W, 1);
     # J1 is the total number of elements
     if isnan(J1) || (J1<0)
-        J1=floor(Int,(log2(n1))*c.scalingFactor);
+        J1=floor(Int,(log2(n1))*c.Q);
     end
 
     sj =  getScales(n1, c)
@@ -278,7 +278,7 @@ function icwt(W::AbstractArray, c::CWT; dt::Real=NaN, dj::Real=1/12, J1::Real=Na
         dt = 1
     end
 
-    return icwt(W, c, sj, dt=dt, dj=1/(c.scalingFactor))
+    return icwt(W, c, sj, dt=dt, dj=1/(c.Q))
 end
 icwt(Y::AbstractArray, w::ContWaveClass; dj::T=1/12, dt::S=NaN,
      s0::V=NaN) where {S<:Real, T<:Real, V<:Real} = icwt(Y,CWT(w))

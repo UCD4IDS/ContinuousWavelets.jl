@@ -54,49 +54,49 @@ function varianceAdjust(this::CWT{W,T, M, N}, totalWavelets) where {W,T,N, M}
     # increases the width of the wavelets by σ[i] = (1+a(total-i)ᴾ)σₛ
     # which is a polynomial of order p going from 1 at the highest frequency to 
     # sqrt(p) at the lowest
-    p = this.decreasing
-    a = (p^.8-1)/(totalWavelets-1)^p
-    1 .+a .*(totalWavelets .- (1:totalWavelets)).^p
+    β = this.β
+    a = (β^.8-1)/(totalWavelets-1)^β
+    1 .+a .*(totalWavelets .- (1:totalWavelets)).^β
 end
 
 
 function polySpacing(nOct, c)
     a =c.averagingLength; O = nOct
-    p = c.decreasing
-    Q = c.scalingFactor
+    β = c.β
+    Q = c.Q
     # x is the index, y is the scale
-    # y= aveLength + b*x^(1/p), solve for a and b with 
+    # y= b*x^(1/β), solve for a and b with 
     # (x₀,y₀)=(0,aveLength-1)
     # dy/dx = 1/s, so the Quality factor gives the slope at the last frequency
-    b = (p/Q)^(1/p) * (O+a)^((p-1)/p)
+    b = (β/Q)^(1/β) * (O+a)^((β-1)/β)
     # the point x so that the second condition holds
-    lastWavelet = Q * (O+a)/p
+    lastWavelet = Q * (O+a)/β
     # the point so that the first wavelet is at a
-    firstWavelet = (a/b)^p
+    firstWavelet = (a/b)^β
     # step size so that there are actually Q wavelets in the last octave
-    startOfLastOctave = ((nOct+a-1)/b)^p
+    startOfLastOctave = ((nOct+a-1)/b)^β
     stepSize = (lastWavelet - startOfLastOctave)/Q
     samplePoints = range(firstWavelet, stop=lastWavelet, 
                          step = stepSize)#, length = round(Int, O * Q^(1/p)))
-    return b .* (samplePoints).^(1/p)
+    return b .* (samplePoints).^(1/β)
 end
 
 # a utility to just get the start, stop, and step size used in polySpacing. Only used for explanatory purposes
 function genSamplePoints(nOct, c)
     a =c.averagingLength; O = nOct
-    p = c.decreasing
-    Q = c.scalingFactor
+    β = c.β
+    Q = c.Q
     # x is the index, y is the scale
-    # y= aveLength + b*x^(1/p), solve for a and b with 
+    # y= b*x^(1/β), solve for a and b with 
     # (x₀,y₀)=(0,aveLength-1)
     # dy/dx = 1/s, so the Quality factor gives the slope at the last frequency
-    b = (p/Q)^(1/p) * (O+a)^((p-1)/p)
+    b = (β/Q)^(1/β) * (O+a)^((β-1)/β)
     # the point x so that the second condition holds
-    lastWavelet = Q * (O+a)/p
+    lastWavelet = Q * (O+a)/β
     # the point so that the first wavelet is at a
-    firstWavelet = (a/b)^p
+    firstWavelet = (a/b)^β
     # step size so that there are actually Q wavelets in the last octave
-    startOfLastOctave = ((nOct+a-1)/b)^p
+    startOfLastOctave = ((nOct+a-1)/b)^β
     stepSize = (lastWavelet - startOfLastOctave)/Q
     firstWavelet, lastWavelet, stepSize
 end
@@ -104,7 +104,7 @@ end
 function getNScales(n1, c)
     nOctaves = log2(max(n1, 2)) - c.averagingLength
     nWaveletsInOctave = reverse([max(1, round(Int,
-                                              c.scalingFactor/x^(c.decreasing)))
+                                              c.Q/x^(c.β)))
                                  for x = 1:round(Int, nOctaves)])
     nScales = max(sum(nWaveletsInOctave), 0)
 end
@@ -118,12 +118,12 @@ function setn(n1, c)
         base2 = round(Int,log(n1 + 1)/log(2));   # power of 2 nearest to n1
         nSpace = 2^(base2+1)
         n = nSpace>>1 + 1
-    elseif boundaryType(c) <: PerBoundary
+    elseif boundaryType(c) <: SymBoundary
         # n1+1 rather than just n1 because this is going to be used in an rfft
         # for real data
         n = n1 + 1
         nSpace = 2*n1
-    elseif boundaryType(c) <: SymBoundary || boundaryType(c) <: NullBoundary
+    elseif boundaryType(c) <: PerBoundary
         n= n1>>1 + 1
         nSpace = n1
     else
