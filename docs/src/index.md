@@ -20,9 +20,9 @@ p1=plot(f,legend=false,title="Doppler",xlims=(0,2000));
 c = wavelet(Morlet(π), averagingType=NoAve(), β=2);
 res = cwt(f, c)
 p2=heatmap(abs.(res)', xlabel= "time index", 
-	ylabel="frequency index",colorbar=false)
+	ylabel="frequency index",colorbar=false);
 l=@layout [a{.3h};b{.7h}]
-plot(p1,p2,layout=l)
+plot(p1,p2,layout=l);
 savefig("doppler.svg");#hide
 ```
 ![](doppler.svg)

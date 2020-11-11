@@ -24,12 +24,12 @@ plot!(t, curve, color=:blue, line=:dash, label=L"y=a(mx+x_0)^{^1/_\beta}",
       legend=:bottomright,
       xrange=(0,length(locs)+3), xticks= [1; 5:5:1+length(locs)...],
       yrange=(minimum(locs)-1, maximum(locs)+1),
-      yticks=(2:2:10,["Ave.Length", (4:2:8)..., "N.Octaves"]))
+      yticks=(2:2:10,["Ave.Length", (4:2:8)..., "N.Octaves"]));
 x = range(15, stop=28, step=.5)
 y(x)= curve[end] .+ b/dRate*24 .^(1/dRate-1).*(x .-24)
-plot!(x, y(x), c=:black,line=2,label=:none)
+plot!(x, y(x), c=:black,line=2,label=:none);
 annotate!(length(locs)-.125, locs[end]+7/16, 
-          Plots.text(L"\frac{dy}{dx}=^{1}/_{Q}", 9, :black, :center))
+          Plots.text(L"\frac{dy}{dx}=^{1}/_{Q}", 9, :black, :center));
 savefig("plotOfLogCentralFrequencies.svg")
 ```
 ![](plotOfLogCentralFrequencies.svg)
@@ -80,7 +80,7 @@ plot(heatmap(1:size(d1,2), ξ, d1, color=:Greys,
              xaxis = ("wavelet index", ),
              title=L"\beta=4"*" ("*L"\Psi4"*")"),
      layout=(1,3),  clims=matchingLimits, 
-     colorbar_title=L"\widehat{\psi_i}")#hide
+     colorbar_title=L"\widehat{\psi_i}");#hide
 savefig("changeBeta.png") #hide
 ```
 ![](changeBeta.png)
