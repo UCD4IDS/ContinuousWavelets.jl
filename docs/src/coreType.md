@@ -7,6 +7,8 @@ ContWave
 
 ```@setup basicEx
 using ContinuousWavelets, Plots, Wavelets, FFTW, Logging
+using Plots; gr()
+Plots.reset_defaults()
 global_logger(Logging.SimpleLogger(stderr,Logging.Error))
 n= 2047;
 function mapTo(waveType, isReal=true,window=2047-100:2047+100;d=2)

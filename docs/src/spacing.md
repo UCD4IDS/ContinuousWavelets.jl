@@ -7,6 +7,8 @@ of the chosen scaling factors in log frequency.
 
 ```@setup waves
 using ContinuousWavelets, Plots, Wavelets, FFTW, LaTeXStrings, Logging
+using Plots; gr()
+Plots.reset_defaults()
 global_logger(Logging.SimpleLogger(stderr,Logging.Error))
 dRate = 4
 waveType = Morlet()

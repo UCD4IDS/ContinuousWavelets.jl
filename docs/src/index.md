@@ -11,6 +11,8 @@ the scaling rate, or the boundary conditions. Finally, you perform the actual
 transform with`cwt`.
 
 ```@example basicEx
+using Plots; gr()#hide
+Plots.reset_defaults()#hide
 using ContinuousWavelets, Plots, Wavelets, FFTW
 using Logging#hide
 global_logger(Logging.SimpleLogger(stderr,Logging.Error))#hide
