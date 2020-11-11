@@ -1,8 +1,7 @@
 struct CWT{B, S, W<:ContWaveClass, N} <: ContWave{B, S}
-    scalingFactor::S # the number of wavelets per octave, ie the scaling
+    Q::S # the number of wavelets per octave, ie the scaling
                            # is s=2^(j/scalingfactor)
-    decreasing::S # the amount that scalingFactor decreases per octave,
-                        # to a minimum of 1
+    β::S # the amount that Q decreases per octave
     fourierFactor::S
     coi          ::S
     α            ::Int   # the order for a Paul and the number of derivatives
@@ -21,47 +20,51 @@ struct CWT{B, S, W<:ContWaveClass, N} <: ContWave{B, S}
     frameBound     ::S       # if positive, set the frame bound of the
                              # transform to be frameBound. Otherwise leave it
                              # so that each wavelet has an L2 norm of 1 
-    normalization  ::N       # the normalization that is preserved for the
+    p::N                     # the normalization that is preserved for the
                              # wavelets as the scale changes. The conjugate
                              # p-norm is preserved for the  signal. Should be
                              # larger than 1
 end
 
-@doc """ 
-    CWT(wave::WC, scalingFactor::S=8.0, averagingType::Symbol=:Father,
-        boundary::T=DEFAULT_BOUNDARY, averagingLength::Int =
-        floor(Int,2*scalingFactor), frameBound::Float64=1.0,
-        normalization::Float=Inf) where {WC<:ContWaveClass,
-        T<:WaveletBoundary, S<:Real}
+# aliased = ((:Q,:s,:scalingFactor), (:β,:decreasing), (:p, :normalization))
+function processKeywordArgs(Q,β,p;kwargs...)
+    keysVarg = keys(kwargs)
+    if :s in keysVarg
+        Q = kwargs[:s]
+        if :scalingFactor in keysVarg
+            error("you used two names for Q")
+        end
+    elseif :scalingFactor in keysVarg
+        Q = kwargs[:scalingFactor]
+    end
 
-The constructor for the general type. `w` is a type of continuous wavelet,
-scalingFactor is the number of wavelets between the octaves ``2^J`` and
-``2^{J+1}`` (defaults to 8, which is most appropriate for music and other
-audio). As this leads to excessively many high scale wavelets, `decreasing`
-gives the amount that scalingFactor decreases per octave. The default boundary
-condition is `periodic`, which is implemented by appending a flipped version of
-the vector at the end (to eliminate edge discontinuities). Alternatives are
-`ZPBoundary`, which pads with enough zeros to get to the nearest power of 2
-(here the results returned by caveats are relevant, see Torrence and Compo
-'97), and `NullBoundary`, which assumes the data is inherently periodic.
+    if :decreasing in keysVarg
+        β = kwargs[:decreasing]
+    end
 
-`averagingLength` and `averagingType` determine how wide scale information is
-accounted for. `averagingLength` gives the number of wavelet octaves that are
-covered by the averaging, while averaging type determines whether it is a
-window `Dirac` or a wavelet `Father`. `frameBound` gives the total norm of the
-whole collection, corresponding to the upper frame bound. `normalization`
-refers to which p-norm is preserved as the scale changes. `normalization==2` is
-the default scaling, while `normalization==Inf` gives all the same maximum
-value, thus acting more like windows.
+    if :normalization in keysVarg
+        p = kwargs[:normalization]
+    end
+    return Q,β,p
+end
+
+
+@doc """
+    CWT(wave::WC, Q=8, boundary::T=SymBoundary(),
+        averagingType::A = Father(),
+        averagingLength::Int = 4, frameBound=1, p::N=Inf,
+        β=4) where {WC<:ContWaveClass, A <: Average,
+                    T <: WaveletBoundary, N <: Real}
 """
-function CWT(wave::WC, scalingFactor=8, boundary::T=DEFAULT_BOUNDARY,
-             averagingType::A = NoAve(),
-             averagingLength::Int = 0,
-             frameBound=-1, normalization::N=Inf, 
-             decreasing=1) where {WC<:ContWaveClass, A <: Average,
+function CWT(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
+             averagingType::A = Father(),
+             averagingLength::Int = 4,
+             frameBound=1, p::N=Inf, 
+             β=4, kwargs...) where {WC<:ContWaveClass, A <: Average,
                                   T <: WaveletBoundary, N <: Real}
-    @assert scalingFactor > 0
-    @assert normalization >= 1
+    Q,β,p = processKeywordArgs(Q, β, p; kwargs...) # some names are redundant
+    @assert β > 0
+    @assert p >= 1
     nameWavelet = name(wave)[1:3]
     tdef = calculateProperties(wave)
 
@@ -71,12 +74,12 @@ function CWT(wave::WC, scalingFactor=8, boundary::T=DEFAULT_BOUNDARY,
     end
 
     # S is the most permissive type of the listed variables
-    S = promote_type(typeof(scalingFactor), typeof(decreasing),
-                     typeof(frameBound), typeof(normalization),
+    S = promote_type(typeof(Q), typeof(β),
+                     typeof(frameBound), typeof(p),
                      typeof(tdef[1]), typeof(tdef[2]))
-    return CWT{T, S, WC, N}(S(scalingFactor), S(decreasing), tdef...,
+    return CWT{T, S, WC, N}(S(Q), S(β), tdef...,
                             averagingLength, averagingType, S(frameBound),
-                            S(normalization))
+                            S(p))
 end
 function calculateProperties(w::Morlet)
     σ = w.σ
@@ -113,41 +116,35 @@ end
 
 name(s::CWT) = name(s.waveType)
 
-function eltypes(::CWT{W, T, WT, N}) where {W, T, WT, N}
+function eltypes(::CWT{B, T,W, N}) where {B, T,W, N}
     T
 end
-function boundaryType(::CWT{W, T, WT, N}) where {W, T, WT, N}
-    W
+function boundaryType(::CWT{B, T,W, N}) where {B, T,W, N}
+    B
 end
-function waveletType(::CWT{W, T, WT, N}) where {W, T, WT, N}
-    WT
+function waveletType(::CWT{B, T,W, N}) where {B, T,W, N}
+    W
 end
 
 function Base.show(io::IO, cf::CWT{W,S,WT,N}) where {W,S,WT,N}
-    print("CWT[$(cf.waveType), $(cf.averagingType), decreasing rate = "*
-          "$(cf.decreasing), aveLen = $(cf.averagingLength), frame = "*
-          "$(cf.frameBound), norm=$(cf.normalization)]")
+    print("CWT{$(cf.waveType), $(cf.averagingType), Q=$(Q), β=$(cf.β),"*
+          "aveLen=$(cf.averagingLength), frame="* "$(cf.frameBound), norm=$(cf.p)}")
 end
 
 
-
-
-function wavelet(cw::T; s::S=8.0, boundary::WaveletBoundary=DEFAULT_BOUNDARY,
-                 averagingType::A=Father(), averagingLength::Int = 4,
-                 frameBound=1, normalization::N=Inf,
-                 decreasing=4) where {T<:ContWaveClass, A<:Average,
-                                      S<:Real, N<:Real} 
-    if typeof(s) <: AbstractFloat
-        decreasing = S(decreasing)
-    end
-    if typeof(decreasing) <: AbstractFloat
-        s = typeof(decreasing)(s)
-    end
-
-    return CWT(cw,s, boundary, averagingType, averagingLength, frameBound,
-               normalization, decreasing)
-end
-
-function wavelet(c::T, boundary::WaveletBoundary) where T<:ContWaveClass
-    CWT(c,8, boundary)
+"""
+wavelet(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
+                 averagingType::A = Father(), averagingLength::Int = 4,
+                 frameBound=1, p::N=Inf, β=4,
+                 kwargs...) where {WC<:ContWaveClass, A <: Average,
+                                   T <: WaveletBoundary, N <: Real}
+A constructor for the CWT type, using keyword rather than positional options.
+"""
+function wavelet(wave::WC; Q=8, boundary::T=DEFAULT_BOUNDARY,
+                 averagingType::A = Father(), averagingLength::Int = 4,
+                 frameBound=1, p::N=Inf, β=4,
+                 kwargs...) where {WC<:ContWaveClass, A <: Average,
+                                   T <: WaveletBoundary, N <: Real}
+    return CWT(wave, Q, boundary, averagingType, averagingLength, frameBound,
+               p, β, kwargs...)
 end

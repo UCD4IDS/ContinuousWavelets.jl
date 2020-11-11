@@ -1,9 +1,8 @@
 using ContinuousWavelets, LinearAlgebra, FFTW,Wavelets, Interpolations
 x = Wavelets.testfunction(n1, "Doppler"); plot(x)
 W = wavelet(ContOrtho(wavelet(WT.coif2)), averagingLength=3, 
-            decreasing=2.0, normalization=2)
+            β=2.0, normalization=2)
 res = ContinuousWavelets.cwt(x, W)
-
 
 # compare the convolution with a delta spike with continuous wavelet generated
 # by Wavelets.jl
@@ -23,7 +22,7 @@ using LinearAlgebra
 ,labels= ["Mother" "Father"]
 plot(abs.(rfft(mkWv[1])))
 using Revise, Interpolations, Wavelets, ContinuousWavelets, FFTW
-W = wavelet(ContOrtho(wavelet(WT.db2)),averagingLength=3,decreasing=2.0)
+W = wavelet(ContOrtho(wavelet(WT.db2)),averagingLength=3,β=2.0)
 c = W
 typeof(W.waveType.o)
 n1 = 1954
@@ -91,7 +90,7 @@ plot(ifftshift(irfft(daughtersMorl, n1, 1),1)[1:end, 2],legend=false)
 1200-750
 x = Wavelets.testfunction(n1, "Doppler"); plot(x)
 W = wavelet(ContOrtho(wavelet(WT.coif2)), averagingLength=3, 
-            decreasing=2.0, normalization=2)
+            β=2.0, normalization=2)
 x = zeros(n1); x[round(Int,n1/2)] = 1
 n1/2
 res = ContinuousWavelets.cwt(x, W)

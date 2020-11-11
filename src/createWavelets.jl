@@ -12,7 +12,7 @@ function Mother(this::CWT{W, T, Morlet, N}, s::Real, sWidth::Real,
     gauss = exp.(-(this.σ[1].-ω/s).^2/(sWidth^2))
     shift = this.σ[2]*exp.(-1/2*(ω/s).^2)
     daughter = constant .* (gauss .- shift) 
-    return normalize(daughter, s, this.normalization)
+    return normalize(daughter, s, this.p)
 end
 
 function Mother(this::CWT{W, T, <:Paul, N}, s::Real, sWidth::Real,
@@ -22,7 +22,7 @@ function Mother(this::CWT{W, T, <:Paul, N}, s::Real, sWidth::Real,
     polynomial = (ω[ω.>=0]/s).^(this.α)
     expDecay = exp.(-(ω[ω.>=0]/s))
     daughter[ω.>=0]= constant .* polynomial .* expDecay
-    return normalize(daughter, s, this.normalization)
+    return normalize(daughter, s, this.p)
 end
 
 function Mother(this::CWT{W, T, <:Dog, N}, s::Real, sWidth::Real,
@@ -31,7 +31,7 @@ function Mother(this::CWT{W, T, <:Dog, N}, s::Real, sWidth::Real,
     polynomial = (ω/s).^(this.α)
     gauss = exp.(-(ω/s).^2/2)
     daughter =  constant .* polynomial .* gauss
-    return normalize(daughter, s, this.normalization)
+    return normalize(daughter, s, this.p)
 end
 
 function Mother(this::CWT{W, T, <:ContOrtho, N}, s::Real, itpψ,
@@ -121,7 +121,7 @@ function computeWavelets(n1::Integer, c::CWT{B, CT, W}; T=Float64, J1::Int64=-1,
     end
     # J1 is the total number of scales
     # if J1<0
-    #     J1 = Int(round(log2(n1 * dt / s0) * c.scalingFactor))
+    #     J1 = Int(round(log2(n1 * dt / s0) * c.Q))
     # end
 
     nOctaves, totalWavelets, sRange, sWidth = getNWavelets(n1,c)
@@ -204,7 +204,7 @@ function computeWavelets(n1::Integer, c::CWT{B, CT, W};
     for i in 1:size(daughters,2)
         daughters[:, i] = normalize(daughters[:, i],
                                             repeatSRange[i],
-                                            c.normalization)
+                                            c.p)
     end
 
     # adjust by the frame bound
@@ -214,6 +214,7 @@ function computeWavelets(n1::Integer, c::CWT{B, CT, W};
     testFourierDomainProperties(daughters, isAve)
     return (daughters, ω)
 end
+
 # not
 function analyticOrNot(c::CWT{W, T, <:Union{Dog, ContOrtho}, N}, n, totalWavelets) where {W,T,N}
     ω = (0:(n-1))*2π
