@@ -13,5 +13,5 @@ makedocs(sitename="ContinuousWavelets.jl",
          ])
 
 deploydocs(
-    repo = "github.com/dsweber2/FourierFilterFlux.jl.git",
+    repo = "github.com/dsweber2/ContinuousWavelets.jl.git",
 )
