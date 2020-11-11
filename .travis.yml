@@ -6,8 +6,7 @@ julia:
   - 1.5
   - nightly
 env:
-  - PYTHON=""
-  - GKSwstype="100"
+  - PYTHON="" GKSwstype="100"
 os:
   - linux
   - osx
