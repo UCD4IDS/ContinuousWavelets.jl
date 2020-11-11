@@ -24,7 +24,7 @@ jobs:
       julia: 1.4
       os: linux
       script:
-        - julia --project=docs/ -e 'using Pkg; Pkg.build(verbose=true);
+        - travis_wait 30 julia --project=docs/ -e 'using Pkg; Pkg.build(verbose=true);
                                     Pkg.develop(PackageSpec(path=pwd()));
                                     Pkg.instantiate()'
         - travis_wait 30 julia --project=docs/ docs/make.jl
