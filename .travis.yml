@@ -6,6 +6,8 @@ julia:
   - 1.0
   - 1.5
   - nightly
+env:
+  - PYTHON=""
 os:
   - linux
   - osx
@@ -26,6 +28,7 @@ jobs:
                                     Pkg.develop(PackageSpec(path=pwd()));
                                     Pkg.instantiate()'
         - travis_wait 30 julia --project=docs/ docs/make.jl
+      after_success: skip
   allow_failures:
     - julia: nightly
 after_success:
