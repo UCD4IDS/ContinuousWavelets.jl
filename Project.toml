@@ -1,7 +1,7 @@
 name = "ContinuousWavelets"
 uuid = "96eb917e-2868-4417-9cb6-27e7ff17528f"
 authors = ["dsweber2 <david.weber2@protonmail.com> and contributors"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 AbstractFFTs = "621f4979-c628-5d54-868e-fcf4e3e8185c"
@@ -13,6 +13,7 @@ Wavelets = "29a6e085-ba6d-5f35-a997-948ac2efa89a"
 
 [compat]
 FFTW = "1.2"
+Wavelets = "0.9"
 julia = "1"
 
 [extras]
