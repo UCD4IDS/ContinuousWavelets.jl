@@ -127,7 +127,7 @@ function waveletType(::CWT{B, T,W, N}) where {B, T,W, N}
 end
 
 function Base.show(io::IO, cf::CWT{W,S,WT,N}) where {W,S,WT,N}
-    print("CWT{$(cf.waveType), $(cf.averagingType), Q=$(Q), β=$(cf.β),"*
+    print("CWT{$(cf.waveType), $(cf.averagingType), Q=$(cf.Q), β=$(cf.β),"*
           "aveLen=$(cf.averagingLength), frame="* "$(cf.frameBound), norm=$(cf.p)}")
 end
 
