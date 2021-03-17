@@ -11,15 +11,15 @@ end
 
     return the Morlet wavelet with first central frequency parameter σ, which controls the time-frequency trade-off. As σ goes to zero, all of the information becomes spatial. Default is `` 2π``, and it is recommended that you stay within 3-12. Above this range, the overlap between wavelets becomes impractically small. Below it, the mean subtraction term approaches the magnitude of the wavelet, so they become a sum of Gaussians rather than Gaussians.
 """
-function Morlet(σ::T) where T<:Real
-    κσ=exp(-σ^2/2)
-    cσ=1. /sqrt(1+κσ^2-2*exp(-3*σ^2/4))
-    Morlet(σ,κσ,cσ)
+function Morlet(σ::T) where T <: Real
+    κσ = exp(-σ^2 / 2)
+    cσ = 1. / sqrt(1 + κσ^2 - 2 * exp(-3 * σ^2 / 4))
+    Morlet(σ, κσ, cσ)
 end
 Morlet() = Morlet(2π)
-class(::Morlet) = "Morlet"; name(::Morlet) = "morl"; vanishingmoments(::Morlet)=0
+class(::Morlet) = "Morlet"; name(::Morlet) = "morl"; vanishingmoments(::Morlet) = 0
 const morl = Morlet()
-Base.show(io::IO, x::Morlet) = print(io,"Morlet mean $(x.σ)")
+Base.show(io::IO, x::Morlet) = print(io, "Morlet mean $(x.σ)")
 
 # TODO: include a sombrero wavelet, which is dog2.
 
@@ -29,57 +29,53 @@ Base.show(io::IO, x::Morlet) = print(io,"Morlet mean $(x.σ)")
 # abstract type Paul <: ContWaveClass end
 
 # continuous parameterized
-for (TYPE, NAMEBASE, MOMENTS, RANGE) in (
-        (:Paul, "paul", -1, 1:20), # moments? TODO: is this a good range of parameters?
-        (:Dog, "dog",  -1, 0:6), # moments?
-        )
+for (TYPE, NAMEBASE, MOMENTS, RANGE) in ((:Paul, "paul", -1, 1:20), # moments? TODO: is this a good range of parameters?
+        (:Dog, "dog",  -1, 0:6),)
     @eval begin
-        struct $TYPE{N} <: ContWaveClass end#$TYPE end
+        struct $TYPE{N} <: ContWaveClass end# $TYPE end
         class(::$TYPE) = $(string(TYPE))
-        name(::$TYPE{N}) where N = string($NAMEBASE,N)
+        name(::$TYPE{N}) where N = string($NAMEBASE, N)
         vanishingmoments(::$TYPE{N}) where N = -1
         order(::$TYPE{N}) where N = N # either order for Paul wavelets, or number of derivatives for DOGs
-        Base.show(io::IO, x::$TYPE{N}) where N = print(io,$NAMEBASE * " order $(N)")
+        Base.show(io::IO, x::$TYPE{N}) where N = print(io, $NAMEBASE * " order $(N)")
     end
     for NUM in RANGE
-        CONSTNAME = Symbol(NAMEBASE,NUM)
+        CONSTNAME = Symbol(NAMEBASE, NUM)
         @eval begin
             const $CONSTNAME = $TYPE{$NUM}()                  # type shortcut
             export $CONSTNAME
         end
-    end
+end
 end
 
 
 # adapting the orthogonal wavelet classes to the continuous case
-struct ContOrtho{OWT} <: ContWaveClass where OWT<:OrthoFilter
+struct ContOrtho{OWT} <: ContWaveClass where OWT <: OrthoFilter
     o::OWT
 end
-ContOrtho(o::W) where W<:WT.OrthoWaveletClass = ContOrtho{typeof(wavelet(o))}(wavelet(o))
+ContOrtho(o::W) where W <: WT.OrthoWaveletClass = ContOrtho{typeof(wavelet(o))}(wavelet(o))
 class(a::ContOrtho{OWT}) where OWT = "Continuous $(class(a.o))"
 name(a::ContOrtho{OWT}) where OWT = "c$(name(a.o))"
 vanishingmoments(a::ContOrtho{OWT}) where OWT = vanishingmoments(a.o)
 qmf(w::ContOrtho) = w.o.qmf
-Base.show(io::IO, x::ContOrtho{W}) where W = print(io,"Continuous $(x.o.name)")
+Base.show(io::IO, x::ContOrtho{W}) where W = print(io, "Continuous $(x.o.name)")
 
 # Single classes
 const cHaar = ContOrtho(WT.haar)
 const cBeyl = ContOrtho(WT.beyl)
 const cVaid = ContOrtho(WT.vaid)
-# parametric orthogonal 
-for (TYPE, NAMEBASE, RANGE) in (
-        (:Daubechies, "Db", 1:10),
+# parametric orthogonal
+for (TYPE, NAMEBASE, RANGE) in ((:Daubechies, "Db", 1:10),
         (:Coiflet, "Coif", 2:2:8),
         (:Symlet, "Sym", 4:10),
-        (:Battle, "Batt", 2:2:6),
-        )
+        (:Battle, "Batt", 2:2:6),)
     for NUM in RANGE
         CONSTNAME = Symbol(string("c", NAMEBASE, NUM))
         @eval begin
             const $CONSTNAME = ContOrtho(WT.$TYPE{$NUM}())        # type shortcut
             export $CONSTNAME
         end
-    end
+end
 end
 
 

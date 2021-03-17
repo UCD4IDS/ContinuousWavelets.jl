@@ -38,7 +38,7 @@ function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::Abs
         Y= reshape(Y,(length(Y), 1))
     end
     n1 = size(Y, 1);
-    
+
     _, nScales, _ = getNWavelets(n1, c)
     #construct time series to analyze, pad if necessary
     x = reflect(Y, boundaryType(c)()) #this function is defined below
@@ -51,7 +51,7 @@ function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::Abs
         fftPlan = plan_fft(x, 1)
     end
     n = size(x, 1)
-    
+
     x̂ = rfftPlan * x
     # If the vector isn't long enough to actually have any other scales, just
     # return the averaging
@@ -66,7 +66,7 @@ function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::Abs
     actuallyTransform!(wave, daughters,x̂, fftPlan, c.waveType, c.averagingType)
     wave = permutedims(wave, [1, ndims(wave), (2:(ndims(wave)-1))...])
     ax = axes(wave)
-    wave = wave[1:n1, ax[2:end]...] 
+    wave = wave[1:n1, ax[2:end]...]
     if N==1
         wave = dropdims(wave, dims=3)
     end
@@ -87,7 +87,7 @@ function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan =
     end
 
     n1 = size(Y, 1);
-    
+
     _, nScales, _ = getNWavelets(n1, c)
     #....construct time series to analyze, pad if necessary
     x = reflect(Y, boundaryType(c)())
@@ -106,7 +106,7 @@ function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan =
     end
 
     x̂ = rfftPlan * x
-    
+
     wave = zeros(Complex{T}, size(x)..., nScales);  # result array;
     # faster if we put the example index on the outside loop through all scales
     # and compute transform
@@ -115,7 +115,7 @@ function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan =
     actuallyTransform!(wave, daughters,x̂, rfftPlan, c.waveType)
     wave = permutedims(wave, [1, ndims(wave), (2:(ndims(wave)-1))...])
     ax = axes(wave)
-    wave = wave[1:n1, ax[2:end]...] 
+    wave = wave[1:n1, ax[2:end]...]
 
     if N==1
         wave = dropdims(wave, dims=3)
@@ -158,7 +158,7 @@ function actuallyTransform!(wave, daughters, x̂, fftPlan, analytic::Union{<:Mor
         wave[:, outer..., j] = fftPlan \ (wave[:, outer..., j])  # wavelet transform
     end
 end
-function actuallyTransform!(wave, daughters, x̂, fftPlan, 
+function actuallyTransform!(wave, daughters, x̂, fftPlan,
                             analytic::Union{<:Morlet, <:Paul}, averagingType::NoAve)
     outer = axes(x̂)[2:end]
     n1 = size(x̂, 1)
@@ -170,7 +170,7 @@ function actuallyTransform!(wave, daughters, x̂, fftPlan,
 end
 
 
-function actuallyTransform!(wave, daughters, x̂, rfftPlan, 
+function actuallyTransform!(wave, daughters, x̂, rfftPlan,
                             analytic::Union{<:Dog, <:ContOrtho})
     outer = axes(x̂)[2:end]
     n1 = size(x̂, 1)
@@ -184,7 +184,7 @@ end
 
 function cwt(Y::AbstractArray{T}, c::CWT{W}; varArgs...) where {T<:Number, S<:Real, V<: Real,
                                                                                         W<:WaveletBoundary}
-    daughters,ω = computeWavelets(size(Y, 1), c; varArgs...) 
+    daughters,ω = computeWavelets(size(Y, 1), c; varArgs...)
     return cwt(Y, c, daughters)
 end
 
@@ -244,13 +244,13 @@ caveats(Y::AbstractArray{T}) where T<:Real = caveats(Y,Morlet())
          dj::V=1/12) where {S<:Real, V<:Real, W<:WaveletBoundary}
     icwt(W::AbstractArray{T}, c::CWT{W}; dt::S=NaN, s0::S
          dj::V=1/12) where {T<:Real, S<:Real, V<:Real,
-                            W<:WaveletBoundary} 
+                            W<:WaveletBoundary}
 
 
 return the inverse continuous wavelet transform
 """
 function icwt(W::AbstractArray, c::CWT, sj::AbstractArray; dt::S=NaN,
-              dj::V=1/12) where {S<:Real, V<:Real} 
+              dj::V=1/12) where {S<:Real, V<:Real}
     if isnan(dt) || (dt<0)
         dt = 1
     end

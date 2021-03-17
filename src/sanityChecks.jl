@@ -1,21 +1,21 @@
 
 function testFourierDomainProperties(daughters, isAve)
     dMags = abs.(daughters)
-    lowAprxAnalyt = daughters[1,2]./maximum(dMags[:,2])
+    lowAprxAnalyt = daughters[1,2] ./ maximum(dMags[:,2])
     if abs(lowAprxAnalyt) >= .01
         @warn "the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully" lowAprxAnalyt
     end
-    highAprxAnalyt = abs.(daughters[end,end])./maximum(dMags[:,2])
+    highAprxAnalyt = abs.(daughters[end,end]) ./ maximum(dMags[:,2])
     if highAprxAnalyt >= .01
         @warn "the highest frequency wavelet has more than 1% its max at the end, so it may not be analytic. Think carefully" highAprxAnalyt
     end
 
     netWeight = sum(dMags, dims=2)
-    peakArgs = argmax(dMags[:, (isAve+1):end], dims=1)
-    peakFreqs = dMags[:,isAve+1:end][peakArgs] 
+    peakArgs = argmax(dMags[:, (isAve + 1):end], dims=1)
+    peakFreqs = dMags[:,isAve + 1:end][peakArgs]
     maxPeak = maximum(peakFreqs)
     minPeak = minimum(peakFreqs)
-    ratioOfCoverage = maxPeak/minPeak
+    ratioOfCoverage = maxPeak / minPeak
     if ratioOfCoverage > 5
         @warn "there are frequencies which are significantly more covered than others, with a ratio of" ratioOfCoverage
     end

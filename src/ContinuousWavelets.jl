@@ -9,7 +9,7 @@ using SpecialFunctions
 import Wavelets.wavelet, Wavelets.getNWavelets, Wavelets.computeWavelets,
    Wavelets.cwt # yo ho yo ho
 import Wavelets.WT.name, Wavelets.WT.name, Wavelets.WT.class,
-   Wavelets.WT.vanishingmoments 
+   Wavelets.WT.vanishingmoments
 
 export ContWave, CWT, cwt, icwt
 
@@ -28,7 +28,7 @@ export qmf, computeWavelets, getNWavelets
 
 """
     ContWave{Boundary,T}
-The abstract type encompassing the various types of wavelets implemented in 
+The abstract type encompassing the various types of wavelets implemented in
 the package. The abstract type has parameters `Boundary<:WaveletBoundary` and
 `T<:Number`, which gives the element output type. Each has both a constructor,
 and a default predefined entry. These
@@ -78,7 +78,7 @@ two. Alias of `padded`.
 """
 struct ZPBoundary <: WaveletBoundary end
 # constant padding
-#struct CPBoundary <: WaveletBoundary end
+# struct CPBoundary <: WaveletBoundary end
 # symmetric boundary (as in the DCTII)
 """
     SymBoundary() <: WaveletBoundary

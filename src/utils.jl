@@ -11,7 +11,7 @@ function getNWavelets(n1, c::CWT)
     isAve = (c.averagingLength > 0 && !(typeof(c.averagingType) <: NoAve)) ? 1 : 0
     if round(nOctaves) <= 0
         totalWavelets = isAve
-        sRanges = [1.0] 
+        sRanges = [1.0]
         sWidth = [1.0]
         return nOctaves, totalWavelets, sRanges, sWidth
     end
@@ -40,7 +40,7 @@ function getNOctaves(n1,c::CWT{W,T, <:Paul, N}) where {W, T, N}
 end
 
 function getNOctaves(n1,c::CWT{W,T, <:Dog, N}) where {W, T, N}
-    # choose the number of octaves so the last mean is 2.5 standard 
+    # choose the number of octaves so the last mean is 2.5 standard
     # deviations from the end
     nOctaves = log2(max(n1*2π/2.5/getStd(c), 2)) - c.averagingLength - 1
 end
@@ -52,7 +52,7 @@ end
 
 function varianceAdjust(this::CWT{W,T, M, N}, totalWavelets) where {W,T,N, M}
     # increases the width of the wavelets by σ[i] = (1+a(total-i)ᴾ)σₛ
-    # which is a polynomial of order p going from 1 at the highest frequency to 
+    # which is a polynomial of order p going from 1 at the highest frequency to
     # sqrt(p) at the lowest
     β = this.β
     a = (β^.8-1)/(totalWavelets-1)^β
@@ -65,7 +65,7 @@ function polySpacing(nOct, c)
     β = c.β
     Q = c.Q
     # x is the index, y is the scale
-    # y= b*x^(1/β), solve for a and b with 
+    # y= b*x^(1/β), solve for a and b with
     # (x₀,y₀)=(0,aveLength-1)
     # dy/dx = 1/s, so the Quality factor gives the slope at the last frequency
     b = (β/Q)^(1/β) * (O+a)^((β-1)/β)
@@ -76,7 +76,7 @@ function polySpacing(nOct, c)
     # step size so that there are actually Q wavelets in the last octave
     startOfLastOctave = ((nOct+a-1)/b)^β
     stepSize = (lastWavelet - startOfLastOctave)/Q
-    samplePoints = range(firstWavelet, stop=lastWavelet, 
+    samplePoints = range(firstWavelet, stop=lastWavelet,
                          step = stepSize)#, length = round(Int, O * Q^(1/p)))
     return b .* (samplePoints).^(1/β)
 end
@@ -87,7 +87,7 @@ function genSamplePoints(nOct, c)
     β = c.β
     Q = c.Q
     # x is the index, y is the scale
-    # y= b*x^(1/β), solve for a and b with 
+    # y= b*x^(1/β), solve for a and b with
     # (x₀,y₀)=(0,aveLength-1)
     # dy/dx = 1/s, so the Quality factor gives the slope at the last frequency
     b = (β/Q)^(1/β) * (O+a)^((β-1)/β)
@@ -141,7 +141,7 @@ end
 
 # this makes sure the averaging function is real and positive
 adjust(c::CWT) = 1
-adjust(c::CWT{W, T, <:Dog}) where {W,T} = 1/(im)^(c.α) 
+adjust(c::CWT{W, T, <:Dog}) where {W,T} = 1/(im)^(c.α)
 
 function locationShift(c::CWT{W, T, <:Morlet, N}, s, ω, sWidth) where {W,T,N}
         s0 = 3*c.σ[1]/4 *s*sWidth
@@ -149,11 +149,11 @@ function locationShift(c::CWT{W, T, <:Morlet, N}, s, ω, sWidth) where {W,T,N}
     return (s0, ω_shift)
 end
 
-function locationShift(c::CWT{W, T, <:Dog, N}, s, ω, sWidth) where {W,T,N}    
+function locationShift(c::CWT{W, T, <:Dog, N}, s, ω, sWidth) where {W,T,N}
     μNoS = getMean(c)
-    μLast = μNoS * (2s) 
-    s0 = μLast / 2 / getStd(c) 
-    μ = μNoS * s0 
+    μLast = μNoS * (2s)
+    s0 = μLast / 2 / getStd(c)
+    μ = μNoS * s0
     ω_shift = ω .+ μ
     return (s0, ω_shift)
 end
@@ -164,7 +164,7 @@ get the mean of the mother wavelet where s=1
 function getMean(c::CWT{W, T, <:Dog}) where {W,T}
     Gm1 = gamma((c.α+1)/2)
     Gm2 = gamma((c.α+2)/2)
-    Gm2 / Gm1 * sqrt(2)  
+    Gm2 / Gm1 * sqrt(2)
 end
 getMean(c::CWT{W,T,<:Paul}) where {W,T} = c.α+1
 
@@ -206,8 +206,8 @@ end
 
 """
     nIters, sigLength = calcDepth(w,N)
-given a `CWT` with an orthogonal wavelet type, calculate the depth `nIters` 
-necessary to get a resulting wavelet longer than `N`. `sigLength` is the 
+given a `CWT` with an orthogonal wavelet type, calculate the depth `nIters`
+necessary to get a resulting wavelet longer than `N`. `sigLength` is the
 resulting length.
 """
 function calcDepth(w, N)
