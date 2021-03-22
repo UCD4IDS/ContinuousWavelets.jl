@@ -6,8 +6,9 @@ using Logging
     # Write your tests here.
     include("basicTypesAndNumber.jl")
     include("deltaSpikes.jl")
+    include("defaultProperties.jl")
 end
-# TODO: test actual values, e.g. delta spike versus generating the wavelets
+# TODO:
 #       test averaging types
 #            various extra dimensions
 #            inverse is actually functional

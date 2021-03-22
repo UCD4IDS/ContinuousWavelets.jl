@@ -22,7 +22,7 @@ There are many parameters that go into designing a continuous wavelet transform.
   vector at the end to eliminate edge discontinuities.
 + `averagingType::Average=Father()`: determines whether or not to include the
   averaging function, and if so, what kind of averaging. The options are
-  - `Father`: use the averaging function that corresponds to the Mother Wavelet.
+  - `Father`: use the averaging function that corresponds to the mother Wavelet.
   - `Dirac`: use the sinc function with the appropriate width.
   - `NoAve`: don't average. this has one fewer filters than the other `averagingTypes`
 + `averagingLength::Int=4`:  the number of wavelet octaves that are

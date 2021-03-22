@@ -1,12 +1,12 @@
 """
-    daughter = Daughter(this::CWT{W, T, <:ContWaveClass, N},
+    daughter = mother(this::CWT{W, T, <:ContWaveClass, N},
                         s::Real, nInOctave::Int, ω::AbstractArray{<:Real,1}) where {W, T, N}
 
 given a CWT object, return a rescaled version of the mother wavelet, in the
 fourier domain. ω is the frequency, which is fftshift-ed. s is the scale
 variable.
 """
-function Mother(this::CWT{W,T,Morlet,N}, s::Real, sWidth::Real,
+function mother(this::CWT{W,T,Morlet,N}, s::Real, sWidth::Real,
                   ω::AbstractArray{<:Real,1}) where {W,T,N}
     constant = this.σ[3] * (π)^(1 / 4)
     gauss = exp.(-(this.σ[1] .- ω / s).^2 / (sWidth^2))
@@ -15,7 +15,7 @@ function Mother(this::CWT{W,T,Morlet,N}, s::Real, sWidth::Real,
     return normalize(daughter, s, this.p)
 end
 
-function Mother(this::CWT{W,T,<:Paul,N}, s::Real, sWidth::Real,
+function mother(this::CWT{W,T,<:Paul,N}, s::Real, sWidth::Real,
                   ω::AbstractArray{<:Real,1}) where {W,T,N}
     daughter = zeros(length(ω))
     constant = (2^this.α) / sqrt((this.α) * gamma(2 * (this.α)))
@@ -25,7 +25,7 @@ function Mother(this::CWT{W,T,<:Paul,N}, s::Real, sWidth::Real,
     return normalize(daughter, s, this.p)
 end
 
-function Mother(this::CWT{W,T,<:Dog,N}, s::Real, sWidth::Real,
+function mother(this::CWT{W,T,<:Dog,N}, s::Real, sWidth::Real,
                   ω::AbstractArray{<:Real,1}) where {W,T,N}
     constant = im^(this.α) / sqrt(gamma((this.α) + 1 / 2))
     polynomial = (ω / s).^(this.α)
@@ -34,9 +34,9 @@ function Mother(this::CWT{W,T,<:Dog,N}, s::Real, sWidth::Real,
     return normalize(daughter, s, this.p)
 end
 
-function Mother(this::CWT{W,T,<:ContOrtho,N}, s::Real, itpψ,
-                ω::AbstractArray{<:Real,1}, n) where {W,T,N}
-    daughter = itpψ(range(1, stop=length(itpψ), step=length(itpψ) / n * s))
+function mother(this::CWT{W,T,<:ContOrtho,N}, s::Real, itpψ,
+                ω::AbstractArray{<:Real,1}, n, n1) where {W,T,N}
+    daughter = itpψ(range(1, stop=length(itpψ), step=length(itpψ) / n1 * s))
     daughter = circshift(padTo(daughter, n), -round(Int, length(daughter) / 2))
     return daughter
 end
@@ -50,7 +50,7 @@ function normalize(daughter, s, p)
 end
 
 """
-    findAveraging(c::CWT, ω, averagingType::aT) where {aT<:Averaging}
+    father(c::CWT, ω, averagingType::aT) where {aT<:Averaging}
 
 this creates the averaging function, which covers the low frequency
 information, and is emphatically not analytic. aT determines whether it has the
@@ -73,23 +73,23 @@ will get the scale of the averaging function to be
 `s*gamma((c.α+2)/2)/sqrt(gamma((c.α+1)/2)*(gamma((c.α+3)/2)-gamma((c.α+2)/2)))`
 
 """
-function findAveraging(c::CWT, ω, averagingType::Father, sWidth)
-    s = 2^(c.averagingLength - 1)
+function father(c::CWT, ω, averagingType::Father, sWidth)
+    s = 2^(c.averagingLength + getMinScaling(c) - 1)
     s0, ω_shift = locationShift(c, s, ω, sWidth)
-    averaging = adjust(c) .* Mother(c, s0, 1, ω_shift)
+    averaging = adjust(c) .* mother(c, s0, 1, ω_shift)
 end
 
-function findAveraging(c::CWT{B,T,W}, ω, averagingType::Father,
-                       fullVersion, s, N) where {W <: ContOrtho,B,T}
+function father(c::CWT{B,T,W}, ω, averagingType::Father,
+                       fullVersion, s, N, n1) where {W <: ContOrtho,B,T}
     itp = genInterp(fullVersion)
 
     φ = itp(range(1, stop=length(fullVersion),
-                  step=length(fullVersion) / N * s))
+                  step=length(fullVersion) / n1 * s))
     φ = circshift(padTo(φ, N), -round(Int, length(φ) / 2))
 end
 
 # dirac version (that is, just a window around zero)
-function findAveraging(c::CWT{<:WaveletBoundary,T}, ω,
+function father(c::CWT{<:WaveletBoundary,T}, ω,
                        averagingType::Dirac, sWidth) where {T}
     s = 2^(c.averagingLength) * sWidth
     averaging = zeros(T, size(ω))
@@ -108,7 +108,7 @@ end
                                                                    W<:WaveletBoundary, V}
 just precomputes the wavelets used by transform c::CWT{W}. For details, see cwt
 """
-function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S <: Real,B <: WaveletBoundary,V,W,CT}
+function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, J1::Int64=-1, dt::S=NaN, s0::V=NaN, space=false) where {S <: Real,B <: WaveletBoundary,V,W,CT}
     # don't alter scaling with sampling information if it doesn't exists
     fλ = (4 * π) / (c.σ[1] + sqrt(2 + c.σ[1]^2))
     if isnan(dt) || (dt < 0)
@@ -127,26 +127,26 @@ function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, J1::Int64=-1, d
     # padding determines the actual number of elements
     n, nSpace = setn(n1, c)
     # indicates whether we should keep a spot for the father wavelet
-    isAve = (c.averagingLength > 0 && !(typeof(c.averagingType) <: NoAve)) ? 1 : 0
+    isAve = !(typeof(c.averagingType) <: NoAve)
     # I guess matlab did occasionally do something useful
 
-
-    ω, daughters = analyticOrNot(c, n, totalWavelets)
-
+    ω = computeOmega(n1, nSpace, n)
+    daughters = analyticOrNot(c, n, totalWavelets)
 
     # if the nOctaves is small enough there are none not covered by the
     # averaging, just use that
-    if round(nOctaves) <= 0
-        father = findAveraging(c, ω, c.averagingType, sWidth[1])
-        return father, ω
+    if totalWavelets == 1
+        @warn "an averaging length of $(c.averagingLength) results in fewer octaves than the minimum frequency $(getMinScaling(c)) for this wavelet type. Either decreasing the averagingLength or increase extraOctaves"
+        onlyFather = father(c, ω, c.averagingType, sWidth[1])
+        return onlyFather, ω
     end
 
     for (curWave, s) in enumerate(sRange)
-        daughters[:,curWave + isAve] = Mother(c, s, sWidth[curWave], ω)
+        daughters[:,curWave + isAve] = mother(c, s, sWidth[curWave], ω)
     end
-    if isAve > 0 # should we include the father?
+    if isAve # should we include the father?
         @debug "c = $(c), $(c.averagingType), size(ω)= $(size(ω))"
-        daughters[:, 1] = findAveraging(c, ω, c.averagingType, sWidth[1])# [1:(n1+1)]
+        daughters[:, 1] = father(c, ω, c.averagingType, sWidth[1])# [1:(n1+1)]
     end
 
     # adjust by the frame bound
@@ -154,47 +154,41 @@ function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, J1::Int64=-1, d
         daughters = daughters .* (c.frameBound / norm(daughters, 2))
     end
     testFourierDomainProperties(daughters, isAve)
-    return (daughters, ω)
+    if space
+        x = zeros(T, n1); x[ceil(Int, n1 / 2)] = 1
+        return cwt(x, c, daughters), ω
+    else
+        return (daughters, ω)
+    end
 end
 
-function computeWavelets(n1::Integer, c::CWT{B,CT,W};
-                         T=Float64, J1::Int64=-1, dt::S=NaN,
-                         s0::V=NaN) where {S <: Real,B <: WaveletBoundary,V,W <: ContOrtho,CT}
-    # don't alter scaling with sampling information if it doesn't exists
-    fλ = (4 * π) / (c.σ[1] + sqrt(2 + c.σ[1]^2))
-    if isnan(dt) || (dt < 0)
-        dt = 1
-    end
-    # smallest resolvable scale
-    if isnan(s0) || (s0 < 0)
-        s0 = 2 * dt / fλ
-    end
+function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, space=false) where {S <: Real,B <: WaveletBoundary,V,W <: ContOrtho,CT}
 
     # padding determines the actual number of elements
     n, nSpace = setn(n1, c)
     nOctaves, totalWavelets, sRange, sWidth = getNWavelets(n1, c)
     # indicates whether we should keep a spot for the father wavelet
-    isAve = (c.averagingLength > 0 && !(typeof(c.averagingType) <: NoAve)) ? 1 : 0
+    isAve = !(typeof(c.averagingType) <: NoAve)
     # I guess matlab did occasionally do something useful
 
 
-    ω, daughters = analyticOrNot(c, n, totalWavelets)
+    ω = computeOmega(n1, nSpace, n)
     daughters = zeros(nSpace, totalWavelets)
     φ, ψ, ψLen = getContWaveFromOrtho(c, nSpace)
     itpψ = genInterp(ψ)
     # if the nOctaves is small enough there are none not covered by the
     # averaging, so just use that
-    if round(nOctaves) <= 0
-        father = findAveraging(c, ω, c.averagingType, φ, c.averagingLength, nSpace)
-        return rfft(father, 1), ω
+    if totalWavelets == 1
+        onlyFather = father(c, ω, c.averagingType, φ, c.averagingLength, nSpace, n1)
+        return rfft(onlyFather, 1), ω
     end
 
     for (curWave, s) in enumerate(sRange)
-        daughters[:,curWave + isAve] = Mother(c, s, itpψ, ω, nSpace)
+        daughters[:,curWave + isAve] = mother(c, s, itpψ, ω, nSpace, n1)
     end
-    if isAve > 0 # should we include the father?
-        daughters[:, 1] = findAveraging(c, ω, c.averagingType, φ, sRange[1],
-                                        nSpace)
+    if isAve
+        daughters[:, 1] = father(c, ω, c.averagingType, φ, sRange[1],
+                                        nSpace, n1)
     end
     # switch to fourier domain and normalize appropriately
     daughters = rfft(daughters, 1)
@@ -210,12 +204,16 @@ function computeWavelets(n1::Integer, c::CWT{B,CT,W};
         daughters = daughters .* (c.frameBound / norm(daughters, 2))
     end
     testFourierDomainProperties(daughters, isAve)
-    return (daughters, ω)
+    if space
+        x = zeros(T, n1); x[ceil(Int, n1 / 2)] = 1
+        return cwt(x, c, daughters), ω
+    else
+        return (daughters, ω)
+    end
 end
 
 # not
 function analyticOrNot(c::CWT{W,T,<:Union{Dog,ContOrtho},N}, n, totalWavelets) where {W,T,N}
-    ω = (0:(n - 1)) * 2π
     # Odd derivatives (and any orthogonal wavelets) introduce an imaginary
     # term, so we need a complex representation
     if abs(c.α % 2) == 1
@@ -223,17 +221,17 @@ function analyticOrNot(c::CWT{W,T,<:Union{Dog,ContOrtho},N}, n, totalWavelets) w
     else
         daughters = zeros(T, n, totalWavelets)
     end
-    return (ω, daughters)
+    return daughters
 end
 
 function analyticOrNot(c::CWT{W,T,<:Union{Morlet,Paul},N}, n, totalWavelets) where {W,T,N}
-    ω = (0:(n - 1)) * 2π
     daughters = zeros(T, n, totalWavelets)
-    return (ω, daughters)
+    return daughters
 end
 
-
-
+function computeOmega(nOriginal, nSpace, nFreq)
+    range(0, nOriginal >> 1 + 1, length=nFreq) # max size is the last frequency in the rfft of the original data size
+end
 # convenience methods
 
 # it's ok to just hand the total size, even if we're not transforming across

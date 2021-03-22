@@ -1,6 +1,6 @@
 using ContinuousWavelets, LinearAlgebra, FFTW,Wavelets, Interpolations
 x = Wavelets.testfunction(n1, "Doppler"); plot(x)
-W = wavelet(ContOrtho(wavelet(WT.coif2)), averagingLength=3, 
+W = wavelet(ContOrtho(wavelet(WT.coif2)), averagingLength=3,
             β=2.0, normalization=2)
 res = ContinuousWavelets.cwt(x, W)
 
@@ -89,7 +89,7 @@ wavelet(Morlet())
 plot(ifftshift(irfft(daughtersMorl, n1, 1),1)[1:end, 2],legend=false)
 1200-750
 x = Wavelets.testfunction(n1, "Doppler"); plot(x)
-W = wavelet(ContOrtho(wavelet(WT.coif2)), averagingLength=3, 
+W = wavelet(ContOrtho(wavelet(WT.coif2)), averagingLength=3,
             β=2.0, normalization=2)
 x = zeros(n1); x[round(Int,n1/2)] = 1
 n1/2
@@ -201,3 +201,152 @@ W = irfft(Ŵ,length(ϕ),1)
 plot(W,legend=false)
 makewavelet()
 cVaid
+
+
+
+
+
+
+
+
+
+
+
+
+
+#plot(abs.(Ŵ))
+#plot(real.(Ŵ[:,:]),legend=false)
+# plot(real.(ifftshift(spaceWaves,1)[:,end]),legend=false)
+# plot(real.(ifftshift(spaceWaves,1)[:,2]),legend=false)
+# plot(imag.(ifftshift(spaceWaves,1)[:,2]),legend=false)
+# plot(abs.(ifftshift(spaceWaves,1)[:,1]),legend=false)
+# plot(abs.(ifftshift(spaceWaves,1)[:,2]),legend=false)
+s0 = 2^(wav.averagingLength + ContinuousWavelets.getMinScaling(wav) -1)
+sWidth = 1
+ContinuousWavelets.locationShift(wav,s0,ω,sWidth)
+ContinuousWavelets.adjust(wav)
+plot(ContinuousWavelets.Mother(wav, s0,1,ω))
+Ŵ
+ω
+using Plots
+plot(real.(Ŵ),legend=true)
+plot(irfft(Ŵ,2n,1))
+plot(real.(W)[:,2])
+size(W)
+size(Ŵ)
+plot(abs.(nonSupported)[:,10])
+plot(real.(spaceWaves[:,2]))
+plot(real.(supported)[:,1])
+norm(supported,Inf)
+heatmap(circshift(irfft(Ŵ,2*2039,1),(2039,0))[1019 .+ (1:2039),:]')
+plot(circshift(irfft(Ŵ,2*2039,1),(1019,0))[1019 .+ (1:2039),1])
+plot(circshift(irfft(Ŵ,2*2039,1),(1019,0))[1019 .+ (1:2039),2])
+plot(Ŵ[1:250,2])
+wav.σ[1]
+μ = wav.σ[1]
+wav.σ
+n1*2π/(μ+3)
+ContinuousWavelets.getStd(wav)
+x = zeros(n); x[1] = 1
+plot(real.(cwt(x,wav,Ŵ))[:,end])
+tmp = ContinuousWavelets.varianceAdjust(wav,71)
+log(tmp[1])/log(wav.β)
+wav.β
+nOctaves, totalWavelets, sRanges, sWidth = getNWavelets(n1,wav)
+sWidth
+sRanges
+2^(nOctaves)
+Ŵ,ω = computeWavelets(n,wav)
+ω
+ω[end] /n1
+wav = wavelet(Morlet(2π),averagingLength = 1, β=4, boundary=PerBoundary())
+β=4
+s0 = 1
+δt = 1000
+ω = range(0, 2π*(n1-1)/δt, length=(2n)>>1+1)
+ω = range(0, (n1>>1)-1, length=(2n)>>1+1)
+ω = 0:(2n)>>1
+ω
+log2(n1>>1/(μ+4σ))
+plot(abs.(ContinuousWavelets.Mother(wav,n1>>1/(μ+4σ),1.0,ω)))
+plot(abs.(ContinuousWavelets.Mother(wav,n1>>1/(μ+4σ),1.0,ω)))
+k = 1093; wav = wavelet(paul6,averagingLength=1,β=1)
+k = 1093; wav = wavelet(dog4,averagingLength=1,β=1)
+typeof(dog4)
+wav.α
+s0=6/β^.8
+plot(ifftshift(real.(ifft([(ContinuousWavelets.Mother(wav,s0,β^.8,ω)); zeros((2n)>>1-1)]))))
+ma = ifftshift(real.(ifft([(ContinuousWavelets.Mother(wav,s0,β^.8,ω)); zeros((2n)>>1-1)])))
+ma[1093]/maximum(ma)
+ma = ifftshift(real.(irfft(ContinuousWavelets.Mother(wav,s0,β^.8,ω),2n)))
+plot(ma)
+ma[1093]/maximum(ma)
+plot(abs.(ifftshift(ifft([exp.(-(1000 .- ω).^2); zeros(n-1)]))))
+n1>>1/(μ+4σ)
+plot(real.(irfft((ContinuousWavelets.Mother(wav,n1>>1/(μ+4σ),1.0,ω)),2n)),xlabel="Hz")
+plot(abs.(ContinuousWavelets.Mother(wav,n1>>1/(μ+4σ),1.0,ω)),xlabel="Hz")
+plot(ifftshift(irfft((ContinuousWavelets.Mother(wav,n1>>1/(μ+4σ),1.0,ω)),2n))[2700:2300])
+tmp = zeros(n>>1+1); tmp[20]=1; plot!(irfft(tmp,n)[1:2:end])
+tmp2 = zeros(510+1); tmp2[11]=1; plot(irfft(tmp2,1020))
+tmp = zeros(2040>>1+1); tmp[21]=1; plot!(irfft(tmp,2040))
+plot(plot(real.(rfft(irfft(tmp,n)[1:2:end]))), plot(real.(rfft(irfft(tmp,n)))), layout=(2,1))
+rfft(irfft(tmp,n)[1:2:end])
+2*(1000/n)
+
+2π * (0:n/2) / n * 1000
+length((0:(2n - 1)) * 2π)
+size(ω)
+length(range(0,2π*n,length=2n-1))
+n
+range(0,2π*(n>>1),length=n) # original length (positive only)
+
+
+
+wave = paul2; bc = SymBoundary(); β = 1; n = 2039; ave = 1
+i=6
+for i=2:5
+    wave = Paul{i}()
+    wav = wavelet(wave, β=β,boundary=bc,averagingLength = ave)
+    s0 = 16/(2wav.α+1)
+    tmp = abs.(ifftshift(ifft([ContinuousWavelets.Mother(wav, s0,1,ω); zeros(n-1)],1)))
+    plot!(tmp,label="$i, $(round(tmp[1019]/maximum(tmp),sigdigits=3))")
+end
+wave = Paul{1}()
+wav = wavelet(wave, β=β,boundary=bc,averagingLength = ave)
+s0 = 16/(2wav.α+1)
+tmp = abs.(ifftshift(ifft([ContinuousWavelets.Mother(wav, s0,1,ω); zeros(n-1)],1)))
+plot(tmp,label="1, $(round(tmp[1019]/maximum(tmp),sigdigits=3))")
+
+
+
+
+
+# sWidth broken at this size and end too close
+plot(ifftshift(spaceWaves[:,end])[2000:2200])
+plot(ifftshift(spaceWaves[:,end])[2000:2200])
+i=2; plot([real.(ifftshift(spaceWaves[:,i])) imag.(ifftshift(spaceWaves[:,i]))])
+plot([real.(ifftshift(spaceWaves[:,2]))[1019:1019+2039] imag.(ifftshift(spaceWaves[:,2]))[1019:1019+2039]])
+plot(real.(ifftshift(spaceWaves[:,2])))
+plot(.(ifftshift(spaceWaves[:,2])))
+plot(supported[:,2])
+plot(ifftshift(spaceWaves[:,1:2],1))
+plot(abs.(Ŵ), legend=false)
+mother(wav, )
+father(wav,ω, wav.averagingType,1)
+sWidth
+ω
+n = ns[2]
+wav = wavelet(wave, β=β, boundary=bc, averagingLength = -3)
+ContinuousWavelets.getMinScaling(wav)
+nOct, T, sRange, sWidth=ContinuousWavelets.getNWavelets(n, wav)
+nOct, T, sRange, sWidth=ContinuousWavelets.getNWavelets(n, wav); sWidth
+ContinuousWavelets.varianceAdjust(wav, T, nOct)
+β^.8
+β^.1
+β^(nOct/(nOct+1))
+f(t) = t^3/(t^3+5t+15); f(3), f(6)
+f(t) = exp(t)/(100+exp(t)); f(3), f(6)
+nOct
+7*.2/.8
+T
+sRange

@@ -9,8 +9,8 @@ struct CWT{B,S,W <: ContWaveClass,N} <: ContWave{B,S}
     σ::Array{S} # the morlet wavelet parameters
                             # (σ,κσ,cσ). NaN if not morlet.
     waveType::W        # because multiple dispatch is good TODO this is actually redundant, make a function called waveType that extracts this from above
-    averagingLength::Int # the number of scales to override with averaging. If
-                         # you want no averaging set it to zero
+    extraOctaves::S # adjust the last frequency used, in case you need frequencies beyond where the wavelets are well defined.
+    averagingLength::S   # the number of scales to override with averaging.
     averagingType::Average # either Dirac or mother; the first uniformly
                              # represents the lowest frequency information,
                              # while the second constructs
@@ -58,16 +58,16 @@ end
 """
 function CWT(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
              averagingType::A=Father(),
-             averagingLength::Int=4,
+             averagingLength::Real=1,
              frameBound=1, p::N=Inf,
-             β=4, kwargs...) where {WC <: ContWaveClass,A <: Average,T <: WaveletBoundary,N <: Real}
+             β=4; extraOctaves=0, kwargs...) where {WC <: ContWaveClass,A <: Average,T <: WaveletBoundary,N <: Real}
     Q, β, p = processKeywordArgs(Q, β, p; kwargs...) # some names are redundant
     @assert β > 0
     @assert p >= 1
     nameWavelet = name(wave)[1:3]
     tdef = calculateProperties(wave)
 
-    if averagingLength <= 0 || typeof(averagingType) <: NoAve
+    if typeof(averagingType) <: NoAve
         averagingLength = 0
         averagingType = NoAve()
     end
@@ -76,7 +76,7 @@ function CWT(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
     S = promote_type(typeof(Q), typeof(β),
                      typeof(frameBound), typeof(p),
                      typeof(tdef[1]), typeof(tdef[2]))
-    return CWT{T,S,WC,N}(S(Q), S(β), tdef...,
+    return CWT{T,S,WC,N}(S(Q), S(β), tdef..., S(extraOctaves),
                             averagingLength, averagingType, S(frameBound),
                             S(p))
 end
@@ -127,7 +127,7 @@ end
 
 function Base.show(io::IO, cf::CWT{W,S,WT,N}) where {W,S,WT,N}
     print("CWT{$(cf.waveType), $(cf.averagingType), Q=$(cf.Q), β=$(cf.β)," *
-          "aveLen=$(cf.averagingLength), frame=" * "$(cf.frameBound), norm=$(cf.p)}")
+          "aveLen=$(cf.averagingLength), frame=" * "$(cf.frameBound), norm=$(cf.p), extraOctaves=$(cf.extraOctaves)}")
 end
 
 
@@ -140,9 +140,9 @@ wavelet(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
 A constructor for the CWT type, using keyword rather than positional options.
 """
 function wavelet(wave::WC; Q=8, boundary::T=DEFAULT_BOUNDARY,
-                 averagingType::A=Father(), averagingLength::Int=4,
+                 averagingType::A=Father(), averagingLength::Real=1,
                  frameBound=1, p::N=Inf, β=4,
                  kwargs...) where {WC <: ContWaveClass,A <: Average,T <: WaveletBoundary,N <: Real}
     return CWT(wave, Q, boundary, averagingType, averagingLength, frameBound,
-               p, β, kwargs...)
+               p, β; kwargs...)
 end

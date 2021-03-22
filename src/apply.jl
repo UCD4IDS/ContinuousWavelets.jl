@@ -14,12 +14,13 @@
   `wave`, is (signalLength)×(nscales+1)×(previous dimensions), of type T of
   Y. averagingLength defines the number of octaves (powers of 2) that are
   replaced by an averaging function. This has form averagingType, which can be
-  one of `Mother()` or `Dirac()`- in the `Mother()` case, it uses the same form
+  one of `Father()` or `Dirac()`- in the `Father()` case, it uses the same form
   as for the wavelets, while the `Dirac` uses a constant window. J1 is the
   total number of scales; default (when J1=NaN, or is negative) is just under
   the maximum possible number, i.e. the log base 2 of the length of the signal,
   times the number of wavelets per octave. If you have sampling information,
   you will need to scale wave by δt^(1/2).
+  The default assumption is that the sampling rate is 1/2π s.
 
   """
 function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::AbstractFFTs.Plan =
@@ -75,9 +76,7 @@ function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::Abs
 end
 
 
-function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan =
-             plan_rfft([1])) where {N, T<:Real, S<:Real, U<:Number,
-                                    W<:WaveletBoundary, WaTy<:Union{<:ContOrtho, Dog}}
+function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan = plan_rfft([1])) where {N, T<:Real, S<:Real, U<:Number, W<:WaveletBoundary, WaTy<:Union{<:ContOrtho, Dog}}
     # Dog doesn't need a fft because it is strictly real
     # TODO: complex input version of this
     @assert typeof(N)<:Integer
@@ -194,7 +193,7 @@ period,scale, coi = caveats(Y::AbstractArray{T}, c::CWT{W}; J1::S=NaN) where {T<
 
 returns the period, the scales, and the cone of influence for the given wavelet transform. If you have sampling information, you will need to scale the vector scale appropriately by 1/δt, and the actual transform by δt^(1/2).
 """
-function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Real, W<:WaveletBoundary, V <: Real}
+function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=1/1000, s0::V=NaN) where {S<:Real, W<:WaveletBoundary, V <: Real}
     # don't alter scaling with sampling information if it doesn't exists
     fλ = (4*π) / (c.σ[1] + sqrt(2 + c.σ[1]^2))
     if isnan(dt) || (dt<0)
@@ -258,7 +257,7 @@ function icwt(W::AbstractArray, c::CWT, sj::AbstractArray; dt::S=NaN,
     # Torrence and Compo (1998), eq. (11)
     n,nSpace = setn(size(W,1), c)
     ω = (0:(n-1))*2π
-    ψ = Mother(c, 1, 1, ω)[1:(end-1)]
+    ψ = mother(c, 1, 1, ω)[1:(end-1)]
     iW = (dj * sqrt(dt) / 0.776 * psi(c,0)) .* sum((real.(W) ./ sqrt.(sj')), dims=2)
 
     return iW
