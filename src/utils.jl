@@ -204,6 +204,15 @@ function getUpperBound(c::CWT{W, T, <:Paul, N}, s) where {W,T,N}
     return (c.α + 1) * s
 end
 
+"""
+    arrayOfFreqs = getMeanFreq(Ŵ, δt=1000)
+Calculate each of the mean frequencies of a collection of analytic or real wavelets Ŵ. assumes a sampling rate of 2kHz, so the maximum frequency is 1kHz. Change δt to adjust to your problem.
+"""
+function getMeanFreq(Ŵ, δt=2000)
+    eachNorm = [norm(w,1) for w in eachslice(Ŵ,dims=ndims(Ŵ))]'
+    freqs = range(0,δt/2, length= size(Ŵ,1))
+    dropdims(sum(freqs .* abs.(Ŵ), dims=1) ./ eachNorm,dims=1)
+end
 
 
 # orthogonal wavelet utils

@@ -1,4 +1,4 @@
-#wave = cwts[5]; bc = bcs[3]; β=βs[1]; ave = averagingLengths[5]; n = ns[1]
+#wave = cwts[5]; bc = bcs[3]; β=βs[1]; ave = averagingLengths[1]; n = ns[1]
 @testset "Wavelet properties" begin
     bcs =(PerBoundary(),SymBoundary(), ZPBoundary())
     cwts = (cDb2,dog1,dog2,paul1,morl)

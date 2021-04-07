@@ -11,6 +11,7 @@ the scaling rate, or the boundary conditions. Finally, you perform the actual
 transform with`cwt`.
 
 ```@example basicEx
+ENV["GKSwstype"] = "null"; #hide
 using Plots; gr()#hide
 Plots.reset_defaults()#hide
 using ContinuousWavelets, Plots, Wavelets, FFTW

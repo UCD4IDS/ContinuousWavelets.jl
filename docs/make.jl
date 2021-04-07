@@ -1,7 +1,7 @@
 using Documenter, ContinuousWavelets
-
+ENV["GKSwstype"] = "100"
 makedocs(sitename="ContinuousWavelets.jl",
-         pages = [
+         pages=[
              "basic usage" => "index.md",
              "Install" => "installation.md",
              "CWT" => [
@@ -13,5 +13,5 @@ makedocs(sitename="ContinuousWavelets.jl",
          ])
 
 deploydocs(
-    repo = "github.com/dsweber2/ContinuousWavelets.jl.git",
+    repo="github.com/dsweber2/ContinuousWavelets.jl.git",
 )
