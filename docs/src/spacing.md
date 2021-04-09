@@ -7,31 +7,27 @@ of the chosen scaling factors in log frequency.
 
 ```@setup waves
 using ContinuousWavelets, Plots, Wavelets, FFTW, LaTeXStrings, Logging
-using Plots; gr()
-Plots.reset_defaults()
+using Plots; gr();
+Plots.reset_defaults();
 global_logger(Logging.SimpleLogger(stderr,Logging.Error))
 dRate = 4
 waveType = Morlet()
 Ψ1 = wavelet(waveType, s=8, β =dRate, averagingLength=2)
+# sketch of how the frequencies are chosen
 pyplot()
 locs = ContinuousWavelets.polySpacing(8,Ψ1);
-scatter(1:length(locs), locs, legend=:bottomright, label="mean log frequency",
-        xlabel="Wavelet Index (x)", ylabel= "log-Frequency (y)", color=:black)
-scatter!(length(locs):length(locs),locs[end:end],markersize=10,markershape=:x,color=:black, label=:none)
-firstW, lastW,stepS = ContinuousWavelets.genSamplePoints(8,Ψ1)
+#Figure 3.1
+scatter(1:length(locs), locs, legend=:bottomright, label="mean log frequency", xlabel="Wavelet Index (x)", ylabel= "log-Frequency (y)", color=:black)
+scatter!(length(locs):length(locs), locs[end:end], markersize=10, markershape=:x, color=:black, label=:none)
+firstW, lastW, stepS = ContinuousWavelets.genSamplePoints(8,Ψ1)
 b = (dRate/Ψ1.Q)^(1 ./dRate)*(8+Ψ1.averagingLength)^((dRate-1)/dRate)
 t= range(1,stop=length(locs),step=.1)
 curve = b .*(range(firstW,stop=(locs[end]/b)^dRate,length=length(t))).^(1 / dRate)
-plot!(t, curve, color=:blue, line=:dash, label=L"y=a(mx+x_0)^{^1/_\beta}",
-      legend=:bottomright,
-      xrange=(0,length(locs)+3), xticks= [1; 5:5:1+length(locs)...],
-      yrange=(minimum(locs)-1, maximum(locs)+1),
-      yticks=(2:2:10,["Ave.Length", (4:2:8)..., "N.Octaves"]));
+plot!(t, curve, color=:blue, line=:dash, label=L"y=a(mx+x_0)^{^1/_\beta}", legend=:bottomright, legendfontsize=12, xrange=(0,length(locs)+3), xticks= [1; 5:5:1+length(locs)...], yrange=(minimum(locs)-1, maximum(locs)+1), yticks=(range(floor(Int,minimum(locs)), ceil(Int,maximum(locs)),step=2),[L"\alpha", (4:2:8)..., "N.Octaves"]))
 x = range(15, stop=28, step=.5)
-y(x)= curve[end] .+ b/dRate*24 .^(1/dRate-1).*(x .-24)
-plot!(x, y(x), c=:black,line=2,label=:none);
-annotate!(length(locs)-.125, locs[end]+7/16, 
-          Plots.text(L"\frac{dy}{dx}=^{1}/_{Q}", 9, :black, :center));
+ycord(x)= locs[end] .+ b/dRate*24 .^(1/dRate-1).*(x .-length(locs))
+plot!(x, ycord(x), c=:black,line=2,label=:none)
+annotate!(length(locs)-1/8, locs[end]+7.5/16, Plots.text(L"\frac{dy}{dx}=^{1}/_{Q}", 11, :black, :center))
 savefig("plotOfLogCentralFrequencies.svg")
 ```
 ![](plotOfLogCentralFrequencies.svg)
@@ -60,6 +56,7 @@ chosen so that:
 If you are interested in the exact computation, see the function `polySpacing`.
 As some examples of how the wavelet bank changes as we change $\beta$:
 ```@example waves
+
 n=2047
 Ψ1 = wavelet(morl, s=8, β=1)
 d1, ξ = computeWavelets(n,Ψ1)
@@ -67,22 +64,8 @@ d1, ξ = computeWavelets(n,Ψ1)
 d2, ξ = Wavelets.computeWavelets(n,Ψ2)
 Ψ4 = wavelet(morl, s=8, β =4)
 d4, ξ = Wavelets.computeWavelets(n,Ψ4)
-matchingLimits = (minimum([d1 d2 d4]), maximum([d1 d2 d4]))# for 
-plot(heatmap(1:size(d1,2), ξ, d1, color=:Greys, 
-             yaxis = (L"\omega", ), 
-             xaxis = ("wavelet index", ),
-             title=L"\beta=1"*" ("*L"\Psi1"*")", colorbar=false,
-             clims=matchingLimits),
-     heatmap(1:size(d2,2), ξ, d2, color=:Greys, 
-             yticks=[], 
-             xaxis = ("wavelet index", ),
-             title=L"\beta=2"*" ("*L"\Psi2"*")", colorbar=false,
-             clims=matchingLimits), 
-     heatmap(1:size(d4,2), ξ, d4,color=:Greys, yticks=[],
-             xaxis = ("wavelet index", ),
-             title=L"\beta=4"*" ("*L"\Psi4"*")"),
-     layout=(1,3),  clims=matchingLimits, 
-     colorbar_title=L"\widehat{\psi_i}");#hide
+matchingLimits = (minimum([d1 d2 d4]), maximum([d1 d2 d4]))#hide 
+plot(heatmap(1:size(d1,2), ξ, d1, color=:Greys, yaxis = (L"\omega", ), xaxis = ("wavelet index", ), title=L"\beta=1"*" ("*L"\Psi1"*")", colorbar=false, clims=matchingLimits),  heatmap(1:size(d2,2), ξ, d2, color=:Greys, yticks=[], xaxis = ("wavelet index", ), title=L"\beta=2"*" ("*L"\Psi2"*")", colorbar=false, clims=matchingLimits),  heatmap(1:size(d4,2), ξ, d4,color=:Greys, yticks=[], xaxis = ("wavelet index", ), title=L"\beta=4"*" ("*L"\Psi4"*")"), layout=(1,3), clims=matchingLimits, colorbar_title=L"\widehat{\psi_i}");#hide
 savefig("changeBeta.png") #hide
 ```
 ![](changeBeta.png)
