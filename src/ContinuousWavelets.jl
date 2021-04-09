@@ -6,8 +6,7 @@ using FFTW
 using LinearAlgebra
 using SpecialFunctions
 
-import Wavelets.wavelet, Wavelets.getNWavelets, Wavelets.computeWavelets,
-   Wavelets.cwt # yo ho yo ho
+import Wavelets.wavelet, Wavelets.computeWavelets, Wavelets.cwt # yo ho yo ho
 import Wavelets.WT.name, Wavelets.WT.name, Wavelets.WT.class,
    Wavelets.WT.vanishingmoments
 

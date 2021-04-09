@@ -32,21 +32,17 @@
         # make sure the wavelets don't have significant support out into the mirrored signal
         if !(bc isa PerBoundary) && !(wave isa Paul) && size(Ŵ,2) > 1
             @test max([norm(nonSupported[:,i],Inf) / norm(supported[:,i],Inf) for i = 2:size(spaceWaves,2)]...) ≤ 1e-2
-            #println("boundary value: $wave, $n, $bc, $β, $ave, $(max([norm(nonSupported[:,i],Inf) / norm(supported[:,i],Inf) for i = 2:size(spaceWaves,2)]...))")
         elseif wave isa Paul && size(Ŵ,2) > 1 # the Paul wavelet decay is just too slow to avoid bleedover, so best to ignore the averaging size
             @test max([norm(nonSupported[:,i],Inf) / norm(supported[:,i],Inf) for i = 2:size(spaceWaves,2)]...) ≤ 1e-1
-            #println("boundary value: $wave, $n, $bc, $β, $ave, $(max([norm(nonSupported[:,i],Inf) / norm(supported[:,i],Inf) for i = 2:size(spaceWaves,2)]...))")
         end
         # if the averaging length is 0 and its only averaging at the sizes given, something is wrong
         @test size(Ŵ,2)>1 || ave>0
         if !(wave isa ContOrtho) && size(Ŵ,2) > 1 && !(wave isa Paul{1})
             # the last wavelet hasn't been subsampled beyond recognition.
             @test max(abs.(Ŵ[end, :])...)  / norm(supported,Inf) ≤ 1e-3
-            #println("high freq value: $wave, $n, $bc, $β, $ave, $(max(abs.(Ŵ[end, :])...)  / norm(supported,Inf))")
         elseif !(wave isa ContOrtho) && size(Ŵ,2) > 1
             # paul wavelets decay slowly, so are given a much weaker threshold
             @test max(abs.(Ŵ[end, :])...)  / norm(supported,Inf) ≤ 1e-1
-            #println("high freq value: $wave, $n, $bc, $β, $ave, $(max(abs.(Ŵ[end, :])...)  / norm(supported,Inf))")
         end
     end
 end

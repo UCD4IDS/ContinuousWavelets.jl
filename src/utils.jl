@@ -38,8 +38,8 @@ function getNOctaves(n1,c::CWT{W,T, <:Dog, N}) where {W, T, N}
     σ = getStd(c)
     log2(n1>>1/(μ+5σ)) + c.extraOctaves
 end
-# choose the number of octaves so the smallest support is still 16
-getNOctaves(n1,c::CWT{W,T, <:ContOrtho, N}) where {W, T, N} = log2(n1) - 2 + c.extraOctaves
+# choose the number of octaves so the smallest support is twice the qmf
+getNOctaves(n1,c::CWT{W,T, <:ContOrtho, N}) where {W, T, N} = log2(n1) - 2 - log2(length(qmf(c.waveType))) + c.extraOctaves
 
 """
 As with the last octave, different wavelet families have different space decay rates, and in the case of symmetric or zero padding we don't want wavelets that bleed across the boundary from the center.
@@ -92,26 +92,33 @@ function polySpacing(nOct, c)
     stepSize = (lastWavelet - startOfLastOctave)/Q
     samplePoints = range(firstWavelet, stop=lastWavelet,
                          step = stepSize)#, length = round(Int, O * Q^(1/p)))
-    # println(b .* (samplePoints).^(1/β))
     return b .* (samplePoints).^(1/β)
 end
 
 # a utility to just get the start, stop, and step size used in polySpacing. Only used for explanatory purposes
 function genSamplePoints(nOct, c)
-    a =c.averagingLength; O = nOct
+    a = getMinScaling(c) + c.averagingLength
+    O = nOct
     β = c.β
     Q = c.Q
+    if O ≤ a
+        # averagingLength and the min scaling are too large for anything to be done
+        return [1.0]
+    elseif 0 < O - a ≤ 1
+        # there's only one octave, just return the linear rate of Q
+        return range(a, O, length=1+round(Int, Q))
+    end
     # x is the index, y is the scale
     # y= b*x^(1/β), solve for a and b with
-    # (x₀,y₀)=(0,aveLength-1)
+    # (x₀,y₀)=(1, aveLength + minScale)
     # dy/dx = 1/s, so the Quality factor gives the slope at the last frequency
-    b = (β/Q)^(1/β) * (O+a)^((β-1)/β)
+    b = (β/Q)^(1/β) * (O)^((β-1)/β)
     # the point x so that the second condition holds
-    lastWavelet = Q * (O+a)/β
+    lastWavelet = Q * (O)/β
     # the point so that the first wavelet is at a
     firstWavelet = (a/b)^β
     # step size so that there are actually Q wavelets in the last octave
-    startOfLastOctave = ((nOct+a-1)/b)^β
+    startOfLastOctave = ((nOct-1)/b)^β
     stepSize = (lastWavelet - startOfLastOctave)/Q
     firstWavelet, lastWavelet, stepSize
 end
