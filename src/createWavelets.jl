@@ -37,7 +37,8 @@ end
 function mother(this::CWT{W,T,<:ContOrtho,N}, s::Real, itpψ,
                 ω::AbstractArray{<:Real,1}, n, n1) where {W,T,N}
     daughter = itpψ(range(1, stop=length(itpψ), step=length(itpψ) / n1 * s))
-    daughter = circshift(padTo(daughter, n), -round(Int, length(daughter) / 2))
+    daughter = padTo(daughter, n)
+    daughter = circshift(daughter, -round(Int, length(daughter) / 2))
     return daughter
 end
 function normalize(daughter, s, p)

@@ -20,7 +20,7 @@
   the maximum possible number, i.e. the log base 2 of the length of the signal,
   times the number of wavelets per octave. If you have sampling information,
   you will need to scale wave by δt^(1/2).
-  The default assumption is that the sampling rate is 1/2π s.
+  The default assumption is that the sampling rate is 1kHz.
 
   """
 function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::AbstractFFTs.Plan =

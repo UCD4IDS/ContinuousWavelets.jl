@@ -250,8 +250,19 @@ function calcDepth(w, N)
 end
 # the actual length calculator, as this is recursive
 nextLength(curr,orig) = curr*2 + orig - 1 # upsample then convolve
-# pad a vector `v` to have length `N`
-padTo(v, N) = cat(v, zeros(eltype(v), max(N-length(v),0)), dims = 1)
+# pad a vector `v` to have length `N`. Or chop off from both sides if its too long
+function padTo(v, N)
+    nDiff = N - length(v)
+    if nDiff > 0 # there should be more entries than there are
+        cat(v, zeros(eltype(v), max(N-length(v),0)), dims = 1)
+    elseif nDiff ==0
+        return v
+    else # there are too many, so chop off half the difference from each side
+       inds = ceil(Int, 1-nDiff/2):length(v)+ceil(Int,nDiff/2)
+       return v[inds]
+    end
+end
+
 
 # create interpolater for the orthogonal cases
 genInterp(ψ) = interpolate(ψ, BSpline(Quadratic(Reflect(OnGrid()))))
