@@ -1,6 +1,11 @@
-struct CWT{B,S,W <: ContWaveClass,N} <: ContWave{B,S}
-    Q::S # the number of wavelets per octave, ie the scaling
-                           # is s=2^(j/scalingfactor)
+# the parameters are:
+#   B Boundary condition
+#   S Storage data type
+#   W ContWaveClass
+#   N the type of value of the normalization
+#   isAn boolean for whether this is an analytic transform or not
+struct CWT{B,S,W <: ContWaveClass,N,isAn} <: ContWave{B,S}
+    Q::S # the number of wavelets per octave, ie the scaling is s=2^(j/scalingfactor)
     β::S # the amount that Q decreases per octave
     fourierFactor::S
     coi::S
@@ -56,11 +61,11 @@ end
         β=4) where {WC<:ContWaveClass, A <: Average,
                     T <: WaveletBoundary, N <: Real}
 """
-function CWT(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
+function CWT(wave::WC, Q=8, boundary::B=DEFAULT_BOUNDARY,
              averagingType::A=Father(),
              averagingLength::Real=1,
              frameBound=1, p::N=Inf,
-             β=4; extraOctaves=0, kwargs...) where {WC <: ContWaveClass,A <: Average,T <: WaveletBoundary,N <: Real}
+             β=4; extraOctaves=0, kwargs...) where {WC <: ContWaveClass,A <: Average,B <: WaveletBoundary,N <: Real}
     Q, β, p = processKeywordArgs(Q, β, p; kwargs...) # some names are redundant
     @assert β > 0
     @assert p >= 1
@@ -76,8 +81,8 @@ function CWT(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
     S = promote_type(typeof(Q), typeof(β),
                      typeof(frameBound), typeof(p),
                      typeof(tdef[1]), typeof(tdef[2]))
-    return CWT{T,S,WC,N}(S(Q), S(β), tdef..., S(extraOctaves),
-                            averagingLength, averagingType, S(frameBound),
+    return CWT{B,S,WC,N,isAnalytic(wave)}(S(Q), S(β), tdef..., S(extraOctaves),
+                            S(averagingLength), averagingType, S(frameBound),
                             S(p))
 end
 function calculateProperties(w::Morlet)

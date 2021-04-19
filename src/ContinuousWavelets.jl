@@ -23,7 +23,7 @@ export Average, Dirac, Father, NoAve
 # CWT constructors
 export wavelet, waveletType
 # general utilities
-export qmf, computeWavelets, getNWavelets, mother, father, getMeanFreq
+export qmf, computeWavelets, getNWavelets, mother, father, getMeanFreq, isAnalytic
 
 """
     ContWave{Boundary,T}

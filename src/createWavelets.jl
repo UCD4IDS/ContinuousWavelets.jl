@@ -119,10 +119,6 @@ function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, J1::Int64=-1, d
     if isnan(s0) || (s0 < 0)
         s0 = 2 * dt / fλ
     end
-    # J1 is the total number of scales
-    # if J1<0
-    #     J1 = Int(round(log2(n1 * dt / s0) * c.Q))
-    # end
 
     nOctaves, totalWavelets, sRange, sWidth = getNWavelets(n1, c)
     # padding determines the actual number of elements

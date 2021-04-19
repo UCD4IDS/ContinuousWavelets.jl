@@ -25,18 +25,18 @@ end
 
 
 """
-different wavelet familes need to end at a different number of octaves because they have different
+different wavelet familes need to end at a different number of octaves because they have different tail behavior
 """
 getNOctaves(n1,c::CWT{W,T, M, N}) where {W, T, N, M} = log2(n1>>1+1) + c.extraOctaves
 # choose the number of octaves so the last mean, which is at s*σ[1]
 # is 3 standard devations away from the end
 getNOctaves(n1,c::CWT{W,T, Morlet, N}) where {W, T, N} = log2((n1>>1+1)/(c.σ[1]+3)) + c.extraOctaves
 getNOctaves(n1,c::CWT{W,T, <:Paul, N}) where {W, T, N} = log2((n1>>1+1)/(2c.α+5)) + c.extraOctaves
-# choose the number of octaves so the last mean is 2 standard deviations from the end
+# choose the number of octaves so the last mean is 4 standard deviations from the end
 function getNOctaves(n1,c::CWT{W,T, <:Dog, N}) where {W, T, N}
     μ = getMean(c)
     σ = getStd(c)
-    log2(n1>>1/(μ+5σ)) + c.extraOctaves
+    log2(n1>>1/(μ+4σ)) + c.extraOctaves
 end
 # choose the number of octaves so the smallest support is twice the qmf
 getNOctaves(n1,c::CWT{W,T, <:ContOrtho, N}) where {W, T, N} = log2(n1) - 2 - log2(length(qmf(c.waveType))) + c.extraOctaves
@@ -129,7 +129,7 @@ adjust the length of the storage based on the boundary conditions
 """
 function setn(n1, c)
     if boundaryType(c) <: ZPBoundary
-        base2 = ceil(Int,log2(n1 + 1));   # power of 2 nearest to n1
+        base2 = ceil(Int,log2(n1));   # power of 2 nearest to n1
         nSpace = 2^(base2)
         n = nSpace>>1 + 1
     elseif boundaryType(c) <: SymBoundary
@@ -158,7 +158,7 @@ adjust(c::CWT) = 1
 adjust(c::CWT{W, T, <:Dog}) where {W,T} = 1/(im)^(c.α)
 
 function locationShift(c::CWT{W, T, <:Morlet, N}, s, ω, sWidth) where {W,T,N}
-        s0 = 3*c.σ[1]/4 *s*sWidth
+        s0 = 3*c.σ[1] *s*sWidth
         ω_shift = ω .+ c.σ[1] * s0
     return (s0, ω_shift)
 end
