@@ -28,3 +28,20 @@ function testFourierDomainProperties(daughters, isAve)
         @warn "there are wavelets whose peaks are far enough apart that the trough between them is less than half the height of the highest frequency wavelet" minimalRegionComparedToLastPeak
     end
 end
+
+
+function testDualCoverage(canonicalDualFrame)
+    dualCover = sum(canonicalDualFrame, dims=2)
+    err = norm(dualCover .- 1)
+    if err > 50
+        @warn "the canonical dual frame is off by $(err), consider using one of the delta dual frames"
+    end
+end
+
+function testDualCoverage(β, Ŵ)
+    dualCover = sum(conj.(β) .* Ŵ, dims=2)
+    err = norm(dualCover .- 1)
+    if err > 50
+        @warn "the dual frame is off by $(err), consider using a different dual frame"
+    end
+end

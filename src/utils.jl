@@ -266,3 +266,81 @@ end
 
 # create interpolater for the orthogonal cases
 genInterp(ψ) = interpolate(ψ, BSpline(Quadratic(Reflect(OnGrid()))))
+
+
+
+
+"""
+    β = computeDualWeights(Ŵ)
+compute the weight given to each wavelet so that in the Fourier domain, the sum across wavelets is as close to 1 at every frequency below the peak of the last wavelet (that is `β' .*abs.(Ŵ[1:lastFreq,:]) ≈ ones(lastFreq)` in an ℓ^2 sense)
+"""
+function computeDualWeights(Ŵ, wav)
+    @views lastReasonableFreq = computeLastFreq(Ŵ[:,end], wav)
+    Wdag = pinv(Ŵ[1:lastReasonableFreq,:])
+    β = conj.(Wdag * ones(size(Wdag,2)))'
+    return β
+end
+# function computeDualWeights(Ŵ, wav::CWT{W,T,<:ContOrtho,N}, n,naive=true) where {W,T,N}
+#     β = computeNaiveDualWeights(Ŵ, wav, n)
+#     return β
+# end
+computeLastFreq(ŵ, wav) = length(ŵ) - 3 # we have constructed the wavelets so the last frequency is <1%, so trying to get it to 1 will fail
+computeLastFreq(ŵ, wav::CWT{W,T,<:Morlet}) where {W,T} = findlast(abs.(ŵ) .> 1/4 * maximum(abs.(ŵ))) # the gaussian decay makes this way too large by the end
+
+"""
+    computeNaiveDualWeights(Ŵ, wav, n1)
+Compute the dual weights using the scaling amounts and the normalization power p. Primarily used when the least squares version is poorly constructed. When the least squares version doesn't perform well, this is also likely to have poor reconstruction, but it won't give extremely negative or oscillatory weights like the least squares version.
+"""
+function computeNaiveDualWeights(Ŵ, wav, n1)
+    _, _, sRange, _ = ContinuousWavelets.getNWavelets(n1, wav)
+    isAve = !(wav.averagingType isa NoAve)
+    p = wav.p
+    # every wavelet is multiplied by 1/s^(1/p), so we need to multiply by that to normalize in frequency. The extra +1 is to convert from uniform in scale to uniform in frequency
+    sToTheP = sRange' .^ (1/p+1)
+    if isAve && size(Ŵ,2)>1
+        # averaging needs to have maximum value of 1
+        aveMultiplier = 1/norm(Ŵ[:,1],Inf)
+        dual = sum(Ŵ[:,2:end] .* sToTheP, dims=2)
+        renormalize = norm(dual,Inf)
+        dual ./=renormalize
+        #dual += Ŵ[:,1] .* sToTheP[1]
+        β = cat(aveMultiplier, 2 .* sToTheP./renormalize..., dims=2)
+    elseif size(Ŵ,2)>1
+        dual = sum(Ŵ .* sToTheP, dims=2)
+        β = sToTheP ./ norm(dual, Inf)
+        β[2:end] .* 2
+    else
+        # there's only the averaging
+        β = [1/norm(Ŵ[:,1],Inf)]
+    end
+    return β
+end
+
+"""
+    getDualCoverage(n,cWav, naive=false)
+get the sum of the weights
+"""
+function getDualCoverage(n,cWav, invType)
+    Ŵ = computeWavelets(n,cWav)[1]
+    if invType isa DualFrames
+        dualCover = sum(explicitConstruction(Ŵ),dims=2)
+        return dualCover, norm(dualCover .- 1)
+    elseif invType isa PenroseDelta
+        β = computeDualWeights(Ŵ, cWav)
+    elseif invType isa NaiveDelta
+        β = computeNaiveDualWeights(Ŵ, cWav, n)
+    end
+    dualCover = sum(conj.(β) .* Ŵ, dims=2)
+    dualCover, norm(dualCover .- 1)
+end
+
+function dualDeviance(n, cWav, naive=false)
+    getDualCoverage(n,cWav,naive)
+end
+
+"""
+Explicitly construct the canonical dual frame elements for a translation invariant frame. This is likely to end poorly due to the low representation at high frequencies.
+"""
+function explicitConstruction(Ŵ)
+    Ŵdual = conj.(Ŵ ./ [norm(ŵ)^2 for ŵ in eachslice(Ŵ,dims=1)])
+end

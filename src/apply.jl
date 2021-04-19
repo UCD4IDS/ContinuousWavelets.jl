@@ -275,59 +275,50 @@ caveats(Y::AbstractArray{T}, w::ContWaveClass; J1::S=NaN) where {T<: Number, S<:
 cwt(Y::AbstractArray{T}) where T<:Real = cwt(Y,Morlet())
 caveats(Y::AbstractArray{T}) where T<:Real = caveats(Y,Morlet())
 
+abstract type InverseType end
+struct DualFrames <: InverseType end
+struct NaiveDelta <: InverseType end
+struct PenroseDelta <: InverseType end
+
 """
-    icwt(W::AbstractArray{T}, c::CWT{W}, sj::AbstractArray; dt::S=NaN,
-         dj::V=1/12) where {S<:Real, V<:Real, W<:WaveletBoundary}
-    icwt(W::AbstractArray{T}, c::CWT{W}; dt::S=NaN, s0::S
-         dj::V=1/12) where {T<:Real, S<:Real, V<:Real,
-                            W<:WaveletBoundary}
+    icwt(res::AbstractArray, cWav::CWT, inverseStyle::PenroseDelta)
+return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_ji``, where ``β_j`` is chosen to solve the least squares problem ``\\|Ŵβ-1\\|_2^2`` or if that proves unstable, to negate the scale factor ``1/s^(1/p)``
 
+    icwt(res::AbstractArray, cWav::CWT, inverseStyle::NaiveDelta)
+return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_ji``, where ``β_j`` is chosen to negate the scale factor ``1/s^(1/p)``. Generally less accurate than choosing the weights using `PenroseDelta`.
 
-return the inverse continuous wavelet transform
+    icwt(res::AbstractArray, cWav::CWT, inverseStyle::dualFrames)
+return the inverse continuous wavelet transform, computed using the canonical dual frame ``ψ̃̂(ω) = \\frac{ψ̂_n(ω)}{∑_n\\|ψ̂_n(ω)\\|^2}``. The algorithm is to compute the cwt again, but using the canonical dual frame; consiquentially, it is the most computationally intensive of the three algorithms, and typically the best behaved. Will be numerically unstable if the high frequencies of all of the wavelets are too small however, and tends to fail spectacularly in this case.
+
 """
-function icwt(W::AbstractArray, c::CWT, sj::AbstractArray; dt::S=NaN,
-              dj::V=1/12) where {S<:Real, V<:Real}
-    if isnan(dt) || (dt<0)
-        dt = 1
-    end
-
-    # Torrence and Compo (1998), eq. (11)
-    n,nSpace = setn(size(W,1), c)
-    ω = (0:(n-1))*2π
-    ψ = mother(c, 1, 1, ω)[1:(end-1)]
-    iW = (dj * sqrt(dt) / 0.776 * psi(c,0)) .* sum((real.(W) ./ sqrt.(sj')), dims=2)
-
-    return iW
-end
-function icwt(W::AbstractArray, c::CWT; dt::Real=NaN, dj::Real=1/12, J1::Real=NaN)
-
-    fλ = (4*π) / (c.σ[1] + sqrt(2 + c.σ[1]^2))
-    n1 = size(W, 1);
-    # J1 is the total number of elements
-    if isnan(J1) || (J1<0)
-        J1=floor(Int,(log2(n1))*c.Q);
-    end
-
-    sj =  getScales(n1, c)
-
-    if isnan(dt) || (dt<0)
-        dt = 1
-    end
-
-    return icwt(W, c, sj, dt=dt, dj=1/(c.Q))
-end
-icwt(Y::AbstractArray, w::ContWaveClass; dj::T=1/12, dt::S=NaN,
-     s0::V=NaN) where {S<:Real, T<:Real, V<:Real} = icwt(Y,CWT(w))
-icwt(Y::AbstractArray) = icwt(Y,Morlet())
-
-function psi(c::CWT{W}, t::Int64) where W<:WaveletBoundary
-    return real.(π^(-0.25) * exp.(im*c.σ[1]*t - t^2 / 2))
+function icwt(res::AbstractArray, cWav::CWT, inverseStyle::PenroseDelta)
+    Ŵ = computeWavelets(size(res,1), cWav)[1]
+    β = computeDualWeights(Ŵ, cWav)
+    testDualCoverage(β, Ŵ)
+    compXRecon = sum(res .* β, dims=2)
+    imagXRecon = irfft(im*rfft(imag.(compXRecon),1), size(compXRecon,1)) # turns out the dual frame for the imaginary part is rather gross in the time domain
+    return imagXRecon + real.(compXRecon)
 end
 
+function icwt(res::AbstractArray, cWav::CWT, inverseStyle::NaiveDelta)
+    Ŵ = computeWavelets(size(res,1), cWav)[1]
+    β = computeNaiveDualWeights(Ŵ, cWav, size(res,1))
+    testDualCoverage(β, Ŵ)
+    compXRecon = sum(res .* β, dims=2)
+    imagXRecon = irfft(im*rfft(imag.(compXRecon),1), size(compXRecon,1)) # turns out the dual frame for the imaginary part is rather gross in the time domain
+    return imagXRecon + real.(compXRecon)
+end
 
+function icwt(res::AbstractArray, cWav::CWT, inverseStyle::DualFrames)
+    Ŵ = computeWavelets(size(res,1), cWav)[1]
+    canonDualFrames = explicitConstruction(Ŵ)
+    testDualCoverage(canonDualFrames)
+    convolved = cwt(res, cWav, conj.(canonDualFrames))
+    @views xRecon = sum([convolved[:,i,i] for i=1:size(Ŵ,2)])
+    return xRecon
+end
 
+icwt(Y::AbstractArray, w::ContWaveClass; varargs...) where {S<:Real, T<:Real, V<:Real} = icwt(Y,CWT(w); varargs...)
+icwt(Y::AbstractArray) = icwt(Y,Morlet(); varargs...)
 
 # CWT (continuous wavelet transform directly) TODO: direct if sufficiently small
-
-# TODO: continuous inverse, when defined
-#icwt(::AbstractVector, ::ContWave)

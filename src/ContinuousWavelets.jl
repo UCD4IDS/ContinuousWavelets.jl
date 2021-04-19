@@ -20,6 +20,8 @@ export Morlet, Paul, Dog, ContOrtho, name, vanishingmoments, ContOrtho
 export cHaar, cBeyl, cVaid, morl
 # averaging types
 export Average, Dirac, Father, NoAve
+# inverse types
+export DualFrames, NaiveDelta, PenroseDelta, InverseType
 # CWT constructors
 export wavelet, waveletType
 # general utilities
