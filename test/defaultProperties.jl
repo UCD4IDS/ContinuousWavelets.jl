@@ -22,7 +22,7 @@
             elseif bc isa SymBoundary
                 nLong = 2n
             elseif bc isa ZPBoundary
-                nLong = 2^(ceil(Int,log2(n+1)))
+                nLong = 2^(ceil(Int,log2(n)))
             end
             spaceWaves = irfft(Ŵ,nLong,1)
         end
@@ -37,11 +37,8 @@
         end
         # if the averaging length is 0 and its only averaging at the sizes given, something is wrong
         @test size(Ŵ,2)>1 || ave>0
-        if !(wave isa ContOrtho) && size(Ŵ,2) > 1 && !(wave isa Paul{1})
-            # the last wavelet hasn't been subsampled beyond recognition.
-            @test max(abs.(Ŵ[end, :])...)  / norm(supported,Inf) ≤ 1e-3
-        elseif !(wave isa ContOrtho) && size(Ŵ,2) > 1
-            # paul wavelets decay slowly, so are given a much weaker threshold
+        if !(wave isa ContOrtho) && size(Ŵ,2) > 1
+            # Guaranteed in a very different way for ContOrtho, and no guarantees made for just averaging
             @test max(abs.(Ŵ[end, :])...)  / norm(supported,Inf) ≤ 1e-1
         end
     end

@@ -67,7 +67,7 @@ end
 
 
 function polySpacing(nOct, c)
-    a = getMinScaling(c) + c.averagingLength
+    a = max(getMinScaling(c) + c.averagingLength, 0)
     O = nOct
     β = c.β
     Q = c.Q

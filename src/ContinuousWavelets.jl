@@ -6,8 +6,8 @@ using FFTW
 using LinearAlgebra
 using SpecialFunctions
 
-import Wavelets.wavelet, Wavelets.computeWavelets, Wavelets.cwt # yo ho yo ho
-import Wavelets.WT.name, Wavelets.WT.name, Wavelets.WT.class,
+import Wavelets.wavelet
+import Wavelets.WT.name, Wavelets.WT.class,
    Wavelets.WT.vanishingmoments
 
 export ContWave, CWT, cwt, icwt
