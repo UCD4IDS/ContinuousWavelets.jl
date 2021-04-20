@@ -38,7 +38,7 @@ function mother(this::CWT{W,T,<:ContOrtho,N}, s::Real, itpψ,
                 ω::AbstractArray{<:Real,1}, n, n1) where {W,T,N}
     daughter = itpψ(range(1, stop=length(itpψ), step=length(itpψ) / n1 * s))
     daughter = padTo(daughter, n)
-    daughter = circshift(daughter, -round(Int, length(daughter) / 2))
+    daughter = circshift(daughter, -round(Int, n1 / s / 2))
     return daughter
 end
 function normalize(daughter, s, p)
@@ -75,7 +75,7 @@ will get the scale of the averaging function to be
 
 """
 function father(c::CWT, ω, averagingType::Father, sWidth)
-    s = 2^(c.averagingLength + getMinScaling(c) - 1)
+    s = 2^(min(c.averagingLength + getMinScaling(c) - 1, 0))
     s0, ω_shift = locationShift(c, s, ω, sWidth)
     averaging = adjust(c) .* mother(c, s0, 1, ω_shift)
 end
@@ -86,7 +86,7 @@ function father(c::CWT{B,T,W}, ω, averagingType::Father,
 
     φ = itp(range(1, stop=length(fullVersion),
                   step=length(fullVersion) / n1 * s))
-    φ = circshift(padTo(φ, N), -round(Int, length(φ) / 2))
+    φ = circshift(padTo(φ, N), -round(Int, n1 / s / 2))
 end
 
 # dirac version (that is, just a window around zero)
