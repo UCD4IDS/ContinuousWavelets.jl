@@ -1,4 +1,4 @@
-# Wavelet Frequency spacing #
+# Wavelet Frequency Spacing #
 Frequently, using a fixed ratio for scaling the wavelets results in too many large scale wavelets.
 There are several ways of dealing with this; in this package, the scaling factors have the form $2^{a(mx+x_0)^{^1/_\beta}}$, for suitable choice of $a$,$m$, $x_0$, and $\beta$.
 The user chooses $\beta$ and $Q$, and the rest are chosen to match the derivative at the last frequency to be $^{1}/_{Q}$, as in the figure.
@@ -7,7 +7,6 @@ The user chooses $\beta$ and $Q$, and the rest are chosen to match the derivativ
 using ContinuousWavelets, Plots, Wavelets, FFTW, LaTeXStrings, Logging
 using Plots; gr();
 Plots.reset_defaults();
-global_logger(Logging.SimpleLogger(stderr,Logging.Error))
 dRate = 4
 waveType = Morlet()
 Ψ1 = wavelet(waveType, s=8, β =dRate, averagingLength=2)

@@ -1,4 +1,4 @@
-# Boundary types #
+# Boundary Conditions #
 
 ```@docs 
 WaveletBoundary

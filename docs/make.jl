@@ -1,13 +1,16 @@
 using Documenter, ContinuousWavelets
 ENV["GKSwstype"] = "100"
 makedocs(sitename="ContinuousWavelets.jl",
+         format=Documenter.HTML(),
+         authors="David Weber",
+         clean=true,
          pages=[
              "basic usage" => "index.md",
              "Install" => "installation.md",
              "CWT" => [
                  "Available Wavelet Families" => "coreType.md",
                  "CWT Construction" => "CWTConstruction.md",
-                 "Wavelet Spacing" => "spacing.md",
+                 "Wavelet Frequency Spacing" => "spacing.md",
                  "Boundary Conditions" => "bound.md",
                  "Inversion" => "inverse.md"
              ],

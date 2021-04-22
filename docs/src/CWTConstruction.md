@@ -1,4 +1,4 @@
-# CWT type
+# CWT Construction
 ```@docs
 CWT
 ContinuousWavelets.wavelet(::WC) where {WC<:ContinuousWavelets.ContWaveClass}
@@ -10,7 +10,7 @@ The function `wavelet()` has been overloaded to work with ContWaveClass in much 
 In more detail, the parameters, along with their defaults, are:
 + `wave::ContWaveClass`: is a type of continuous wavelet, see the [Available Wavelet Families](@ref).
 + `scalingFactor`, `s`, or `Q::Real=8.0`: the number of wavelets between the octaves ``2^J`` and ``2^{J+1}`` (defaults to 8, which is most appropriate for music and other audio). Valid range is $(0,\infty)$.
-+ `β::Real=4.0`: As using exactly `Q` wavelets per octave leads to excessively many low-frequency wavelets, `β` varies the number of wavelets per octave, with larger values of `β` corresponding to fewer low frequency wavelets(see [Wavelet Spacing](@ref) for details).
++ `β::Real=4.0`: As using exactly `Q` wavelets per octave leads to excessively many low-frequency wavelets, `β` varies the number of wavelets per octave, with larger values of `β` corresponding to fewer low frequency wavelets(see [Wavelet Frequency Spacing](@ref) for details).
   Valid range is $(1,\infty)$, though around `β=6` the spacing is approximately linear *in frequency*, rather than log-frequency, and begins to become concave after that.
 + `boundary::WaveletBoundary=SymBoundary()`: The default boundary condition is `SymBoundary()`, implemented by appending a flipped version of the vector at the end to eliminate edge discontinuities. See [Boundary Conditions](@ref) for the other possibilities. 
 + `averagingType::Average=Father()`: determines whether or not to include the

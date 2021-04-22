@@ -1,4 +1,4 @@
-# Wavelet types
+# Available Wavelet Families
 There are two tiers of wavelet types in this package. The most abstract is the `ContWave` type, representing a class of wavelets.
 This is split into several strictly continuous wavelets, and a `ContOrtho<:ContWave` type, which is a supertype of continuous versions of the orthogonal wavelets defined in [Wavelets.jl](https://github.com/JuliaDSP/Wavelets.jl).
 ```@docs
@@ -9,7 +9,6 @@ ContWave
 using ContinuousWavelets, Plots, Wavelets, FFTW, Logging
 using Plots; gr()
 Plots.reset_defaults()
-global_logger(Logging.SimpleLogger(stderr,Logging.Error))
 n= 2047;
 function mapTo(waveType, isReal=true,window=1:2047; d=1, kwargs...)
 	if isReal
