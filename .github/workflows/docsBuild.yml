@@ -21,6 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt install libxt6 libxrender1 libxext6 libgl1-mesa-glx libqt5widgets5
+      - name: Instantiate 
         run: |
           julia --project=docs -e '
             using Pkg
