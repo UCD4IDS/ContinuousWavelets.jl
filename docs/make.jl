@@ -5,10 +5,11 @@ makedocs(sitename="ContinuousWavelets.jl",
              "basic usage" => "index.md",
              "Install" => "installation.md",
              "CWT" => [
-                 "Available Wavelets" => "coreType.md",
-                 "CWT Type" => "CWTConstruction.md",
+                 "Available Wavelet Families" => "coreType.md",
+                 "CWT Construction" => "CWTConstruction.md",
                  "Wavelet Spacing" => "spacing.md",
                  "Boundary Conditions" => "bound.md",
+                 "Inversion" => "inverse.md"
              ],
          ])
 

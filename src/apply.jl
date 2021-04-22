@@ -285,19 +285,20 @@ struct PenroseDelta <: InverseType end
 Compute the inverse wavelet transform using one of three dual frames. The default uses delta functions with weights chosen via a least squares method, the `PenroseDelta()` below. This is chosen as a default because the Morlet wavelets tend to fail catastrophically using the canonical dual frame (the `dualFrames()` type).
 
     icwt(res::AbstractArray, cWav::CWT, inverseStyle::PenroseDelta)
-return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_ji``, where ``β_j`` is chosen to solve the least squares problem ``\\|Ŵβ-1\\|_2^2`` or if that proves unstable, to negate the scale factor ``1/s^(1/p)``
+return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_{ji}``, where ``β_j`` is chosen to solve the least squares problem ``\\|Ŵβ-1\\|_2^2``, where ``Ŵ`` is the Fourier domain representation of the `cWav` wavelets. In both this case and `NaiveDelta()`, the fourier transform of ``δ`` is the constant function, thus this least squares problem.
 
     icwt(res::AbstractArray, cWav::CWT, inverseStyle::NaiveDelta)
-return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_ji``, where ``β_j`` is chosen to negate the scale factor ``1/s^(1/p)``. Generally less accurate than choosing the weights using `PenroseDelta`. This is the method discussed in Torrence and Compo.
+return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_{ji}``, where ``β_j`` is chosen to negate the scale factor ``(^1/_s)^{^1/_p}``. Generally less accurate than choosing the weights using `PenroseDelta`. This is the method discussed in Torrence and Compo.
 
     icwt(res::AbstractArray, cWav::CWT, inverseStyle::dualFrames)
-return the inverse continuous wavelet transform, computed using the canonical dual frame ``ψ̃̂(ω) = \\frac{ψ̂_n(ω)}{∑_n\\|ψ̂_n(ω)\\|^2}``. The algorithm is to compute the cwt again, but using the canonical dual frame; consiquentially, it is the most computationally intensive of the three algorithms, and typically the best behaved. Will be numerically unstable if the high frequencies of all of the wavelets are too small however, and tends to fail spectacularly in this case.
+return the inverse continuous wavelet transform, computed using the canonical dual frame ``\\tilde{\\widehat{ψ}} = \\frac{ψ̂_n(ω)}{∑_n\\|ψ̂_n(ω)\\|^2}``. The algorithm is to compute the cwt again, but using the canonical dual frame; consiquentially, it is the most computationally intensive of the three algorithms, and typically the best behaved. Will be numerically unstable if the high frequencies of all of the wavelets are too small however, and tends to fail spectacularly in this case.
 
 """
 function icwt(res::AbstractArray, cWav::CWT, inverseStyle::PenroseDelta)
     Ŵ = computeWavelets(size(res,1), cWav)[1]
     β = computeDualWeights(Ŵ, cWav)
     testDualCoverage(β, Ŵ)
+    println(size(res),size(β))
     compXRecon = sum(res .* β, dims=2)
     imagXRecon = irfft(im*rfft(imag.(compXRecon),1), size(compXRecon,1)) # turns out the dual frame for the imaginary part is rather gross in the time domain
     return imagXRecon + real.(compXRecon)
@@ -316,7 +317,7 @@ function icwt(res::AbstractArray, cWav::CWT, inverseStyle::DualFrames)
     Ŵ = computeWavelets(size(res,1), cWav)[1]
     canonDualFrames = explicitConstruction(Ŵ)
     testDualCoverage(canonDualFrames)
-    convolved = cwt(res, cWav, conj.(canonDualFrames))
+    convolved = cwt(res, cWav, canonDualFrames)
     ax = axes(convolved)
     @views xRecon = sum(convolved[:,i,i,ax[4:end]...] for i=1:size(Ŵ,2))
     return xRecon

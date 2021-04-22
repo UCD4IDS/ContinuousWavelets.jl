@@ -32,11 +32,11 @@ getNOctaves(n1,c::CWT{W,T, M, N}) where {W, T, N, M} = log2(n1>>1+1) + c.extraOc
 # is 3 standard devations away from the end
 getNOctaves(n1,c::CWT{W,T, Morlet, N}) where {W, T, N} = log2((n1>>1+1)/(c.σ[1]+3)) + c.extraOctaves
 getNOctaves(n1,c::CWT{W,T, <:Paul, N}) where {W, T, N} = log2((n1>>1+1)/(2c.α+5)) + c.extraOctaves
-# choose the number of octaves so the last mean is 4 standard deviations from the end
+# choose the number of octaves so the last mean is 5 standard deviations from the end
 function getNOctaves(n1,c::CWT{W,T, <:Dog, N}) where {W, T, N}
     μ = getMean(c)
     σ = getStd(c)
-    log2(n1>>1/(μ+4σ)) + c.extraOctaves
+    log2(n1>>1/(μ+5σ)) + c.extraOctaves
 end
 # choose the number of octaves so the smallest support is twice the qmf
 getNOctaves(n1,c::CWT{W,T, <:ContOrtho, N}) where {W, T, N} = log2(n1) - 2 - log2(length(qmf(c.waveType))) + c.extraOctaves
@@ -276,6 +276,7 @@ compute the weight given to each wavelet so that in the Fourier domain, the sum 
 """
 function computeDualWeights(Ŵ, wav)
     @views lastReasonableFreq = computeLastFreq(Ŵ[:,end], wav)
+    println(size(Ŵ))
     Wdag = pinv(Ŵ[1:lastReasonableFreq,:])
     β = conj.(Wdag * ones(size(Wdag,2)))'
     return β
@@ -317,13 +318,13 @@ function computeNaiveDualWeights(Ŵ, wav, n1)
 end
 
 """
-    getDualCoverage(n,cWav, naive=false)
-get the sum of the weights
+    dualCover, dualNorm = getDualCoverage(n,cWav, invType)
+get the sum of the weights and its deviation from 1
 """
 function getDualCoverage(n,cWav, invType)
     Ŵ = computeWavelets(n,cWav)[1]
     if invType isa DualFrames
-        dualCover = sum(explicitConstruction(Ŵ),dims=2)
+        dualCover = sum(conj.(Ŵ) .* explicitConstruction(Ŵ),dims=2)
         return dualCover, norm(dualCover .- 1)
     elseif invType isa PenroseDelta
         β = computeDualWeights(Ŵ, cWav)
@@ -334,7 +335,7 @@ function getDualCoverage(n,cWav, invType)
     dualCover, norm(dualCover .- 1)
 end
 
-function dualDeviance(n, cWav, naive=false)
+function dualDeviance(n, cWav, naive)
     getDualCoverage(n,cWav,naive)
 end
 

@@ -11,11 +11,11 @@ the scaling rate, or the boundary conditions. Finally, you perform the actual
 transform with`cwt`.
 
 ```@example basicEx
-using Plots; gr();#hide
-Plots.reset_defaults();#hide
+using Plots; gr(); #hide
+Plots.reset_defaults(); #hide
 using ContinuousWavelets, Plots, Wavelets, FFTW
-using Logging#hide
-global_logger(Logging.SimpleLogger(stderr,Logging.Error))#hide
+using Logging #hide
+global_logger(Logging.SimpleLogger(stderr,Logging.Error)) #hide
 n=2047;
 f = testfunction(n, "Doppler");
 p1=plot(f,legend=false,title="Doppler",xlims=(0,2000));
@@ -25,7 +25,7 @@ p2=heatmap(abs.(res)', xlabel= "time index",
 	ylabel="frequency index",colorbar=false);
 l=@layout [a{.3h};b{.7h}]
 plot(p1,p2,layout=l);
-savefig("doppler.svg");#hide
+savefig("doppler.svg"); #hide
 ```
 ![](doppler.svg)
 

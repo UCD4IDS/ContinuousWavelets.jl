@@ -55,15 +55,12 @@ end
 
 
 @doc """
-    CWT(wave::WC, Q=8, boundary::T=SymBoundary(),
-        averagingType::A = Father(),
-        averagingLength::Int = 4, frameBound=1, p::N=Inf,
-        β=4) where {WC<:ContWaveClass, A <: Average,
-                    T <: WaveletBoundary, N <: Real}
+    CWT(wave::ContWaveClass, Q=8, boundary::WaveletBoundary=SymBoundary(),
+    averagingType::Average = Father(), averagingLength::Int = 4, frameBound=1, p::N=Inf, β=4)
 """
 function CWT(wave::WC, Q=8, boundary::B=DEFAULT_BOUNDARY,
              averagingType::A=Father(),
-             averagingLength::Real=1,
+             averagingLength::Real=0,
              frameBound=1, p::N=Inf,
              β=4; extraOctaves=0, kwargs...) where {WC <: ContWaveClass,A <: Average,B <: WaveletBoundary,N <: Real}
     Q, β, p = processKeywordArgs(Q, β, p; kwargs...) # some names are redundant
@@ -137,15 +134,13 @@ end
 
 
 """
-wavelet(wave::WC, Q=8, boundary::T=DEFAULT_BOUNDARY,
-                 averagingType::A = Father(), averagingLength::Int = 4,
-                 frameBound=1, p::N=Inf, β=4,
-                 kwargs...) where {WC<:ContWaveClass, A <: Average,
-                                   T <: WaveletBoundary, N <: Real}
-A constructor for the CWT type, using keyword rather than positional options.
+    wavelet(wave::ContWaveClass; Q=8, boundary::WaveletBoundary=DEFAULT_BOUNDARY,
+    averagingType::Average = Father(), averagingLength = 4,
+    frameBound=1, p=Inf, β=4, kwargs...)
+A constructor for the `CWT` type, using keyword rather than positional options.
 """
 function wavelet(wave::WC; Q=8, boundary::T=DEFAULT_BOUNDARY,
-                 averagingType::A=Father(), averagingLength::Real=1,
+                 averagingType::A=Father(), averagingLength=0,
                  frameBound=1, p::N=Inf, β=4,
                  kwargs...) where {WC <: ContWaveClass,A <: Average,T <: WaveletBoundary,N <: Real}
     return CWT(wave, Q, boundary, averagingType, averagingLength, frameBound,

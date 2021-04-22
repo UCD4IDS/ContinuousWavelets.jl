@@ -25,9 +25,9 @@ export DualFrames, NaiveDelta, PenroseDelta, InverseType
 # CWT constructors
 export wavelet, waveletType
 # general utilities
-export qmf, computeWavelets, getNWavelets, mother, father, getMeanFreq, isAnalytic
+export qmf, computeWavelets, getNWavelets, mother, father, getMeanFreq, isAnalytic, getDualCoverage
 
-"""
+@doc """
     ContWave{Boundary,T}
 The abstract type encompassing the various types of wavelets implemented in
 the package. The abstract type has parameters `Boundary<:WaveletBoundary` and
@@ -39,10 +39,17 @@ are:
     gives the frequency domain variance of the mother Wavelet. As `σ` goes to
     zero, all of the information becomes spatial. Default is `morl` which has
     σ=2π.
+
+    ``\\psi\\hat(\\omega) \\propto \\textrm{e}^{-\\frac{\\mu^2}{2}}\\big(\\textrm{e}^{-(\\mu - \\omega)^2} -\\textrm{e}^{\\frac{\\omega^2-\\mu^2}{2}}\\big)``
+
 - `Paul{N}`: A complex analytic wavelet. `pauln` for n in `1:20` e.g. `paul5`
+
+    ``\\psi\\hat(\\omega) \\propto \\chi_{\\omega \\geq 0} \\omega^N\\textrm{e}^{-\\omega}``
 - `Dog{N}`: Derivative of a Gaussian, where N is the number of
     derivatives. `dogn` for `n` in `0:6`. The Sombrero/mexican hat/Marr wavelet
     is `n=2`.
+
+    ``\\psi\\hat(\\omega) \\propto \\omega^N\\textrm{e}^{-\\frac{\\omega^2}{2}}``
 - `ContOrtho{OWT}`. OWT is some orthogonal wavelet of type `OrthoWaveletClass`
     from [Wavelets.jl](https://github.com/JuliaDSP/Wavelets.jl). This uses an
     explicit construction of the mother wavelet for these orthogonal wavelets

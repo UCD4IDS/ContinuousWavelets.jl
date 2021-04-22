@@ -2,15 +2,18 @@ using ContinuousWavelets, Plots, Wavelets, FFTW,Logging
 global_logger(SimpleLogger(min_level=Logging.Error))
 global_logger(Logging.SimpleLogger(stderr,Logging.Error))
 n=2047;
+t = range(0,n/1000,length=n); # 1kHz sampling rate
 f = testfunction(n, "Doppler");
-testfunction
-p1=plot(f,legend=false,title="Doppler",xlims=(0,2000))
-c = wavelet(Morlet(π), averagingType=NoAve(), β=6);
+p1=plot(t, f,legend=false,title="Doppler",xticks=false)
+c = wavelet(Morlet(π), β=2);
 res = cwt(f, c)
-p2=heatmap(abs.(res)', xlabel= "time index", ylabel="frequency index",colorbar=false)
+# plotting
+freqs = getMeanFreq(computeWavelets(n, c)[1])
+freqs[1] = 0
+p2=heatmap(t,freqs, abs.(res)', xlabel= "time (s)", ylabel="frequency (Hz)",colorbar=false)
 l=@layout [a{.3h};b{.7h}]
-plot(p1,p2,layout=l);
-savefig("doppler.svg");#hide
+plot(p1,p2,layout=l)
+savefig("../docs/doppler.svg");#hide
 DEFAULT_BOUNDARY; supertype(typeof(morl))
 a,b=computeWavelets(n,c)
 heatmap(a)
@@ -91,15 +94,16 @@ p1=plot([real.(tmp) imag.(tmp)], title="Morlet", labels=["real" "imaginary"], ti
 tmp = mapTo(paul2,false,averagingLength=-.5)[:,2]
 p2=plot([real.(tmp) imag.(tmp)],title="Paul 2", labels=["real" "imaginary"],ticks=nothing,linewidth=5)
 p3=plot(mapTo(dog2;averagingLength=-1.5)[:,2],title="derivative of gaussians (dog2)",legend=false,ticks=nothing,linewidth=5)
-p4=plot(mapTo(cHaar)[:,2],title="Haar",legend=false,ticks=nothing,linewidth=5)
+p4=plot(mapTo(cHaar,true; averagingLength=1)[:,2],title="Haar",legend=false,ticks=nothing,linewidth=5)
 p5=plot(mapTo(cBeyl, true; d=1, averagingLength=-0)[:,2], title="Beylkyin", legend=false, ticks=nothing, linewidth=5)
 p6=plot(mapTo(cVaid, true; d=1, averagingLength=-0)[:,2], title="Vaidyanthan", legend=false, ticks=nothing, linewidth=5)
-p7=plot(mapTo(cDb2;d=1,averagingLength=-0)[:,1],title="Daubhechies 2",legend=false,ticks=nothing,linewidth=5)
+p7=plot(mapTo(cDb2;d=1,averagingLength=-0)[:,2],title="Daubhechies 2",legend=false,ticks=nothing,linewidth=5)
 p8=plot(mapTo(cCoif2, true;d=1, averagingLength=-0)[:,2],title="Coiflet 2",legend=false,ticks=nothing,linewidth=5)
 p9=plot(mapTo(cSym4, true; d=1,averagingLength=-0)[:,2],title="Symlet 4",legend=false,ticks=nothing,linewidth=5)
-p10=plot(mapTo(cBatt4, true;d=1,averagingLength=-1)[:,2],title="Battle-Lemarie, 4",legend=false,ticks=nothing,linewidth=5)
+k = 0600; p10=plot(mapTo(cBatt4, true, 1024-k:1024+k;d=1,averagingLength=-1)[:,2],title="Battle-Lemarie, 4",legend=false,ticks=nothing,linewidth=5)
 plot(p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,layout=(2,5),size=300 .*(5, 2.2))
 savefig("mothers.svg")#hide
+2047/2
 
 
 c = wavelet(Morlet(π), averagingType=NoAve(), β=2);
@@ -135,19 +139,89 @@ d1, ξ = computeWavelets(n,Ψ1)
 d2, ξ = Wavelets.computeWavelets(n,Ψ2)
 Ψ4 = wavelet(morl, s=8, β =4)
 d4, ξ = Wavelets.computeWavelets(n,Ψ4)
-matchingLimits = (minimum([d1 d2 d4]), maximum([d1 d2 d4]))# for 
-plot(heatmap(1:size(d1,2), ξ, d1, color=:Greys, 
-             yaxis = (L"\omega", ), 
+matchingLimits = (minimum([d1 d2 d4]), maximum([d1 d2 d4]))# for
+plot(heatmap(1:size(d1,2), ξ, d1, color=:Greys,
+             yaxis = (L"\omega", ),
              xaxis = ("wavelet index", ),
              title=L"\beta=1"*" ("*L"\Psi1"*")", colorbar=false,
              clims=matchingLimits),
-     heatmap(1:size(d2,2), ξ, d2, color=:Greys, 
-             yticks=[], 
+     heatmap(1:size(d2,2), ξ, d2, color=:Greys,
+             yticks=[],
              xaxis = ("wavelet index", ),
              title=L"\beta=2"*" ("*L"\Psi2"*")", colorbar=false,
-             clims=matchingLimits), 
+             clims=matchingLimits),
      heatmap(1:size(d4,2), ξ, d4,color=:Greys, yticks=[],
              xaxis = ("wavelet index", ),
              title=L"\beta=4"*" ("*L"\Psi4"*")"),
-     layout=(1,3),  clims=matchingLimits, 
+     layout=(1,3),  clims=matchingLimits,
      colorbar_title=L"\widehat{\psi_i}")
+
+
+# readme examples
+using ContinuousWavelets, Plots, Wavelets
+n=2047;
+f = testfunction(n, "Doppler");
+p1=plot(f,legend=false,title="Doppler",xlims=(0,2000))
+c = wavelet(Morlet(π), β=2);
+res = cwt(f, c)
+p2=heatmap(abs.(res)', xlabel= "time index",
+	ylabel="frequency index",colorbar=false)
+l=@layout [a{.3h};b{.7h}]
+plot(p1,p2,layout=l)
+
+
+f = testfunction(n, "Bumps");
+p1=plot(f,legend=false,title="Bumps",xlims=(0,2000))
+c = wavelet(dog2, β=2);
+res = cwt(f, c)
+# dropping the middle peaks
+res[620:1100,:] .=0
+# and smoothing the remaining peaks
+res[:,10:29] .= 0
+p2=heatmap(abs.(res)', xlabel= "time index", ylabel="frequency index",colorbar=false)
+dropped = ContinuousWavelets.icwt(res,c,DualFrames())
+p1 = plot([dropped f],legend=false, title="Smoothing and dropping bumps")
+l=@layout [a{.3h};b{.7h}]
+plot(p1,p2,layout=l)
+savefig("../docs/bumps.svg")
+
+n = 2047
+f = testfunction(n, "Blocks") + .10randn(n)
+f = testfunction(n, "HeaviSine")
+wave = wavelet(morl)
+fCWT = cwt(f,wave)
+fRecon = ContinuousWavelets.icwt(fCWT,wave,DualFrames())
+plot([real.(fRecon) f], labels=["reconstructed" "original"])
+plot(fRecon)
+deNoiseCWT = copy(fCWT)
+deNoiseCWT[abs.(fCWT)/norm(fCWT,Inf) .< .07] .= 0
+heatmap((abs.(fCWT)/norm(fCWT,Inf))' .< .01)
+heatmap(fCWT', c=:viridis)
+heatmap(deNoiseCWT', c=:viridis)
+heatmap(fCWT' - deNoiseCWT')
+fRecon = ContinuousWavelets.icwt(deNoiseCWT,wave,DualFrames())
+plot([fRecon f], labels=["reconstructed" "original"])
+plot(plot(f, title="with noise"), plot(fRecon, title="threshold and inverted"), layout=(2,1), legend=false)
+fRecon = ContinuousWavelets.icwt(fCWT,wave,DualFrames())
+plot([real.(fRecon) f])
+
+
+
+c = wavelet(morl, β=2);
+dualframe, dfNorm = getDualCoverage(n,c,DualFrames())
+dualPenrose, dfNorm = getDualCoverage(n,c,PenroseDelta())
+dualNaive, dfNorm = getDualCoverage(n,c,NaiveDelta())
+plot([dualframe dualPenrose dualNaive], labels = ["Canonical" "Delta with least squares weights" "delta with naive weights"], legend=:topleft)
+
+pyplot()
+n=2047
+Ψ1 = wavelet(morl, s=8, β=1)
+d1, ξ = computeWavelets(n,Ψ1)
+Ψ2 = wavelet(morl, s=8, β =2)
+d2, ξ = computeWavelets(n,Ψ2)
+Ψ4 = wavelet(morl, s=8, β =4)
+d4, ξ = computeWavelets(n,Ψ4)
+matchingLimits = (minimum([d1 d2 d4]), maximum([d1 d2 d4]))#hide
+plot(heatmap(1:size(d1,2), ξ, d1, color=:Greys, yaxis = (L"\omega", ), xaxis = ("wavelet index", ), title=L"\beta=1"*" ("*L"\Psi1"*")", colorbar=false, clims=matchingLimits),  heatmap(1:size(d2,2), ξ, d2, color=:Greys, yticks=[], xaxis = ("wavelet index", ), title=L"\beta=2"*" ("*L"\Psi2"*")", colorbar=false, clims=matchingLimits),  heatmap(1:size(d4,2), ξ, d4,color=:Greys, yticks=[], xticks=[1, 5, 10, 14, 18], xaxis = ("wavelet index", ), title=L"\beta=4"*" ("*L"\Psi4"*")"), layout=(1,3), clims=matchingLimits, colorbar_title=L"\widehat{\psi_i}")
+using LaTeXStrings
+d4

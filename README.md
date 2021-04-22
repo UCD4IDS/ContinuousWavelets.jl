@@ -24,16 +24,40 @@ Basic usage example on a doppler test function.
 ```julia
 using ContinuousWavelets, Plots, Wavelets
 n=2047;
+t = range(0,n/1000,length=n); # 1kHz sampling rate
 f = testfunction(n, "Doppler");
-p1=plot(f,legend=false,title="Doppler",xlims=(0,2000));
-c = wavelet(Morlet(π), averagingType=NoAve(), β=2);
+p1=plot(t, f,legend=false,title="Doppler",xticks=false)
+c = wavelet(Morlet(π), β=2);
 res = cwt(f, c)
-p2=heatmap(abs.(res)', xlabel= "time index", 
-	ylabel="frequency index",colorbar=false);
+# plotting
+freqs = getMeanFreq(computeWavelets(n, c)[1])
+freqs[1] = 0
+p2=heatmap(t,freqs, abs.(res)', xlabel= "time (s)", ylabel="frequency (Hz)",colorbar=false)
 l=@layout [a{.3h};b{.7h}]
-plot(p1,p2,layout=l);
+plot(p1,p2,layout=l)
 ```
 ![Doppler](/docs/doppler.svg)
+
+As the cwt frame is redundant, there are many choices of dual/inverse frames. There are three available in this package, `NaiveDual()`, `PenroseDual()`, and `DualFrame()`. As a toy example:
+
+``` julia
+f = testfunction(n, "Bumps");
+p1=plot(f,legend=false,title="Bumps",xlims=(0,2000))
+c = wavelet(dog2, β=2);
+res = cwt(f, c)
+# dropping the middle peaks
+res[620:1100,:] .=0
+# and smoothing the remaining peaks
+res[:,10:29] .= 0
+# actually doing the inversion
+dropped = ContinuousWavelets.icwt(res,c,DualFrames())
+
+p1 = plot([dropped f],legend=false, title="Smoothing and dropping bumps")
+p2=heatmap(abs.(res)', xlabel= "time index", ylabel="frequency index",colorbar=false)
+l=@layout [a{.3h};b{.7h}]
+plot(p1,p2,layout=l)
+```
+![Bumps](/docs/bumps.svg)
 
 It can also handle collections of examples at the same time, should you need to do a batch of transforms:
 ``` julia
@@ -51,3 +75,4 @@ Possible extensions
 ------------
 - Higher dimensional wavelets have yet to be implemented.
 - A DCT implementation of the symmetric boundary to halve the space and computational costs.
+- Various additional wavelet families, such as Morse wavelets.
