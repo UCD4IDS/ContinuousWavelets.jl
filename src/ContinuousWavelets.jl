@@ -6,9 +6,8 @@ using FFTW
 using LinearAlgebra
 using SpecialFunctions
 
-import Wavelets.wavelet, Wavelets.getNWavelets, Wavelets.computeWavelets,
-   Wavelets.cwt # yo ho yo ho
-import Wavelets.WT.name, Wavelets.WT.name, Wavelets.WT.class,
+import Wavelets.wavelet
+import Wavelets.WT.name, Wavelets.WT.class,
    Wavelets.WT.vanishingmoments
 
 export ContWave, CWT, cwt, icwt
@@ -21,12 +20,14 @@ export Morlet, Paul, Dog, ContOrtho, name, vanishingmoments, ContOrtho
 export cHaar, cBeyl, cVaid, morl
 # averaging types
 export Average, Dirac, Father, NoAve
+# inverse types
+export DualFrames, NaiveDelta, PenroseDelta, InverseType
 # CWT constructors
 export wavelet, waveletType
 # general utilities
-export qmf, computeWavelets, getNWavelets, mother, father, getMeanFreq
+export qmf, computeWavelets, getNWavelets, mother, father, getMeanFreq, isAnalytic, getDualCoverage
 
-"""
+@doc """
     ContWave{Boundary,T}
 The abstract type encompassing the various types of wavelets implemented in
 the package. The abstract type has parameters `Boundary<:WaveletBoundary` and
@@ -38,10 +39,17 @@ are:
     gives the frequency domain variance of the mother Wavelet. As `σ` goes to
     zero, all of the information becomes spatial. Default is `morl` which has
     σ=2π.
-- `Paul{N}`: A complex analytic wavelet. `pauln` for n in `1:20` e.g. `paul5`
+
+    ``\\psi\\hat(\\omega) \\propto \\textrm{e}^{-\\frac{\\mu^2}{2}}\\big(\\textrm{e}^{-(\\mu - \\omega)^2} -\\textrm{e}^{\\frac{\\omega^2-\\mu^2}{2}}\\big)``
+
+- `Paul{N}`: A complex analytic wavelet, also known as Cauchy wavelets. `pauln` for n in `1:20` e.g. `paul5`
+
+    ``\\psi\\hat(\\omega) \\propto \\chi_{\\omega \\geq 0} \\omega^N\\textrm{e}^{-\\omega}``
 - `Dog{N}`: Derivative of a Gaussian, where N is the number of
     derivatives. `dogn` for `n` in `0:6`. The Sombrero/mexican hat/Marr wavelet
     is `n=2`.
+
+    ``\\psi\\hat(\\omega) \\propto \\omega^N\\textrm{e}^{-\\frac{\\omega^2}{2}}``
 - `ContOrtho{OWT}`. OWT is some orthogonal wavelet of type `OrthoWaveletClass`
     from [Wavelets.jl](https://github.com/JuliaDSP/Wavelets.jl). This uses an
     explicit construction of the mother wavelet for these orthogonal wavelets

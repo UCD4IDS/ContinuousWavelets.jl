@@ -4,22 +4,31 @@
     boundaries = (DEFAULT_BOUNDARY, padded, NaivePer)
     sVals = [1, 2, 3.5, 8, 16]
     βs = [1, 1.5,4.0]
-    waveTypes =(morl, dog0, paul4, cDb2)
+    waveTypes =(ContinuousWavelets.morl, dog0, paul4, cDb2)
     @testset "xSz=$xSize, b=$boundary, s=$s, β=$β, wfc=$(wave)" for xSize in xSizes, boundary in boundaries, s in sVals, β in βs, wave in waveTypes
-        wfc = wavelet(wave, s=s, boundary=boundary,β=β)
-        xc = rand(Float64, xSize);
+        wfc = ContinuousWavelets.wavelet(wave, s=s, boundary=boundary,β=β)
+        xr = rand(Float64, xSize);
+        x32 = rand(Float32, xSize);
+        xc = rand(ComplexF64, xSize);
         # the sizes are of course broken at this size, so no warnings needed
-        yc = 3
+        yc = 3; yr = 3; y32 = 3
         with_logger(ConsoleLogger(stderr, Logging.Error)) do
-            yc = cwt(xc, wfc);
+            yr = ContinuousWavelets.cwt(xr, wfc);
+            y32 = ContinuousWavelets.cwt(x32, wfc);
+            yc = ContinuousWavelets.cwt(xc, wfc);
         end
-        if typeof(wfc.waveType) <: Union{Morlet, Paul}
-            @test Array{ComplexF64, 2}==typeof(yc)
+        if isAnalytic(wfc.waveType)
+            @test eltype(yr) == ComplexF64
+            @test eltype(y32) == ComplexF32
+            @test eltype(yc) == ComplexF64
         else
-            @test Array{Float64, 2}==typeof(yc)
+            @test eltype(yr) == Float64
+            @test eltype(y32) == Float32
+            @test eltype(yc) == ComplexF64
         end
-        nOctaves, totalWavelets, sRanges, sWidths = getNWavelets(xSize, wfc);
+        nOctaves, totalWavelets, sRanges, sWidths = ContinuousWavelets.getNWavelets(xSize, wfc);
         @test totalWavelets == size(yc, 2)
     end
 end
-# xSize = xSizes[1]; boundary = boundaries[1]; s = sVals[1]; β = βs[1]; wave = waveTypes[1]
+# xSize = xSizes[3]; boundary = boundaries[3]; s = sVals[end]; β = βs[3]; wave = waveTypes[4]
+# xSize = 33; boundary = SymBoundary(); s = 1; β = 1; wave = dog2

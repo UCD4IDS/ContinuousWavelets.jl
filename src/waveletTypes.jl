@@ -1,6 +1,3 @@
-
-
-
 struct Morlet <: ContWaveClass
     σ::Float64 # \sigma is the time/space trade-off. as sigma->0, the spacial resolution increases; below 5, there is a danger of being non-analytic. Default is 5.8
     κσ::Float64
@@ -17,7 +14,7 @@ function Morlet(σ::T) where T <: Real
     Morlet(σ, κσ, cσ)
 end
 Morlet() = Morlet(2π)
-class(::Morlet) = "Morlet"; name(::Morlet) = "morl"; vanishingmoments(::Morlet) = 0
+class(::Morlet) = "Morlet"; name(::Morlet) = "morl"; vanishingmoments(::Morlet) = 0; isAnalytic(::Morlet) = true
 const morl = Morlet()
 Base.show(io::IO, x::Morlet) = print(io, "Morlet mean $(x.σ)")
 
@@ -29,8 +26,8 @@ Base.show(io::IO, x::Morlet) = print(io, "Morlet mean $(x.σ)")
 # abstract type Paul <: ContWaveClass end
 
 # continuous parameterized
-for (TYPE, NAMEBASE, MOMENTS, RANGE) in ((:Paul, "paul", -1, 1:20), # moments? TODO: is this a good range of parameters?
-        (:Dog, "dog",  -1, 0:6),)
+for (TYPE, NAMEBASE, MOMENTS, RANGE, ISAN) in ((:Paul, "paul", -1, 1:20, true), # moments? TODO: is this a good range of parameters?
+        (:Dog, "dog",  -1, 0:6, false),)
     @eval begin
         struct $TYPE{N} <: ContWaveClass end# $TYPE end
         class(::$TYPE) = $(string(TYPE))
@@ -38,17 +35,39 @@ for (TYPE, NAMEBASE, MOMENTS, RANGE) in ((:Paul, "paul", -1, 1:20), # moments? T
         vanishingmoments(::$TYPE{N}) where N = -1
         order(::$TYPE{N}) where N = N # either order for Paul wavelets, or number of derivatives for DOGs
         Base.show(io::IO, x::$TYPE{N}) where N = print(io, $NAMEBASE * " order $(N)")
+        isAnalytic(::$TYPE) = $(ISAN)
     end
     for NUM in RANGE
         CONSTNAME = Symbol(NAMEBASE, NUM)
         @eval begin
             const $CONSTNAME = $TYPE{$NUM}()                  # type shortcut
             export $CONSTNAME
-        end
+    end
 end
 end
 
-
+# this is a bit broken, but could unify these
+# abstract type SupaType end
+# macro makeType(FAMILY, FORPRINTING, PARAMS, RANGE)
+#     parsedParams = mapreduce(x->"$(x[1])::$(x[2])", (a,b) ->a*"\n"*b, @eval($PARAMS))
+#     println(parsedParams)
+#     @eval begin
+#         localParams =
+#         struct $FAMILY{N} <: SupaType
+#             :($(parsedParams))
+#         end
+#         family(::$FAMILY) = $(string(FAMILY))
+#         order(::$FAMILY{N}) where N = N
+#     end
+#     # constants for convienence
+#     for NUM in RANGE
+#         CONSTNAME = Symbol(FAMILY, NUM)
+#         @eval begin
+#             const $CONSTNAME = $FAMILY{$NUM}()
+#             export $CONSTNAME
+#         end
+#     end
+# end
 # adapting the orthogonal wavelet classes to the continuous case
 struct ContOrtho{OWT} <: ContWaveClass where OWT <: OrthoFilter
     o::OWT
@@ -57,6 +76,7 @@ ContOrtho(o::W) where W <: WT.OrthoWaveletClass = ContOrtho{typeof(wavelet(o))}(
 class(a::ContOrtho{OWT}) where OWT = "Continuous $(class(a.o))"
 name(a::ContOrtho{OWT}) where OWT = "c$(name(a.o))"
 vanishingmoments(a::ContOrtho{OWT}) where OWT = vanishingmoments(a.o)
+isAnalytic(::ContOrtho) = false
 qmf(w::ContOrtho) = w.o.qmf
 Base.show(io::IO, x::ContOrtho{W}) where W = print(io, "Continuous $(x.o.name)")
 
@@ -74,7 +94,7 @@ for (TYPE, NAMEBASE, RANGE) in ((:Daubechies, "Db", 1:10),
         @eval begin
             const $CONSTNAME = ContOrtho(WT.$TYPE{$NUM}())        # type shortcut
             export $CONSTNAME
-        end
+    end
 end
 end
 

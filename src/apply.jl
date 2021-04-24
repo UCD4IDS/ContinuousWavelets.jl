@@ -20,19 +20,10 @@
   the maximum possible number, i.e. the log base 2 of the length of the signal,
   times the number of wavelets per octave. If you have sampling information,
   you will need to scale wave by δt^(1/2).
-  The default assumption is that the sampling rate is 1/2π s.
+  The default assumption is that the sampling rate is 1kHz.
 
   """
-function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::AbstractFFTs.Plan =
-             plan_rfft([1]), fftPlan = plan_fft([1])) where {N, T<:Real,
-                                                             S<:Real,
-                                                             W<:WaveletBoundary,
-                                                             WaTy<:Union{<:Morlet,
-                                                                         <:Paul}}
-    # This is for analytic wavelets, so we need to treat the positive and
-    # negative frequencies differently, even for real data
-
-    # TODO: complex input version of this
+function cwt(Y::AbstractArray{T,N}, cWav::CWT, daughters, fftPlans = 1) where {N, T}
     @assert typeof(N)<:Integer
     # vectors behave a bit strangely, so we reshape them
     if N==1
@@ -40,20 +31,12 @@ function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::Abs
     end
     n1 = size(Y, 1);
 
-    _, nScales, _ = getNWavelets(n1, c)
+    _, nScales, _ = getNWavelets(n1, cWav)
     #construct time series to analyze, pad if necessary
-    x = reflect(Y, boundaryType(c)()) #this function is defined below
+    x = reflect(Y, boundaryType(cWav)()) #this function is defined below
 
     # check if the plans we were given are dummies or not
-    if size(rfftPlan)==(1,)
-        rfftPlan = plan_rfft(x, 1)
-    end
-    if size(fftPlan)==(1,)
-        fftPlan = plan_fft(x, 1)
-    end
-    n = size(x, 1)
-
-    x̂ = rfftPlan * x
+    x̂, fromPlan = prepSignalAndPlans(x, cWav, fftPlans)
     # If the vector isn't long enough to actually have any other scales, just
     # return the averaging
     if nScales <= 0 || size(daughters,2) == 1
@@ -61,10 +44,24 @@ function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::Abs
         nScales = 1
     end
 
-    wave = zeros(Complex{T}, size(x)..., nScales);  # result array;
+    if isAnalytic(cWav.waveType)
+        OutType = ensureComplex(T)
+    else
+        OutType = T
+    end
+
+    wave = zeros(OutType, size(x)..., nScales);  # result array;
     # faster if we put the example index on the outside loop through all scales
     # and compute transform
-    actuallyTransform!(wave, daughters,x̂, fftPlan, c.waveType, c.averagingType)
+    if isAnalytic(cWav.waveType)
+        if eltype(x) <: Real
+            analyticTransformReal!(wave, daughters, x̂, fromPlan, cWav.averagingType)
+        else
+            analyticTransformComplex!(wave, daughters, x̂, fromPlan, cWav.averagingType)
+        end
+    else
+        otherwiseTransform!(wave, daughters, x̂, fromPlan, cWav.averagingType)
+    end
     wave = permutedims(wave, [1, ndims(wave), (2:(ndims(wave)-1))...])
     ax = axes(wave)
     wave = wave[1:n1, ax[2:end]...]
@@ -74,91 +71,106 @@ function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan::Abs
 
     return wave
 end
-
-
-function cwt(Y::AbstractArray{T,N}, c::CWT{W, S, WaTy}, daughters, rfftPlan = plan_rfft([1])) where {N, T<:Real, S<:Real, U<:Number, W<:WaveletBoundary, WaTy<:Union{<:ContOrtho, Dog}}
-    # Dog doesn't need a fft because it is strictly real
-    # TODO: complex input version of this
-    @assert typeof(N)<:Integer
-    # vectors behave a bit strangely, so we reshape them
-    if N==1
-        Y= reshape(Y,(length(Y), 1))
-    end
-
-    n1 = size(Y, 1);
-
-    _, nScales, _ = getNWavelets(n1, c)
-    #....construct time series to analyze, pad if necessary
-    x = reflect(Y, boundaryType(c)())
-
-    # check if the plans we were given are dummies or not
-    if size(rfftPlan)==(1,)
-        rfftPlan = plan_rfft(x, 1)
-    end
-    n = size(x, 1)
-
-    # If the vector isn't long enough to actually have any other scales, just
-    # return the averaging. Or if there's only averaging
-    if nScales <= 1 || size(daughters,2) == 1
-        daughters = daughters[:,1:1]
-        nScales = 1
-    end
-
-    x̂ = rfftPlan * x
-
-    wave = zeros(Complex{T}, size(x)..., nScales);  # result array;
-    # faster if we put the example index on the outside loop through all scales
-    # and compute transform
-
-
-    actuallyTransform!(wave, daughters,x̂, rfftPlan, c.waveType)
-    wave = permutedims(wave, [1, ndims(wave), (2:(ndims(wave)-1))...])
-    ax = axes(wave)
-    wave = wave[1:n1, ax[2:end]...]
-
-    if N==1
-        wave = dropdims(wave, dims=3)
-    end
-
-    return real.(wave)
-end
-
-
-
-
-function reflect(Y, bt)
-    n1 = size(Y, 1)
-    if typeof(bt) <: ZPBoundary
-        base2 = round(Int, log(n1)/log(2));   # power of 2 nearest to N
-        x = cat(Y, zeros(2^(base2+1)-n1, size(Y)[2:end]...), dims=1)
-    elseif typeof(bt) <: SymBoundary
-        x = cat(Y, reverse(Y,dims = 1), dims = 1)
+function ensureComplex(T)
+    if T <: Real
+        return Complex{T}
     else
-        x = Y
+        return T
     end
-    return x
+end
+# there are 4 cases to deal with
+#       input Type | Real | Complex
+#       analytic?  |----------------
+#             yes  | both | fft
+#              no  | rfft | fft
+#  Analytic on Real input
+function prepSignalAndPlans(x::AbstractArray{T}, cWav::CWT{W,S,WaTy, N, true}, fftPlans) where {T <: Real, W,S,WaTy,N}
+    # analytic wavelets that are being applied on real inputs
+    if fftPlans isa Tuple{<:AbstractFFTs.Plan{<:Real}, <:AbstractFFTs.Plan{<:Complex}}
+        # they handed us the right kind of thing, so no need to make new ones
+        x̂ = fftPlans[1] * x
+        fromPlan = fftPlans[2]
+    else
+        toPlan = plan_rfft(x,1)
+        x̂ = toPlan * x
+        fromPlan = plan_fft(x,1)
+    end
+    return x̂, fromPlan
 end
 
-function actuallyTransform!(wave, daughters, x̂, fftPlan, analytic::Union{<:Morlet,
-                                                                         <:Paul},
-                            averagingType::Union{Father, Dirac})
+#  Non-analytic on Real input
+function prepSignalAndPlans(x::AbstractArray{T}, cWav::CWT{W,S,WaTy, N, false}, fftPlans) where {T <: Real, W,S,WaTy,N}
+    # real wavelets that are being applied on real inputs
+    if fftPlans isa AbstractFFTs.Plan{<:Real}
+        # they handed us the right kind of thing, so no need to make new ones
+        x̂ = fftPlans * x
+        fromPlan = fftPlans
+    else
+        fromPlan = plan_rfft(x,1)
+        x̂ = fromPlan * x
+    end
+    return x̂, fromPlan
+end
+# complex input
+function prepSignalAndPlans(x::AbstractArray{T}, cWav, fftPlans) where {T <: Complex, W,S,WaTy,N}
+    # real wavelets that are being applied on real inputs
+    if fftPlans isa AbstractFFTs.Plan{<:Complex}
+        # they handed us the right kind of thing, so no need to make new ones
+        x̂ = fftPlans * x
+        fromPlan = fftPlans
+    else
+        fromPlan = plan_fft(x,1)
+        x̂ = fromPlan * x
+    end
+    return x̂, fromPlan
+end
+
+# analytic on real data with an averaging function
+function analyticTransformReal!(wave, daughters, x̂, fftPlan, averagingType::Union{Father, Dirac})
     outer = axes(x̂)[2:end]
     n1 = size(x̂, 1)
-    isSourceOdd = mod(size(wave,1)+1,2)
+    isSourceEven = mod(size(wave,1)+1,2)
     # the averaging function isn't analytic, so we need to do both positive and
     # negative frequencies
-    tmpWave = x̂ .* daughters[:,1]
-    wave[(n1+1):end, outer..., 1] = reverse(conj.(tmpWave[2:end-isSourceOdd,
-                                                          outer...]),dims=1)
-    wave[1:n1, outer..., 1] = tmpWave
-    wave[:, outer..., 1] = fftPlan \ (wave[:, outer..., 1])  # averaging
+    @views tmpWave = x̂ .* daughters[:,1]
+    @views wave[(n1+1):end, outer..., 1] = reverse(conj.(tmpWave[2:end-isSourceEven, outer...]), dims=1)
+    @views wave[1:n1, outer..., 1] = tmpWave
+    @views wave[:, outer..., 1] = fftPlan \ (wave[:, outer..., 1])  # averaging
     for j in 2:size(daughters,2)
-        wave[1:n1, outer..., j] = x̂ .* daughters[:,j]
+        @views wave[1:n1, outer..., j] = x̂ .* daughters[:,j]
         wave[:, outer..., j] = fftPlan \ (wave[:, outer..., j])  # wavelet transform
     end
 end
-function actuallyTransform!(wave, daughters, x̂, fftPlan,
-                            analytic::Union{<:Morlet, <:Paul}, averagingType::NoAve)
+
+# analytic on complex data with an averaging function
+function analyticTransformComplex!(wave, daughters, x̂, fftPlan, averagingType::Union{Father, Dirac})
+    outer = axes(x̂)[2:end]
+    n1 = size(daughters, 1)
+    isSourceEven = mod(size(wave,1)+1,2)
+    # the averaging function isn't analytic, so we need to do both positive and
+    # negative frequencies
+    @views positiveFreqs = x̂[1:n1, outer...] .* daughters[:,1]
+    @views negativeFreqs = x̂[(n1-isSourceEven+1):end, outer...] .* reverse(conj.(daughters[2:end,1]))
+    @views wave[(n1-isSourceEven+1):end, outer..., 1] = negativeFreqs
+    @views wave[1:n1, outer..., 1] = positiveFreqs
+    @views wave[:, outer..., 1] = fftPlan \ (wave[:, outer..., 1])  # averaging
+    for j in 2:size(daughters,2)
+        @views wave[1:n1, outer..., j] = x̂[1:n1, outer...] .* daughters[:,j]
+        @views wave[:, outer..., j] = fftPlan \ (wave[:, outer..., j])  # wavelet transform
+    end
+end
+
+function analyticTransformComplex!(wave, daughters, x̂, fftPlan, averagingType)
+    outer = axes(x̂)[2:end]
+    n1 = size(x̂, 1)
+    for j in 1:size(daughters,2)
+        @views wave[1:n1, outer..., j] = x̂[1:n1, outer...] .* daughters[:,j]
+        @views wave[:, outer..., j] = fftPlan \ (wave[:, outer..., j])  # wavelet transform
+    end
+end
+
+# analytic on real data without an averaging function
+function analyticTransformReal!(wave, daughters, x̂, fftPlan, averagingType::NoAve)
     outer = axes(x̂)[2:end]
     n1 = size(x̂, 1)
     # the no averaging version
@@ -169,16 +181,41 @@ function actuallyTransform!(wave, daughters, x̂, fftPlan,
 end
 
 
-function actuallyTransform!(wave, daughters, x̂, rfftPlan,
-                            analytic::Union{<:Dog, <:ContOrtho})
+function otherwiseTransform!(wave::AbstractArray{<:Real}, daughters, x̂, fromPlan, averagingType)
+    # real wavelets on real data: that just makes sense
     outer = axes(x̂)[2:end]
     n1 = size(x̂, 1)
     for j in 1:size(daughters, 2)
-        wave[1:n1, outer..., j] = x̂ .* daughters[:,j]
-        wave[:, outer..., j] = rfftPlan \ (wave[1:n1, outer..., j])  # wavelet transform
+        @views tmp = x̂ .* daughters[:,j]
+        @views wave[:, outer..., j] = fromPlan \ tmp  # wavelet transform
     end
 end
 
+# if it isn't analytic, the output is complex only if the input is complex
+function otherwiseTransform!(wave::AbstractArray{<:Complex}, daughters, x̂, fromPlan, averagingType)
+    # applying a real transform to complex data is maybe a bit odd, but you do you
+    outer = axes(x̂)[2:end]
+    n1 = size(daughters, 1)
+    isSourceEven = mod(size(fromPlan, 1) + 1, 2)
+    for j in 1:size(daughters, 2)
+        @views wave[1:n1, outer..., j] = @views x̂[1:n1,outer...] .* daughters[:,j]
+        @views wave[n1-isSourceEven+1:end, outer..., j] =  x̂[n1-isSourceEven+1:end,outer...] .* reverse(conj.(daughters[2:end,j]))
+        @views wave[:, outer..., j] = fromPlan \ (wave[:, outer..., j])  # wavelet transform
+    end
+end
+
+function reflect(Y, bt)
+    n1 = size(Y, 1)
+    if typeof(bt) <: ZPBoundary
+        base2 = ceil(Int, log2(n1));   # power of 2 nearest to N
+        x = cat(Y, zeros(2^(base2)-n1, size(Y)[2:end]...), dims=1)
+    elseif typeof(bt) <: SymBoundary
+        x = cat(Y, reverse(Y,dims = 1), dims = 1)
+    else
+        x = Y
+    end
+    return x
+end
 
 
 function cwt(Y::AbstractArray{T}, c::CWT{W}; varArgs...) where {T<:Number, S<:Real, V<: Real,
@@ -233,64 +270,59 @@ function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=1/1000, s0::V=NaN) where {S<
     coi = c.coi*scale  # COI [Sec.3g]
     return sj, freqs, period, scale, coi
 end
-cwt(Y::AbstractArray{T}, w::ContWaveClass; J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {T<:Real, S<:Real, V<:Real} = cwt(Y,CWT(w),J1=J1,dt=dt,s0=s0)
-caveats(Y::AbstractArray{T}, w::ContWaveClass; J1::S=NaN) where {T<: Real, S<: Real} = caveats(Y,CWT(w),J1=J1)
+cwt(Y::AbstractArray{T}, w::ContWaveClass; varargs...) where {T<:Number, S<:Real, V<:Real} = cwt(Y,CWT(w); varargs...)
+caveats(Y::AbstractArray{T}, w::ContWaveClass; J1::S=NaN) where {T<: Number, S<: Real} = caveats(Y,CWT(w),J1=J1)
 cwt(Y::AbstractArray{T}) where T<:Real = cwt(Y,Morlet())
 caveats(Y::AbstractArray{T}) where T<:Real = caveats(Y,Morlet())
 
+abstract type InverseType end
+struct DualFrames <: InverseType end
+struct NaiveDelta <: InverseType end
+struct PenroseDelta <: InverseType end
+
 """
-    icwt(W::AbstractArray{T}, c::CWT{W}, sj::AbstractArray; dt::S=NaN,
-         dj::V=1/12) where {S<:Real, V<:Real, W<:WaveletBoundary}
-    icwt(W::AbstractArray{T}, c::CWT{W}; dt::S=NaN, s0::S
-         dj::V=1/12) where {T<:Real, S<:Real, V<:Real,
-                            W<:WaveletBoundary}
+    icwt(res::AbstractArray, cWav::CWT, inverseStyle::InverseType=PenroseDelta())
+Compute the inverse wavelet transform using one of three dual frames. The default uses delta functions with weights chosen via a least squares method, the `PenroseDelta()` below. This is chosen as a default because the Morlet wavelets tend to fail catastrophically using the canonical dual frame (the `dualFrames()` type).
 
+    icwt(res::AbstractArray, cWav::CWT, inverseStyle::PenroseDelta)
+return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_{ji}``, where ``β_j`` is chosen to solve the least squares problem ``\\|Ŵβ-1\\|_2^2``, where ``Ŵ`` is the Fourier domain representation of the `cWav` wavelets. In both this case and `NaiveDelta()`, the fourier transform of ``δ`` is the constant function, thus this least squares problem.
 
-return the inverse continuous wavelet transform
+    icwt(res::AbstractArray, cWav::CWT, inverseStyle::NaiveDelta)
+return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_{ji}``, where ``β_j`` is chosen to negate the scale factor ``(^1/_s)^{^1/_p}``. Generally less accurate than choosing the weights using `PenroseDelta`. This is the method discussed in Torrence and Compo.
+
+    icwt(res::AbstractArray, cWav::CWT, inverseStyle::dualFrames)
+return the inverse continuous wavelet transform, computed using the canonical dual frame ``\\tilde{\\widehat{ψ}} = \\frac{ψ̂_n(ω)}{∑_n\\|ψ̂_n(ω)\\|^2}``. The algorithm is to compute the cwt again, but using the canonical dual frame; consiquentially, it is the most computationally intensive of the three algorithms, and typically the best behaved. Will be numerically unstable if the high frequencies of all of the wavelets are too small however, and tends to fail spectacularly in this case.
+
 """
-function icwt(W::AbstractArray, c::CWT, sj::AbstractArray; dt::S=NaN,
-              dj::V=1/12) where {S<:Real, V<:Real}
-    if isnan(dt) || (dt<0)
-        dt = 1
-    end
-
-    # Torrence and Compo (1998), eq. (11)
-    n,nSpace = setn(size(W,1), c)
-    ω = (0:(n-1))*2π
-    ψ = mother(c, 1, 1, ω)[1:(end-1)]
-    iW = (dj * sqrt(dt) / 0.776 * psi(c,0)) .* sum((real.(W) ./ sqrt.(sj')), dims=2)
-
-    return iW
-end
-function icwt(W::AbstractArray, c::CWT; dt::Real=NaN, dj::Real=1/12, J1::Real=NaN)
-
-    fλ = (4*π) / (c.σ[1] + sqrt(2 + c.σ[1]^2))
-    n1 = size(W, 1);
-    # J1 is the total number of elements
-    if isnan(J1) || (J1<0)
-        J1=floor(Int,(log2(n1))*c.Q);
-    end
-
-    sj =  getScales(n1, c)
-
-    if isnan(dt) || (dt<0)
-        dt = 1
-    end
-
-    return icwt(W, c, sj, dt=dt, dj=1/(c.Q))
-end
-icwt(Y::AbstractArray, w::ContWaveClass; dj::T=1/12, dt::S=NaN,
-     s0::V=NaN) where {S<:Real, T<:Real, V<:Real} = icwt(Y,CWT(w))
-icwt(Y::AbstractArray) = icwt(Y,Morlet())
-
-function psi(c::CWT{W}, t::Int64) where W<:WaveletBoundary
-    return real.(π^(-0.25) * exp.(im*c.σ[1]*t - t^2 / 2))
+function icwt(res::AbstractArray, cWav::CWT, inverseStyle::PenroseDelta)
+    Ŵ = computeWavelets(size(res,1), cWav)[1]
+    β = computeDualWeights(Ŵ, cWav)
+    testDualCoverage(β, Ŵ)
+    compXRecon = sum(res .* β, dims=2)
+    imagXRecon = irfft(im*rfft(imag.(compXRecon),1), size(compXRecon,1)) # turns out the dual frame for the imaginary part is rather gross in the time domain
+    return imagXRecon + real.(compXRecon)
 end
 
+function icwt(res::AbstractArray, cWav::CWT, inverseStyle::NaiveDelta)
+    Ŵ = computeWavelets(size(res,1), cWav)[1]
+    β = computeNaiveDualWeights(Ŵ, cWav, size(res,1))
+    testDualCoverage(β, Ŵ)
+    compXRecon = sum(res .* β, dims=2)
+    imagXRecon = irfft(im*rfft(imag.(compXRecon),1), size(compXRecon,1)) # turns out the dual frame for the imaginary part is rather gross in the time domain
+    return imagXRecon + real.(compXRecon)
+end
 
+function icwt(res::AbstractArray, cWav::CWT, inverseStyle::DualFrames)
+    Ŵ = computeWavelets(size(res,1), cWav)[1]
+    canonDualFrames = explicitConstruction(Ŵ)
+    testDualCoverage(canonDualFrames)
+    convolved = cwt(res, cWav, canonDualFrames)
+    ax = axes(convolved)
+    @views xRecon = sum(convolved[:,i,i,ax[4:end]...] for i=1:size(Ŵ,2))
+    return xRecon
+end
 
+icwt(Y::AbstractArray, w::ContWaveClass; varargs...) where {S<:Real, T<:Real, V<:Real} = icwt(Y,CWT(w), PenroseDelta(); varargs...)
+icwt(Y::AbstractArray; varargs...) = icwt(Y,Morlet(), PenroseDelta(); varargs...)
 
 # CWT (continuous wavelet transform directly) TODO: direct if sufficiently small
-
-# TODO: continuous inverse, when defined
-#icwt(::AbstractVector, ::ContWave)

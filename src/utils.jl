@@ -25,21 +25,21 @@ end
 
 
 """
-different wavelet familes need to end at a different number of octaves because they have different
+different wavelet familes need to end at a different number of octaves because they have different tail behavior
 """
 getNOctaves(n1,c::CWT{W,T, M, N}) where {W, T, N, M} = log2(n1>>1+1) + c.extraOctaves
 # choose the number of octaves so the last mean, which is at s*σ[1]
 # is 3 standard devations away from the end
 getNOctaves(n1,c::CWT{W,T, Morlet, N}) where {W, T, N} = log2((n1>>1+1)/(c.σ[1]+3)) + c.extraOctaves
 getNOctaves(n1,c::CWT{W,T, <:Paul, N}) where {W, T, N} = log2((n1>>1+1)/(2c.α+5)) + c.extraOctaves
-# choose the number of octaves so the last mean is 2 standard deviations from the end
+# choose the number of octaves so the last mean is 5 standard deviations from the end
 function getNOctaves(n1,c::CWT{W,T, <:Dog, N}) where {W, T, N}
     μ = getMean(c)
     σ = getStd(c)
     log2(n1>>1/(μ+5σ)) + c.extraOctaves
 end
-# choose the number of octaves so the smallest support is still 16
-getNOctaves(n1,c::CWT{W,T, <:ContOrtho, N}) where {W, T, N} = log2(n1) - 2 + c.extraOctaves
+# choose the number of octaves so the smallest support is twice the qmf
+getNOctaves(n1,c::CWT{W,T, <:ContOrtho, N}) where {W, T, N} = log2(n1) - 2 - log2(length(qmf(c.waveType))) + c.extraOctaves
 
 """
 As with the last octave, different wavelet families have different space decay rates, and in the case of symmetric or zero padding we don't want wavelets that bleed across the boundary from the center.
@@ -67,7 +67,7 @@ end
 
 
 function polySpacing(nOct, c)
-    a = getMinScaling(c) + c.averagingLength
+    a = max(getMinScaling(c) + c.averagingLength, 0)
     O = nOct
     β = c.β
     Q = c.Q
@@ -92,26 +92,33 @@ function polySpacing(nOct, c)
     stepSize = (lastWavelet - startOfLastOctave)/Q
     samplePoints = range(firstWavelet, stop=lastWavelet,
                          step = stepSize)#, length = round(Int, O * Q^(1/p)))
-    # println(b .* (samplePoints).^(1/β))
     return b .* (samplePoints).^(1/β)
 end
 
 # a utility to just get the start, stop, and step size used in polySpacing. Only used for explanatory purposes
 function genSamplePoints(nOct, c)
-    a =c.averagingLength; O = nOct
+    a = getMinScaling(c) + c.averagingLength
+    O = nOct
     β = c.β
     Q = c.Q
+    if O ≤ a
+        # averagingLength and the min scaling are too large for anything to be done
+        return [1.0]
+    elseif 0 < O - a ≤ 1
+        # there's only one octave, just return the linear rate of Q
+        return range(a, O, length=1+round(Int, Q))
+    end
     # x is the index, y is the scale
     # y= b*x^(1/β), solve for a and b with
-    # (x₀,y₀)=(0,aveLength-1)
+    # (x₀,y₀)=(1, aveLength + minScale)
     # dy/dx = 1/s, so the Quality factor gives the slope at the last frequency
-    b = (β/Q)^(1/β) * (O+a)^((β-1)/β)
+    b = (β/Q)^(1/β) * (O)^((β-1)/β)
     # the point x so that the second condition holds
-    lastWavelet = Q * (O+a)/β
+    lastWavelet = Q * (O)/β
     # the point so that the first wavelet is at a
     firstWavelet = (a/b)^β
     # step size so that there are actually Q wavelets in the last octave
-    startOfLastOctave = ((nOct+a-1)/b)^β
+    startOfLastOctave = ((nOct-1)/b)^β
     stepSize = (lastWavelet - startOfLastOctave)/Q
     firstWavelet, lastWavelet, stepSize
 end
@@ -122,7 +129,7 @@ adjust the length of the storage based on the boundary conditions
 """
 function setn(n1, c)
     if boundaryType(c) <: ZPBoundary
-        base2 = ceil(Int,log2(n1 + 1));   # power of 2 nearest to n1
+        base2 = ceil(Int,log2(n1));   # power of 2 nearest to n1
         nSpace = 2^(base2)
         n = nSpace>>1 + 1
     elseif boundaryType(c) <: SymBoundary
@@ -151,7 +158,7 @@ adjust(c::CWT) = 1
 adjust(c::CWT{W, T, <:Dog}) where {W,T} = 1/(im)^(c.α)
 
 function locationShift(c::CWT{W, T, <:Morlet, N}, s, ω, sWidth) where {W,T,N}
-        s0 = 3*c.σ[1]/4 *s*sWidth
+        s0 = 3*c.σ[1] *s*sWidth
         ω_shift = ω .+ c.σ[1] * s0
     return (s0, ω_shift)
 end
@@ -243,8 +250,97 @@ function calcDepth(w, N)
 end
 # the actual length calculator, as this is recursive
 nextLength(curr,orig) = curr*2 + orig - 1 # upsample then convolve
-# pad a vector `v` to have length `N`
-padTo(v, N) = cat(v, zeros(eltype(v), max(N-length(v),0)), dims = 1)
+# pad a vector `v` to have length `N`. Or chop off from both sides if its too long
+function padTo(v, N)
+    nDiff = N - length(v)
+    if nDiff > 0 # there should be more entries than there are
+        cat(v, zeros(eltype(v), max(N-length(v),0)), dims = 1)
+    elseif nDiff ==0
+        return v
+    else # there are too many, so chop off half the difference from each side
+       inds = ceil(Int, 1-nDiff/2):length(v)+ceil(Int,nDiff/2)
+       return v[inds]
+    end
+end
+
 
 # create interpolater for the orthogonal cases
 genInterp(ψ) = interpolate(ψ, BSpline(Quadratic(Reflect(OnGrid()))))
+
+
+
+
+"""
+    β = computeDualWeights(Ŵ)
+compute the weight given to each wavelet so that in the Fourier domain, the sum across wavelets is as close to 1 at every frequency below the peak of the last wavelet (that is `β' .*abs.(Ŵ[1:lastFreq,:]) ≈ ones(lastFreq)` in an ℓ^2 sense)
+"""
+function computeDualWeights(Ŵ, wav)
+    @views lastReasonableFreq = computeLastFreq(Ŵ[:,end], wav)
+    Wdag = pinv(Ŵ[1:lastReasonableFreq,:])
+    β = conj.(Wdag * ones(size(Wdag,2)))'
+    return β
+end
+# function computeDualWeights(Ŵ, wav::CWT{W,T,<:ContOrtho,N}, n,naive=true) where {W,T,N}
+#     β = computeNaiveDualWeights(Ŵ, wav, n)
+#     return β
+# end
+computeLastFreq(ŵ, wav) = length(ŵ) - 3 # we have constructed the wavelets so the last frequency is <1%, so trying to get it to 1 will fail
+computeLastFreq(ŵ, wav::CWT{W,T,<:Morlet}) where {W,T} = findlast(abs.(ŵ) .> 1/4 * maximum(abs.(ŵ))) # the gaussian decay makes this way too large by the end
+
+"""
+    computeNaiveDualWeights(Ŵ, wav, n1)
+Compute the dual weights using the scaling amounts and the normalization power p. Primarily used when the least squares version is poorly constructed. When the least squares version doesn't perform well, this is also likely to have poor reconstruction, but it won't give extremely negative or oscillatory weights like the least squares version.
+"""
+function computeNaiveDualWeights(Ŵ, wav, n1)
+    _, _, sRange, _ = ContinuousWavelets.getNWavelets(n1, wav)
+    isAve = !(wav.averagingType isa NoAve)
+    p = wav.p
+    # every wavelet is multiplied by 1/s^(1/p), so we need to multiply by that to normalize in frequency. The extra +1 is to convert from uniform in scale to uniform in frequency
+    sToTheP = sRange' .^ (1/p+1)
+    if isAve && size(Ŵ,2)>1
+        # averaging needs to have maximum value of 1
+        aveMultiplier = 1/norm(Ŵ[:,1],Inf)
+        dual = sum(Ŵ[:,2:end] .* sToTheP, dims=2)
+        renormalize = norm(dual,Inf)
+        dual ./=renormalize
+        #dual += Ŵ[:,1] .* sToTheP[1]
+        β = cat(aveMultiplier, 2 .* sToTheP./renormalize..., dims=2)
+    elseif size(Ŵ,2)>1
+        dual = sum(Ŵ .* sToTheP, dims=2)
+        β = sToTheP ./ norm(dual, Inf)
+        β[2:end] .* 2
+    else
+        # there's only the averaging
+        β = [1/norm(Ŵ[:,1],Inf)]
+    end
+    return β
+end
+
+"""
+    dualCover, dualNorm = getDualCoverage(n,cWav, invType)
+get the sum of the weights and its deviation from 1
+"""
+function getDualCoverage(n,cWav, invType)
+    Ŵ = computeWavelets(n,cWav)[1]
+    if invType isa DualFrames
+        dualCover = sum(conj.(Ŵ) .* explicitConstruction(Ŵ),dims=2)
+        return dualCover, norm(dualCover .- 1)
+    elseif invType isa PenroseDelta
+        β = computeDualWeights(Ŵ, cWav)
+    elseif invType isa NaiveDelta
+        β = computeNaiveDualWeights(Ŵ, cWav, n)
+    end
+    dualCover = sum(conj.(β) .* Ŵ, dims=2)
+    dualCover, norm(dualCover .- 1)
+end
+
+function dualDeviance(n, cWav, naive)
+    getDualCoverage(n,cWav,naive)
+end
+
+"""
+Explicitly construct the canonical dual frame elements for a translation invariant frame. This is likely to end poorly due to the low representation at high frequencies.
+"""
+function explicitConstruction(Ŵ)
+    Ŵdual = conj.(Ŵ ./ [norm(ŵ)^2 for ŵ in eachslice(Ŵ,dims=1)])
+end

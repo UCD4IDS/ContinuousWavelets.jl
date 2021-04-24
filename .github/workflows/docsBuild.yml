@@ -21,14 +21,17 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt install libxt6 libxrender1 libxext6 libgl1-mesa-glx libqt5widgets5
-      - run: |
+      - name: Instantiate 
+        run: |
           julia --project=docs -e '
             using Pkg
             Pkg.instantiate()
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()'
       - name: Build and deploy
-        run: julia --project=docs docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+        run: julia --project=docs --code-coverage=user docs/make.jl
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v1

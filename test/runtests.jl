@@ -7,6 +7,7 @@ using Logging
     include("basicTypesAndNumber.jl")
     include("deltaSpikes.jl")
     include("defaultProperties.jl")
+    include("inversionTests.jl")
 end
 # TODO:
 #       test averaging types
