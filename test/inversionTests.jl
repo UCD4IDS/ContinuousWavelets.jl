@@ -1,8 +1,8 @@
 #wave = cwts[4]; bc = bcs[1]; β=βs[2]; ave = averagingLengths[end]; n = ns[1]; testF = typesOfTestFunctions[1]; inverseType = inversionMethods[3]
 #wave = morl; bc = ZPBoundary(); ave = -1; n = 1382; testF = "just Core"; inverseType = DualFrames(); β = 1.5; eOct = 0
 @testset "Inversion" begin
-    bcs =(PerBoundary(), ZPBoundary(),)
-    cwts = (dog2,morl)
+    bcs =(ContinuousWavelets.PerBoundary(), ContinuousWavelets.ZPBoundary(),)
+    cwts = (ContinuousWavelets.dog2,ContinuousWavelets.morl)
     βs =(1,)
     averagingLengths=(0,)
     extraOctaves=(0,)
@@ -18,9 +18,9 @@
                 x = testfunction(n,testF)
             end
 
-            wav = wavelet(wave, β=β,boundary=bc,averagingLength = ave, extraOctaves = eOct)
+            wav = ContinuousWavelets.wavelet(wave, β=β,boundary=bc,averagingLength = ave, extraOctaves = eOct)
             with_logger(ConsoleLogger(stderr, Logging.Error)) do
-                res = cwt(x, wav)
+                res = ContinuousWavelets.cwt(x, wav)
                 xRecon = real.(ContinuousWavelets.icwt(res, wav, inverseType))
                 err = norm(xRecon-x)/norm(x)
                 @test err < 3 # none of them are wildly off
