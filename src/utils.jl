@@ -276,7 +276,6 @@ compute the weight given to each wavelet so that in the Fourier domain, the sum 
 """
 function computeDualWeights(Ŵ, wav)
     @views lastReasonableFreq = computeLastFreq(Ŵ[:,end], wav)
-    println(size(Ŵ))
     Wdag = pinv(Ŵ[1:lastReasonableFreq,:])
     β = conj.(Wdag * ones(size(Wdag,2)))'
     return β

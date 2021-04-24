@@ -298,7 +298,6 @@ function icwt(res::AbstractArray, cWav::CWT, inverseStyle::PenroseDelta)
     Ŵ = computeWavelets(size(res,1), cWav)[1]
     β = computeDualWeights(Ŵ, cWav)
     testDualCoverage(β, Ŵ)
-    println(size(res),size(β))
     compXRecon = sum(res .* β, dims=2)
     imagXRecon = irfft(im*rfft(imag.(compXRecon),1), size(compXRecon,1)) # turns out the dual frame for the imaginary part is rather gross in the time domain
     return imagXRecon + real.(compXRecon)

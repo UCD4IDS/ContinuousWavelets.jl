@@ -42,7 +42,7 @@ are:
 
     ``\\psi\\hat(\\omega) \\propto \\textrm{e}^{-\\frac{\\mu^2}{2}}\\big(\\textrm{e}^{-(\\mu - \\omega)^2} -\\textrm{e}^{\\frac{\\omega^2-\\mu^2}{2}}\\big)``
 
-- `Paul{N}`: A complex analytic wavelet. `pauln` for n in `1:20` e.g. `paul5`
+- `Paul{N}`: A complex analytic wavelet, also known as Cauchy wavelets. `pauln` for n in `1:20` e.g. `paul5`
 
     ``\\psi\\hat(\\omega) \\propto \\chi_{\\omega \\geq 0} \\omega^N\\textrm{e}^{-\\omega}``
 - `Dog{N}`: Derivative of a Gaussian, where N is the number of
