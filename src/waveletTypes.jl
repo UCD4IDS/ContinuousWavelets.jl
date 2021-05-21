@@ -25,6 +25,7 @@ struct Morse <: ContinuousWavelets.ContWaveClass
     cf::Float64
 end
 
+ga = 3; be = 1; cf = 1;
 Morse() = Morse(ga,be,cf)
 class(::Morse) = "Morse"; name(::Morse) = "morse"; 
 vanishingmoments(::Morse) = 0; isAnalytic(::Morse) = true
