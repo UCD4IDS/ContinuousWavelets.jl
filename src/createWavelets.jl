@@ -283,7 +283,7 @@ function analyticOrNot(c::CWT{W,T,<:Union{Dog,ContOrtho},N}, n, totalWavelets) w
     return daughters
 end
 
-function analyticOrNot(c::CWT{W,T,<:Union{Morlet,Paul},N}, n, totalWavelets) where {W,T,N}
+function analyticOrNot(c::CWT{W,T,<:Union{Morlet,Paul,Morse},N}, n, totalWavelets) where {W,T,N}
     daughters = zeros(T, n, totalWavelets)
     return daughters
 end
