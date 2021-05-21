@@ -25,11 +25,10 @@ struct Morse <: ContinuousWavelets.ContWaveClass
     cf::Float64
 end
 
-N = 100; ga = 3; be = 1; cf = 1;
 Morse() = Morse(ga,be,cf)
-class(::Morse) = "Morse"; name(::Morse) = "mors"; 
+class(::Morse) = "Morse"; name(::Morse) = "morse"; 
 vanishingmoments(::Morse) = 0; isAnalytic(::Morse) = true
-const mors = Morse()
+const morse = Morse()
 Base.show(io::IO, x::Morse) = print(io, "Morse gamma = $(x.ga), Morse beta = $(x.be), center frequency = $(x.cf)")
 
 # TODO: include a sombrero wavelet, which is dog2.

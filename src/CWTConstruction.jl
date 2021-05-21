@@ -60,38 +60,6 @@ end
 """
 
 
-function CWT(wave::CWT{W,T,Morse,N}, Q=8, boundary::B=DEFAULT_BOUNDARY,
-             averagingType::A=ContinuousWavelets.Father(),
-             averagingLength::Real=1,
-             frameBound=1, p::N=Inf,
-             β=4; extraOctaves=0, kwargs...) where {WC <: ContinuousWavelets.ContWaveClass,A <: ContinuousWavelets.Average,B <: WaveletBoundary,N <: Real, W, T}
-    Q, β, p = ContinuousWavelets.processKeywordArgs(Q, β, p; kwargs...) # some names are redundant
-    
-    ga = wave.ga;
-    be = wave.be;
-    cf = wave.cf;
-    
-    @assert β > 0
-    @assert p >= 1
-    nameWavelet = name(wave)[1:3]
-    tdef = calculateProperties(wave)
-
-    if typeof(averagingType) <: NoAve
-        averagingLength = 0
-        averagingType = NoAve()
-    end
-
-    # S is the most permissive type of the listed variables
-    S = promote_type(typeof(Q), typeof(β), 
-                     typeof(frameBound), typeof(p), 
-                     typeof(tdef[1]), typeof(tdef[2]))
-    return CWT{B,S,WC,N,isAnalytic(wave)}(S(Q), S(β),
-                            tdef..., S(extraOctaves),
-                            S(averagingLength), averagingType, S(frameBound),
-                            S(p))
-end
-
-
 function CWT(wave::WC, Q=8, boundary::B=DEFAULT_BOUNDARY,
              averagingType::A=Father(),
              averagingLength::Real=0,

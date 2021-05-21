@@ -60,7 +60,6 @@ end
 
 function mother(this::CWT{W,T,Morse,N}, s::Real,
                   ω::AbstractArray{<:Real,1}) where {W,T,N}
-    x=[];
     
     ga = this.waveType.ga;
     be = this.waveType.be;
@@ -85,7 +84,10 @@ function mother(this::CWT{W,T,Morse,N}, s::Real,
     # Ensure nice lowpass filters for beta=0;
     # Otherwise, doesn't matter since wavelets vanishes at zero frequency
 
-    daughter[daughter .!= daughter] .= 0;
+    if any(daughter .!= daughter)
+        @warn "the given values of gamma and beta are numerically unstable"
+        daughter[daughter .!= daughter] .= 0;
+    end
     
     return ContinuousWavelets.normalize(daughter, s, p)
 end
