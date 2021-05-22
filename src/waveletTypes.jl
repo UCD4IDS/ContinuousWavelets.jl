@@ -29,7 +29,7 @@ end
 
     return the Morse wavelet with the central frequency parameter cf, gamma parameter ga and beta parameter be.
 """
-function Morse_convert(ga::T,be::T,cf::T) where T <: Real
+function Morse_convert(ga::Real, be::Real, cf::Real) 
     ga, be, cf = Float64.(ga), Float64.(be), Float64.(cf)
     Morse(ga,be,cf)
 end
