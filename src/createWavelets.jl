@@ -71,7 +71,7 @@ function mother(this::CWT{W,T,Morse,N}, s::Real, sWidth::Real,
     
     #  ω = LinRange(0,1-(1/len),len)
     
-    om = 2 * pi * ω./ fact / max(1, s) / length(w);
+    om = 2 * pi * ω./ fact / max(1, s) / length(ω);
 
     if be == 0
         daughter = 2*exp.(-om.^ga);
