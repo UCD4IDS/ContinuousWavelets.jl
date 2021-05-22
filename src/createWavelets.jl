@@ -73,7 +73,7 @@ function mother(this::CWT{W,T,Morse,N}, s::Real, sWidth::Real,
     
     om = 2 * pi * ω./ fact / max(1, s);
 
-    om = (om .- min(om)) ./ (max(om) - min(om));
+    om = (om .- minimum(om)) ./ (maximum(om) - minimum(om));
 
     if be == 0
         daughter = 2*exp.(-om.^ga);
