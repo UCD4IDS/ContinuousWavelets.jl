@@ -73,12 +73,12 @@ function mother(this::CWT{W,T,Morse,N}, s::Real, sWidth::Real,
     
     om = 2 * pi * ω./ fact / max(1, s);
 
-    om = (om .- minimum(om)) ./ (maximum(om) - minimum(om));
+    om = (om .- minimum(om)) ./ (maximum(om) + sqrt(eps()) - minimum(om));
 
     if be == 0
-        daughter = 2*exp.(-om.^ga);
+        daughter = 2 * exp.(-om.^ga);
     else
-        daughter = 2*exp.(-be.*log.(fo) .+ fo.^ga .+ be.*log.(om) .- om.^ga);
+        daughter = 2 * exp.(-be.*log.(fo) .+ fo.^ga .+ be.*log.(om) .- om.^ga);
     end
     
     daughter[1] = 1/2*daughter[1]; # Due to unit step function
