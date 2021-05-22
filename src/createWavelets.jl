@@ -70,9 +70,8 @@ function mother(this::CWT{W,T,Morse,N}, s::Real, sWidth::Real,
     fact = cf/fo;
     
     #  ω = LinRange(0,1-(1/len),len)
-    # om = 2*pi*LinRange(0,1-(1/len),len)./fact;
     
-    om = 2 * pi * ω./ fact / (1 + s) ;
+    om = 2 * pi * ω./ fact / max(1, s);
 
     if be == 0
         daughter = 2*exp.(-om.^ga);
