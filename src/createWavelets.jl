@@ -58,7 +58,7 @@ function mother(this::CWT{W,T,<:Dog,N}, s::Real, sWidth::Real,
     return normalize(daughter, s, this.p)
 end
 
-function mother(this::CWT{W,T,Morse,N}, s::Real,
+function mother(this::CWT{W,T,Morse,N}, s::Real, sWidth::Real,
                   ω::AbstractArray{<:Real,1}) where {W,T,N}
     
     ga = this.waveType.ga;
@@ -157,9 +157,9 @@ function father(c::CWT{<:WaveletBoundary,T}, ω,
     return averaging
 end
 
-function father(c::CWT{W, T, <:Morse}, ω, averagingType::ContinuousWavelets.Father) where {W,T}
+function father(c::CWT{W, T, <:Morse}, ω, averagingType::ContinuousWavelets.Father, sWidth) where {W,T}
     s = 2^(min(c.averagingLength + getMinScaling(c) - 1, 0))
-    s0, ω_shift = locationShift(c, s, ω)
+    s0, ω_shift = locationShift(c, s, ω, sWidth)
     averaging = adjust(c) .* mother_(c, s0, ω_shift)
     return averaging
 end
