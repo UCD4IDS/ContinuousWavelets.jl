@@ -34,7 +34,7 @@ function Morse_convert(ga::T,be::T,cf::T) where T <: Real
     Morse(ga,be,cf)
 end
 
-Morse() = Morse_convert(3, 1, 0.5)
+Morse() = Morse_convert(3, 1, 1)
 class(::Morse) = "Morse"; name(::Morse) = "morse"; 
 vanishingmoments(::Morse) = 0; isAnalytic(::Morse) = true
 const morse = Morse()
