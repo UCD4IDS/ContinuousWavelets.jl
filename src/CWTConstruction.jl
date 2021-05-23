@@ -74,6 +74,10 @@ function CWT(wave::WC, Q=8, boundary::B=DEFAULT_BOUNDARY,
         averagingType = NoAve()
     end
 
+    if typeof(wave) == Morse
+        averagingLength = 4;
+    end
+
     # S is the most permissive type of the listed variables
     S = promote_type(typeof(Q), typeof(β),
                      typeof(frameBound), typeof(p),
