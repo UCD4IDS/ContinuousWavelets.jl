@@ -75,7 +75,7 @@ function mother(this::CWT{W,T,Morse,N}, s::Real, sWidth::Real,
 
     #om = 2 * pi * (ω / s)./ fact;
 
-    om = 2 * pi * (ω / s) / cf;
+    om = (ω / s) / cf;
 
     # om = (om .- minimum(om)) ./ (maximum(om) + sqrt(eps()) - minimum(om));
 
