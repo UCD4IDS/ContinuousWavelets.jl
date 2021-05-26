@@ -11,7 +11,7 @@
         with_logger(ConsoleLogger(stderr, Logging.Error)) do
             Ŵ,ω = ContinuousWavelets.computeWavelets(n, wav)
         end
-        if wav.waveType isa Union{<:Morlet, <:Paul}
+        if wav.waveType isa Union{<:Morlet, <:Paul, <:Morse}
             nFreq, nSpace = ContinuousWavelets.setn(n, wav)
             fullŴ = [Ŵ; zeros(nFreq-1, size(Ŵ, 2))]
             fullŴ[end-nFreq+1:end,1] = reverse(Ŵ[:,1])
