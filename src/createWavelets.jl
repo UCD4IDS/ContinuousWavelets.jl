@@ -1,13 +1,4 @@
-"""
-    daughter = mother(this::CWT{W, T, <:ContWaveClass, N},
-                        s::Real, nInOctave::Int, ω::AbstractArray{<:Real,1}) where {W, T, N}
-
-given a CWT object, return a rescaled version of the mother wavelet, in the
-fourier domain. ω is the frequency, which is fftshift-ed. s is the scale
-variable.
-"""
-
-function morsefreq(ga,be)
+function morsefreq(c::CWT{W,T,Morse,N}) where {W,T,N}
     
     # measures of frequency for generalized Morse wavelet. [with F. Rekibi]
     # the output returns the modal or peak
@@ -17,6 +8,10 @@ function morsefreq(ga,be)
     
     # Lilly and Olhede (2009).  Higher-order properties of analytic wavelets.  
     # IEEE Trans. Sig. Proc., 57 (1), 146--160.
+
+
+    ga = c.waveType.ga;
+    be = c.waveType.be;
     
     fm = exp.((log.(be) - log.(ga)) ./ ga);
     
@@ -25,11 +20,22 @@ function morsefreq(ga,be)
     elseif sum(be.==0) != 0 && size(fm) != ()
         fm[be.==0] = (log(2))^(1 / ga[be.==0]); 
     end
+
+    fm = fm / (2 * pi);
     
     return fm
 
 end
 
+
+"""
+    daughter = mother(this::CWT{W, T, <:ContWaveClass, N},
+                        s::Real, nInOctave::Int, ω::AbstractArray{<:Real,1}) where {W, T, N}
+
+given a CWT object, return a rescaled version of the mother wavelet, in the
+fourier domain. ω is the frequency, which is fftshift-ed. s is the scale
+variable.
+"""
 function mother(this::CWT{W,T,Morlet,N}, s::Real, sWidth::Real,
                   ω::AbstractArray{<:Real,1}) where {W,T,N}
     constant = this.σ[3] * (π)^(1 / 4)
@@ -75,7 +81,9 @@ function mother(this::CWT{W,T,Morse,N}, s::Real, sWidth::Real,
 
     #om = 2 * pi * (ω / s)./ fact;
 
-    om = (ω / s) / cf;
+    # om = (ω / s) / cf;
+
+    om = (ω / s) / fact;
 
     # om = (om .- minimum(om)) ./ (maximum(om) + sqrt(eps()) - minimum(om));
 

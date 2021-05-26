@@ -1,3 +1,34 @@
+function morsefreq(c::CWT{W,T,Morse,N}) where {W,T,N}
+    
+    # measures of frequency for generalized Morse wavelet. [with F. Rekibi]
+    # the output returns the modal or peak
+    
+    # For be=0, the "wavelet" becomes an analytic lowpass filter
+    
+    
+    # Lilly and Olhede (2009).  Higher-order properties of analytic wavelets.  
+    # IEEE Trans. Sig. Proc., 57 (1), 146--160.
+
+
+    ga = c.waveType.ga;
+    be = c.waveType.be;
+    
+    fm = exp.((log.(be) - log.(ga)) ./ ga);
+    
+    if sum(be.==0) != 0 && size(fm) == ()
+        fm = (log(2))^(1 / ga); 
+    elseif sum(be.==0) != 0 && size(fm) != ()
+        fm[be.==0] = (log(2))^(1 / ga[be.==0]); 
+    end
+
+    fm = fm / (2 * pi);
+    
+    return fm
+
+end
+
+
+
 """
     nOctaves, totalWavelets, sRanges, sWidth = getNWavelets(n1,c)
 
@@ -40,7 +71,7 @@ function getNOctaves(n1,c::CWT{W,T, <:Dog, N}) where {W, T, N}
 end
 # choose the number of octaves so the smallest support is twice the qmf
 getNOctaves(n1,c::CWT{W,T, <:ContOrtho, N}) where {W, T, N} = log2(n1) - 2 - log2(length(qmf(c.waveType))) + c.extraOctaves
-getNOctaves(n1,c::CWT{W,T, Morse, N}) where {W, T, N} = log2((n1>>1+1)/(c.waveType.cf + 3)) + c.extraOctaves 
+getNOctaves(n1,c::CWT{W,T, Morse, N}) where {W, T, N} = log2((n1>>1+1)/(morsefreq(c) + 3)) + c.extraOctaves 
 
 """
 As with the last octave, different wavelet families have different space decay rates, and in the case of symmetric or zero padding we don't want wavelets that bleed across the boundary from the center.
@@ -49,7 +80,7 @@ getMinScaling(c::CWT{W,T,M,N}) where {W,T,N,M} = 0 # by default all scales are a
 getMinScaling(c::CWT{W,T,<:Morlet,N}) where {W,T,N} = 1/(c.β)^.8 # morlet is slightly too large at the boundaries by default
 getMinScaling(c::CWT{W,T,<:Paul,N}) where {W,T,N} = 2/(2c.α+1) # Paul presents some difficulties, as the decay changes quickly (like 1/t^(α+1))
 getMinScaling(c::CWT{W,T,<:Dog,N}) where {W,T,N} = 2 # like morlet, the decay for Dog is exponential and consistent across derivatives
-getMinScaling(c::CWT{W,T,<:Morse,N}) where {W,T,N,M} = 2
+getMinScaling(c::CWT{W,T,<:Morse,N}) where {W,T,N,M} = log2(2 * morsefreq(c))
 
 function varianceAdjust(this::CWT{W,T, M, N}, totalWavelets, nOct) where {W,T,N, M}
     # increases the width of the wavelets by σ[i] = (1+a(total-i)ᴾ)σₛ
@@ -173,8 +204,10 @@ function locationShift(c::CWT{W, T, <:Dog, N}, s, ω, sWidth) where {W,T,N}
 end
 
 function locationShift(c::CWT{W, T, <:Morse, N}, s, ω, sWidth) where {W,T,N}
-        s0 = c.waveType.cf * s * sWidth / 3
-        ω_shift = ω .+ c.waveType.cf * s0
+        # s0 = c.waveType.cf * s * sWidth 
+        s0 = morsefreq(c) * s * sWidth 
+        # ω_shift = ω .+ c.waveType.cf * s0
+        ω_shift = ω .+ s0
     return (s0, ω_shift)
 end
 
