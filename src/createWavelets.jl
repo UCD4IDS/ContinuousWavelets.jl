@@ -163,7 +163,7 @@ function father(c::CWT{<:WaveletBoundary,T}, ω,
 end
 
 function father(c::CWT{W, T, <:Morse}, ω, averagingType::ContinuousWavelets.Father, sWidth) where {W,T}
-    s = 2^(min(c.averagingLength + getMinScaling(c) - 1, 0))
+    s = 2^(min(c.averagingLength + getMinScaling(c), 0))
     s0, ω_shift = locationShift(c, s, ω, sWidth)
     averaging = adjust(c) .* mother(c, s0, sWidth, ω_shift)
     return averaging
