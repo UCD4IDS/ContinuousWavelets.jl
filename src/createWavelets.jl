@@ -72,7 +72,7 @@ function mother(this::CWT{W,T,Morse,N}, s::Real, sWidth::Real,
     cf = this.waveType.cf;
     p = this.p;
 
-    fo = morsefreq(ga,be);
+    fo = morsefreq(this);
     fact = cf/fo;
     
     #  ω = LinRange(0,1-(1/len),len)
