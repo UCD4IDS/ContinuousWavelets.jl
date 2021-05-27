@@ -207,7 +207,7 @@ end
 
 function locationShift(c::CWT{W, T, <:Morse, N}, s, ω, sWidth) where {W,T,N}
         # s0 = c.waveType.cf * s * sWidth 
-        s0 = morsefreq(c) * s * sWidth 
+        s0 = morsefreq(c) * s * sWidth * 3
         # ω_shift = ω .+ c.waveType.cf * s0 
         ω_shift = ω .+ s0 
     return (s0, ω_shift)
