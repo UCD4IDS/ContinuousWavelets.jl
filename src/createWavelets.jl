@@ -21,7 +21,7 @@ function morsefreq(c::CWT{W,T,Morse,N}) where {W,T,N}
         fm[be.==0] = (log(2))^(1 / ga[be.==0]); 
     end
 
-    fm = fm / (2 * pi);
+    # fm = fm / (2 * pi);
     
     return fm
 
@@ -83,7 +83,9 @@ function mother(this::CWT{W,T,Morse,N}, s::Real, sWidth::Real,
 
     # om = (ω / s) / cf;
 
-    om = (ω / s) / fact;
+    # om = (ω / s) / fact;
+
+    om = (ω / s);
 
     # om = (om .- minimum(om)) ./ (maximum(om) + sqrt(eps()) - minimum(om));
 
