@@ -71,7 +71,7 @@ function getNOctaves(n1,c::CWT{W,T, <:Dog, N}) where {W, T, N}
 end
 # choose the number of octaves so the smallest support is twice the qmf
 getNOctaves(n1,c::CWT{W,T, <:ContOrtho, N}) where {W, T, N} = log2(n1) - 2 - log2(length(qmf(c.waveType))) + c.extraOctaves
-getNOctaves(n1,c::CWT{W,T, Morse, N}) where {W, T, N} = log2((n1>>1+1)/(morsefreq(c) + 3)) + c.extraOctaves 
+getNOctaves(n1,c::CWT{W,T, Morse, N}) where {W, T, N} = log2((n1>>1+1)/(morsefreq(c) + 1)) + c.extraOctaves 
 # getNOctaves(n1,c::CWT{W,T, Morse, N}) where {W, T, N} = 4 + c.extraOctaves
 
 """
