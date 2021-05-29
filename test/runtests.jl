@@ -1,3 +1,4 @@
+using Plots, Revise
 using ContinuousWavelets, Wavelets, Interpolations, LinearAlgebra
 using Test
 using FFTW
