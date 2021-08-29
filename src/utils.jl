@@ -278,12 +278,18 @@ function getMeanFreq(Ŵ, δt=2000)
     dropdims(sum(freqs .* abs.(Ŵ), dims=1) ./ eachNorm,dims=1)
 end
 
+function getMeanFreq(n1, cw::CWT, δt=2000)
+    Ŵ, ω = computeWavelets(n1,cw)
+    eachNorm = [norm(w,1) for w in eachslice(Ŵ,dims=ndims(Ŵ))]'
+    freqs = range(0,δt/2, length= size(Ŵ,1))
+    dropdims(sum(freqs .* abs.(Ŵ), dims=1) ./ eachNorm,dims=1)
+end
 
 # orthogonal wavelet utils
 function getContWaveFromOrtho(c,N)
     depth, ψLen = calcDepth(c,N)
     φ, ψ, t = makewavelet(c.waveType.o, depth)
-    return φ, ψ, ψLen
+    return φ, -ψ, ψLen
 end
 
 """

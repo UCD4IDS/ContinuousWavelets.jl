@@ -28,7 +28,7 @@ tmp = mapTo(paul2,false,averagingLength=-.5)[:,2]
 p2=plot([real.(tmp) imag.(tmp)],title="Paul 2", labels=["real" "imaginary"],ticks=nothing,linewidth=5)
 p3=plot(mapTo(dog2;averagingLength=-1.5)[:,2],title="derivative of gaussians (dog2)",legend=false,ticks=nothing,linewidth=5)
 p4=plot(mapTo(cHaar,true; averagingLength=1)[:,2],title="Haar",legend=false,ticks=nothing,linewidth=5)
-p5=plot(mapTo(cBeyl, true; d=1, averagingLength=-0)[:,2], title="Beylkyin", legend=false, ticks=nothing, linewidth=5)
+p5=plot(mapTo(cBeyl, true; d=1, averagingLength=-0)[:,2], title="Beylkin", legend=false, ticks=nothing, linewidth=5)
 p6=plot(mapTo(cVaid, true; d=1, averagingLength=-0)[:,2], title="Vaidyanthan", legend=false, ticks=nothing, linewidth=5)
 p7=plot(mapTo(cDb2;d=1,averagingLength=-0)[:,2],title="Daubhechies 2",legend=false,ticks=nothing,linewidth=5)
 p8=plot(mapTo(cCoif2, true;d=1, averagingLength=-0)[:,2],title="Coiflet 2",legend=false,ticks=nothing,linewidth=5)

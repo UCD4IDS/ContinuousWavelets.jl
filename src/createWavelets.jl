@@ -27,7 +27,7 @@ end
 
 function mother(this::CWT{W,T,<:Dog,N}, s::Real, sWidth::Real,
                   ω::AbstractArray{<:Real,1}) where {W,T,N}
-    constant = im^(this.α) / sqrt(gamma((this.α) + 1 / 2))
+    constant = -(-im)^(this.α) / sqrt(gamma((this.α) + 1 / 2))
     polynomial = (ω / s).^(this.α)
     gauss = exp.(-(ω / s).^2 / 2)
     daughter =  constant .* polynomial .* gauss
