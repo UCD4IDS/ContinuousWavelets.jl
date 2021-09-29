@@ -105,6 +105,11 @@ function father(c::CWT, ω, averagingType::Father, sWidth)
     s0, ω_shift = locationShift(c, s, ω, sWidth)
     averaging = adjust(c) .* mother(c, s0, 1, ω_shift)
 end
+function father(c::CWT{W,T,<:Dog,N}, ω, averagingType::Father, sWidth) where {W,T,N}
+    s = 2^(min(c.averagingLength + getMinScaling(c) - 1, 0))
+    s0, ω_shift = locationShift(c, s, ω, sWidth)
+    averaging = -adjust(c) .* mother(c, s0, 1, ω_shift)
+end
 
 function father(c::CWT{B,T,W}, ω, averagingType::Father,
                        fullVersion, s, N, n1) where {W <: ContOrtho,B,T}
