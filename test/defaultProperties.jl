@@ -1,4 +1,4 @@
-wave = cwts[6]; bc = bcs[1]; β=βs[2]; ave = averagingLengths[1]; n = ns[1]
+#wave = cwts[6]; bc = bcs[1]; β=βs[2]; ave = averagingLengths[1]; n = ns[1]
 problemInds =Array{Any,1}()
 @testset "Wavelet properties" begin
     bcs =(ContinuousWavelets.PerBoundary(),ContinuousWavelets.SymBoundary(), ContinuousWavelets.ZPBoundary())
