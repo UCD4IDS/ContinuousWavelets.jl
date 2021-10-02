@@ -18,6 +18,28 @@ class(::Morlet) = "Morlet"; name(::Morlet) = "morl"; vanishingmoments(::Morlet) 
 const morl = Morlet()
 Base.show(io::IO, x::Morlet) = print(io, "Morlet mean $(x.σ)")
 
+
+struct Morse <: ContinuousWavelets.ContWaveClass
+    ga::Float64
+    be::Float64
+    cf::Float64
+end
+"""
+    morse = Morse(ga::T,be::T,cf::T) where T<: Float64
+
+    return the Morse wavelet with the central frequency parameter cf, gamma parameter ga and beta parameter be.
+"""
+function Morse_convert(ga::Real, be::Real, cf::Real) 
+    ga, be, cf = Float64.(ga), Float64.(be), Float64.(cf)
+    Morse(ga,be,cf)
+end
+
+Morse() = Morse_convert(4, 2, 1)
+class(::Morse) = "Morse"; name(::Morse) = "morse"; 
+vanishingmoments(::Morse) = 0; isAnalytic(::Morse) = true
+const morse = Morse()
+Base.show(io::IO, x::Morse) = print(io, "Morse gamma = $(x.ga), Morse beta = $(x.be), center frequency = $(x.cf)")
+
 # TODO: include a sombrero wavelet, which is dog2.
 
 # Parameterized classes

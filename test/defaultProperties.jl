@@ -1,7 +1,7 @@
 #wave = cwts[5]; bc = bcs[3]; β=βs[1]; ave = averagingLengths[1]; n = ns[1]
 @testset "Wavelet properties" begin
     bcs =(ContinuousWavelets.PerBoundary(),ContinuousWavelets.SymBoundary(), ContinuousWavelets.ZPBoundary())
-    cwts = (cDb2,ContinuousWavelets.dog1,ContinuousWavelets.dog2,ContinuousWavelets.paul1,ContinuousWavelets.morl)
+    cwts = (cDb2,ContinuousWavelets.dog1,ContinuousWavelets.dog2,ContinuousWavelets.paul1,ContinuousWavelets.morl,ContinuousWavelets.morse)
     βs =(1,4)
     ns = (128, 1382,2039)
     averagingLengths=(0,.5,1,2,4)
@@ -11,7 +11,7 @@
         with_logger(ConsoleLogger(stderr, Logging.Error)) do
             Ŵ,ω = ContinuousWavelets.computeWavelets(n, wav)
         end
-        if wav.waveType isa Union{<:Morlet, <:Paul}
+        if wav.waveType isa Union{<:Morlet, <:Paul, <:Morse}
             nFreq, nSpace = ContinuousWavelets.setn(n, wav)
             fullŴ = [Ŵ; zeros(nFreq-1, size(Ŵ, 2))]
             fullŴ[end-nFreq+1:end,1] = reverse(Ŵ[:,1])

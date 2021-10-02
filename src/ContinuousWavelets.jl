@@ -16,8 +16,8 @@ export ContWave, CWT, cwt, icwt
 export WaveletBoundary, PerBoundary, ZPBoundary, NullBoundary, SymBoundary,
     Periodic, DEFAULT_BOUNDARY, padded, NaivePer, SymBound
 # waveletTypes (note there are also export statements in the for loops of waveletTypes.jl)
-export Morlet, Paul, Dog, ContOrtho, name, vanishingmoments, ContOrtho
-export cHaar, cBeyl, cVaid, morl
+export Morlet, Paul, Dog, ContOrtho, Morse, name, vanishingmoments, ContOrtho
+export cHaar, cBeyl, cVaid, morl, morse
 # averaging types
 export Average, Dirac, Father, NoAve
 # inverse types

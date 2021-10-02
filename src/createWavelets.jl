@@ -1,3 +1,31 @@
+function morsefreq(c::CWT{W,T,Morse,N}) where {W,T,N}
+    
+    # measures of frequency for generalized Morse wavelet. [with F. Rekibi]
+    # the output returns the modal or peak
+    
+    # For be=0, the "wavelet" becomes an analytic lowpass filter
+    
+    
+    # Lilly and Olhede (2009).  Higher-order properties of analytic wavelets.  
+    # IEEE Trans. Sig. Proc., 57 (1), 146--160.
+
+
+    ga = c.waveType.ga;
+    be = c.waveType.be;
+    
+    fm = exp.((log.(be) - log.(ga)) ./ ga);
+    
+    if sum(be.==0) != 0 && size(fm) == ()
+        fm = (log(2))^(1 / ga); 
+    elseif sum(be.==0) != 0 && size(fm) != ()
+        fm[be.==0] = (log(2))^(1 / ga[be.==0]); 
+    end
+    
+    return fm
+
+end
+
+
 """
     daughter = mother(this::CWT{W, T, <:ContWaveClass, N},
                         s::Real, nInOctave::Int, ω::AbstractArray{<:Real,1}) where {W, T, N}
@@ -32,6 +60,43 @@ function mother(this::CWT{W,T,<:Dog,N}, s::Real, sWidth::Real,
     gauss = exp.(-(ω / s).^2 / 2)
     daughter =  constant .* polynomial .* gauss
     return normalize(daughter, s, this.p)
+end
+
+function mother(this::CWT{W,T,Morse,N}, s::Real, sWidth::Real,
+                  ω::AbstractArray{<:Real,1}) where {W,T,N}
+    
+    ga = this.waveType.ga;
+    be = this.waveType.be;
+    cf = this.waveType.cf;
+    p = this.p;
+
+    fo = morsefreq(this);
+    fact = cf/fo;
+    
+    #  ω = LinRange(0,1-(1/len),len)
+    # om = 2 * pi * ω./ fact / max(1, s);
+    #om = 2 * pi * (ω / s)./ fact;
+    # om = (ω / s) / cf;
+    # om = (ω / s) / fact;
+
+    om = (ω / s);
+
+    if be == 0
+        daughter = 2 * exp.(-om.^ga);
+    else
+        daughter = 2 * exp.(-be.*log.(fo) .+ fo.^ga .+ be.*log.(om) .- om.^ga);
+    end
+    
+    daughter[1] = 1/2*daughter[1]; # Due to unit step function
+    # Ensure nice lowpass filters for beta=0;
+    # Otherwise, doesn't matter since wavelets vanishes at zero frequency
+
+    if any(daughter .!= daughter)
+        @warn "the given values of gamma and beta are numerically unstable"
+        daughter[daughter .!= daughter] .= 0;
+    end
+    
+    return ContinuousWavelets.normalize(daughter, s, p)
 end
 
 function mother(this::CWT{W,T,<:ContOrtho,N}, s::Real, itpψ,
@@ -99,8 +164,12 @@ function father(c::CWT{<:WaveletBoundary,T}, ω,
     return averaging
 end
 
-
-
+function father(c::CWT{W, T, <:Morse}, ω, averagingType::ContinuousWavelets.Father, sWidth) where {W,T}
+    s = 2^(min(c.averagingLength + getMinScaling(c) - 1, 0)) 
+    s0, ω_shift = locationShift(c, s, ω, sWidth)
+    averaging = adjust(c) .* mother(c, s0, sWidth, ω_shift)
+    return averaging
+end
 
 
 
@@ -221,7 +290,7 @@ function analyticOrNot(c::CWT{W,T,<:Union{Dog,ContOrtho},N}, n, totalWavelets) w
     return daughters
 end
 
-function analyticOrNot(c::CWT{W,T,<:Union{Morlet,Paul},N}, n, totalWavelets) where {W,T,N}
+function analyticOrNot(c::CWT{W,T,<:Union{Morlet,Paul,Morse},N}, n, totalWavelets) where {W,T,N}
     daughters = zeros(T, n, totalWavelets)
     return daughters
 end

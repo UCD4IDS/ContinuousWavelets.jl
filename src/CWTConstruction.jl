@@ -82,6 +82,8 @@ function CWT(wave::WC, Q=8, boundary::B=DEFAULT_BOUNDARY,
                             S(averagingLength), averagingType, S(frameBound),
                             S(p))
 end
+
+
 function calculateProperties(w::Morlet)
     σ = w.σ
     fourierFactor = (4 * π) / (σ + sqrt(2 + σ.^2))
@@ -108,6 +110,14 @@ function calculateProperties(w::Paul)
 end
 
 function calculateProperties(w::ContOrtho)
+    α = -1
+    fourierFactor = NaN
+    coi = NaN
+    σ = [NaN]
+    return fourierFactor, coi, α, σ, w
+end
+
+function calculateProperties(w::Morse)
     α = -1
     fourierFactor = NaN
     coi = NaN
