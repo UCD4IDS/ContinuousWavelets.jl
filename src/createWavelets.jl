@@ -55,7 +55,7 @@ end
 
 function mother(this::CWT{W,T,<:Dog,N}, s::Real, sWidth::Real,
                   ω::AbstractArray{<:Real,1}) where {W,T,N}
-    constant = im^(this.α) / sqrt(gamma((this.α) + 1 / 2))
+    constant = -(-im)^(this.α) / sqrt(gamma((this.α) + 1 / 2))
     polynomial = (ω / s).^(this.α)
     gauss = exp.(-(ω / s).^2 / 2)
     daughter =  constant .* polynomial .* gauss
@@ -143,6 +143,12 @@ function father(c::CWT, ω, averagingType::Father, sWidth)
     s = 2^(min(c.averagingLength + getMinScaling(c) - 1, 0))
     s0, ω_shift = locationShift(c, s, ω, sWidth)
     averaging = adjust(c) .* mother(c, s0, 1, ω_shift)
+end
+
+function father(c::CWT{W,T,<:Dog,N}, ω, averagingType::Father, sWidth) where {W,T,N}
+    s = 2^(min(c.averagingLength + getMinScaling(c) - 1, 0))
+    s0, ω_shift = locationShift(c, s, ω, sWidth)
+    averaging = -adjust(c) .* mother(c, s0, 1, ω_shift)
 end
 
 function father(c::CWT{B,T,W}, ω, averagingType::Father,
