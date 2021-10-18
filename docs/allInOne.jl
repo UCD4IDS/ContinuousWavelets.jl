@@ -1,3 +1,4 @@
+using Revise
 using ContinuousWavelets, Plots, Wavelets, FFTW,Logging
 global_logger(SimpleLogger(min_level=Logging.Error))
 global_logger(Logging.SimpleLogger(stderr,Logging.Error))
@@ -80,11 +81,11 @@ n= 2047;
 function mapTo(waveType, isReal=true,window=1:2047; d=1, kwargs...)
 	if isReal
 		c = wavelet(waveType; β=d, kwargs...)
-		waves,ω = computeWavelets(n,c)
+		waves,ω = ContinuousWavelets.computeWavelets(n,c)
 		return circshift(irfft(waves,2*n,1),(1024,0))[window,:]
 	else
 		c = wavelet(waveType; β=d, kwargs...)
-		waves,ω = computeWavelets(n,c)
+		waves,ω = ContinuousWavelets.computeWavelets(n,c)
         waves = cat(waves, zeros(2047,size(waves,2)),dims=1)
 		return circshift(ifft(waves,1),(1024,0))[window,:]
 	end

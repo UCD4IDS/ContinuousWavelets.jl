@@ -1,28 +1,28 @@
-function morsefreq(c::CWT{W,T,Morse,N}) where {W,T,N}
-    
+function morsefreq(c::CWT{W,T,<:Morse,N}) where {W,T,N}
+
     # measures of frequency for generalized Morse wavelet. [with F. Rekibi]
     # the output returns the modal or peak
-    
+
     # For be=0, the "wavelet" becomes an analytic lowpass filter
-    
-    
-    # Lilly and Olhede (2009).  Higher-order properties of analytic wavelets.  
+
+
+    # Lilly and Olhede (2009).  Higher-order properties of analytic wavelets.
     # IEEE Trans. Sig. Proc., 57 (1), 146--160.
 
 
     ga = c.waveType.ga;
     be = c.waveType.be;
-    
+
     fm = exp.((log.(be) - log.(ga)) ./ ga);
-    
+
     if sum(be.==0) != 0 && size(fm) == ()
-        fm = (log(2))^(1 / ga); 
+        fm = (log(2))^(1 / ga);
     elseif sum(be.==0) != 0 && size(fm) != ()
-        fm[be.==0] = (log(2))^(1 / ga[be.==0]); 
+        fm[be.==0] = (log(2))^(1 / ga[be.==0]);
     end
 
     fm = fm / (2 * pi);
-    
+
     return fm
 
 end
@@ -71,8 +71,7 @@ function getNOctaves(n1,c::CWT{W,T, <:Dog, N}) where {W, T, N}
 end
 # choose the number of octaves so the smallest support is twice the qmf
 getNOctaves(n1,c::CWT{W,T, <:ContOrtho, N}) where {W, T, N} = log2(n1) - 2 - log2(length(qmf(c.waveType))) + c.extraOctaves
-getNOctaves(n1,c::CWT{W,T, Morse, N}) where {W, T, N} = log2((n1>>1+1)/(morsefreq(c) + 1)) + c.extraOctaves 
-# getNOctaves(n1,c::CWT{W,T, Morse, N}) where {W, T, N} = 4 + c.extraOctaves
+getNOctaves(n1,c::CWT{W,T, Morse, N}) where {W, T, N} = log2((n1>>1+1)/(morsefreq(c) + 1)) + c.extraOctaves
 
 """
 As with the last octave, different wavelet families have different space decay rates, and in the case of symmetric or zero padding we don't want wavelets that bleed across the boundary from the center.
@@ -81,8 +80,7 @@ getMinScaling(c::CWT{W,T,M,N}) where {W,T,N,M} = 0 # by default all scales are a
 getMinScaling(c::CWT{W,T,<:Morlet,N}) where {W,T,N} = 1/(c.β)^.8 # morlet is slightly too large at the boundaries by default
 getMinScaling(c::CWT{W,T,<:Paul,N}) where {W,T,N} = 2/(2c.α+1) # Paul presents some difficulties, as the decay changes quickly (like 1/t^(α+1))
 getMinScaling(c::CWT{W,T,<:Dog,N}) where {W,T,N} = 2 # like morlet, the decay for Dog is exponential and consistent across derivatives
-# getMinScaling(c::CWT{W,T,<:Morse,N}) where {W,T,N,M} = log2(2 * morsefreq(c))
-getMinScaling(c::CWT{W,T,<:Morse,N}) where {W,T,N,M} = 5 * morsefreq(c)
+getMinScaling(c::CWT{W,T,<:Morse,N}) where {W,T,N,M} = 2 - log2(morsefreq(c))
 
 function varianceAdjust(this::CWT{W,T, M, N}, totalWavelets, nOct) where {W,T,N, M}
     # increases the width of the wavelets by σ[i] = (1+a(total-i)ᴾ)σₛ
@@ -206,10 +204,11 @@ function locationShift(c::CWT{W, T, <:Dog, N}, s, ω, sWidth) where {W,T,N}
 end
 
 function locationShift(c::CWT{W, T, <:Morse, N}, s, ω, sWidth) where {W,T,N}
-        # s0 = c.waveType.cf * s * sWidth 
-        s0 = morsefreq(c) * s * sWidth 
-        # ω_shift = ω .+ c.waveType.cf * s0 
-        ω_shift = ω .+ s0 
+    μNoS = getMean(c)
+    μLast = μNoS * s
+    s0 = μLast / (getStd(c)/2)
+    μ = μNoS * s0
+    ω_shift = ω .+ μ
     return (s0, ω_shift)
 end
 
@@ -225,9 +224,13 @@ getMean(c::CWT{W,T,<:Paul}, s=1) where {W,T} = (c.α+1)*s
 function getMean(c::CWT{W, T, <:Morlet},s=1) where {W,T}
     return s*c.σ[1]
 end
+function getNthMoment(c::CWT{W, T, <:Morse}, n) where {W,T}
+    # derived from equation (32) of "Higher-Order Properties of Analytic Wavelets" (but normalized to be an actual moment)
+    this = c.waveType
+    return 1 / this.ga * gamma((this.be + 1 + n) / this.ga) / gamma((this.be+1)/this.ga)
+end
 function getMean(c::CWT{W, T, <:Morse},s=1) where {W,T}
-    #return s*c.waveType.cf
-    return s*morsefreq(c)
+    return s*getNthMoment(c,1)
 end
 """
     getStd(c::CWT{W, T, <:Dog}, s=1) where {W,T}
@@ -236,8 +239,16 @@ get the standard deviation of the mother wavelet
 getStd(c::CWT{W, T, <:Dog}, s=1) where {W,T} = sqrt(c.α + 1 - getMean(c)^2)*s^(3/2)
 getStd(c::CWT{W, T, <:Paul},s=1) where {W, T} = sqrt((c.α+2)*(c.α+1)) * s
 getStd(c::CWT{W, T, <:Morlet},s=1) where {W,T} = (s * c.β^.8)/sqrt(2)
-getStd(c::CWT{W, T, <:Morse},s=1) where {W,T} = (s * c.β^.8)/sqrt(2)
+function getStd(c::CWT{W, T, <:Morse},s=1) where {W,T}
+    σ2 = getNthMoment(c, 2) - getNthMoment(c, 1)^2
+    return s * sqrt(σ2)
+end
 
+function normalizationConst(c::CWT{W, T, <:Morse}) where {W,T}
+    # eq (7) of Higher-Order properites of Analytic Wavelets
+    this = c.waveType
+    return 2 * exp(this.be/this.ga * (1 - log(this.be/this.ga)))
+end
 function locationShift(c::CWT{W, T, <:Paul, N}, s, ω, sWidth) where {W,T,N}
     s0 = s*sqrt(c.α+1)
     ω_shift = ω .+ (c.α .+ 1) * s0
@@ -267,12 +278,18 @@ function getMeanFreq(Ŵ, δt=2000)
     dropdims(sum(freqs .* abs.(Ŵ), dims=1) ./ eachNorm,dims=1)
 end
 
+function getMeanFreq(n1, cw::CWT, δt=2000)
+    Ŵ, ω = computeWavelets(n1,cw)
+    eachNorm = [norm(w,1) for w in eachslice(Ŵ,dims=ndims(Ŵ))]'
+    freqs = range(0,δt/2, length= size(Ŵ,1))
+    dropdims(sum(freqs .* abs.(Ŵ), dims=1) ./ eachNorm,dims=1)
+end
 
 # orthogonal wavelet utils
 function getContWaveFromOrtho(c,N)
     depth, ψLen = calcDepth(c,N)
     φ, ψ, t = makewavelet(c.waveType.o, depth)
-    return φ, ψ, ψLen
+    return φ, -ψ, ψLen
 end
 
 """
