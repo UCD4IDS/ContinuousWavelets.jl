@@ -29,7 +29,7 @@ t = range(0,n/1000,length=n); # 1kHz sampling rate
 f = testfunction(n, "Doppler");
 p1=plot(t, f,legend=false,title="Doppler",xticks=false)
 c = wavelet(Morlet(π), β=2);
-res = cwt(f, c)
+res = ContinuousWavelets.cwt(f, c)
 # plotting
 freqs = getMeanFreq(computeWavelets(n, c)[1])
 freqs[1] = 0
@@ -43,30 +43,31 @@ As the cwt frame is redundant, there are many choices of dual/inverse frames. Th
 
 ``` julia
 f = testfunction(n, "Bumps");
-p1=plot(f,legend=false,title="Bumps",xlims=(0,2000))
-c = wavelet(dog2, β=2);
-res = cwt(f, c)
+p1 = plot(f, legend = false, title = "Bumps", xlims = (0, 2000), linewidth = 2)
+c = wavelet(dog2, β = 2);
+res = ContinuousWavelets.cwt(f, c)
 # dropping the middle peaks
-res[620:1100,:] .=0
+res[620:1100, :] .= 0
 # and smoothing the remaining peaks
-res[:,10:29] .= 0
-# actually doing the inversion
-dropped = ContinuousWavelets.icwt(res,c,DualFrames())
-
-p1 = plot([dropped f],legend=false, title="Smoothing and dropping bumps")
-p2=heatmap(abs.(res)', xlabel= "time index", ylabel="frequency index",colorbar=false)
-l=@layout [a{.3h};b{.7h}]
-plot(p1,p2,layout=l)
+res[:, 10:end] .= 0
+freqs = ContinuousWavelets.getMeanFreq(f, c)
+p2 = heatmap(1:n, freqs, abs.(res)', xlabel = "time (ms)", ylabel = "Frequency (Hz)", colorbar = false, c = :viridis)
+dropped = ContinuousWavelets.icwt(res, c, DualFrames())
+p1 = plot(f, legend = false, title = "Smoothing and dropping bumps", linewidth = 2)
+plot!(dropped, linewidth = 3)
+l = @layout [a{0.3h}; b{0.7h}]
+plot(p1, p2, layout = l)
 ```
 ![Bumps](/docs/bumps.svg)
 
 It can also handle collections of examples at the same time, should you need to do a batch of transforms:
 ``` julia
-exs = cat(testfunction(n, "Doppler"),testfunction(n,"Blocks"),testfunction(n,"Bumps"),testfunction(n,"HeaviSine"),dims=2)
-c = wavelet(cDb2, β=2,extraOctaves=-0);
-res = cwt(exs, c)
+exs = cat(testfunction(n, "Doppler"), testfunction(n, "Blocks"), testfunction(n, "Bumps"), testfunction(n, "HeaviSine"), dims = 2)
+c = wavelet(cDb2, β = 2, extraOctaves = -0);
+res = circshift(ContinuousWavelets.cwt(exs, c), (0,1,0))
 ```
 ![parallel transforms](/docs/multiEx.svg)
+
 There are also several boundary conditions, depending on the kind of data given; the default `SymBoundary()` symmetrizes the data, while `PerBoundary()` assumes it is periodic, and `ZPBoundary` pads with zeros.
 All wavelets are stored in the Fourier domain, and all transforms consist of performing an fft (possibly an rfft if the data is real) of the input, pointwise multiplication (equivalent to convolution in the time domain), and then returning to the time domain.
 

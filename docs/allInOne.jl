@@ -4,13 +4,13 @@ global_logger(Logging.SimpleLogger(stderr, Logging.Error))
 n = 2047;
 t = range(0, n / 1000, length = n); # 1kHz sampling rate
 f = testfunction(n, "Doppler");
-p1 = plot(t, f, legend = false, title = "Doppler", xticks = false)
+p1 = plot(t, f, legend = false, title = "Doppler", xticks = false, linewidth = 2)
 c = wavelet(Morlet(π), β = 2);
-res = cwt(f, c)
+res = ContinuousWavelets.cwt(f, c)
 # plotting
-freqs = getMeanFreq(computeWavelets(n, c)[1])
+freqs = getMeanFreq(ContinuousWavelets.computeWavelets(n, c)[1])
 freqs[1] = 0
-p2 = heatmap(t, freqs, abs.(res)', xlabel = "time (s)", ylabel = "frequency (Hz)", colorbar = false)
+p2 = heatmap(t, freqs, abs.(res)', xlabel = "time (s)", ylabel = "frequency (Hz)", colorbar = false, c = :viridis)
 l = @layout [a{0.3h}; b{0.7h}]
 plot(p1, p2, layout = l)
 savefig("../docs/doppler.svg");#hide
@@ -175,16 +175,18 @@ plot(p1, p2, layout = l)
 
 
 f = testfunction(n, "Bumps");
-p1 = plot(f, legend = false, title = "Bumps", xlims = (0, 2000))
+p1 = plot(f, legend = false, title = "Bumps", xlims = (0, 2000), linewidth = 2)
 c = wavelet(dog2, β = 2);
-res = cwt(f, c)
+res = ContinuousWavelets.cwt(f, c)
 # dropping the middle peaks
 res[620:1100, :] .= 0
 # and smoothing the remaining peaks
-res[:, 10:29] .= 0
-p2 = heatmap(abs.(res)', xlabel = "time index", ylabel = "frequency index", colorbar = false)
+res[:, 10:end] .= 0
+freqs = ContinuousWavelets.getMeanFreq(f, c)
+p2 = heatmap(1:n, freqs, abs.(res)', xlabel = "time (ms)", ylabel = "Frequency (Hz)", colorbar = false, c = :viridis)
 dropped = ContinuousWavelets.icwt(res, c, DualFrames())
-p1 = plot([dropped f], legend = false, title = "Smoothing and dropping bumps")
+p1 = plot(f, legend = false, title = "Smoothing and dropping bumps", linewidth = 2)
+plot!(dropped, linewidth = 3)
 l = @layout [a{0.3h}; b{0.7h}]
 plot(p1, p2, layout = l)
 savefig("../docs/bumps.svg")
