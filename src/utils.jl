@@ -1,28 +1,28 @@
 function morsefreq(c::CWT{W,T,Morse,N}) where {W,T,N}
-    
+
     # measures of frequency for generalized Morse wavelet. [with F. Rekibi]
     # the output returns the modal or peak
-    
+
     # For be=0, the "wavelet" becomes an analytic lowpass filter
-    
-    
-    # Lilly and Olhede (2009).  Higher-order properties of analytic wavelets.  
+
+
+    # Lilly and Olhede (2009).  Higher-order properties of analytic wavelets.
     # IEEE Trans. Sig. Proc., 57 (1), 146--160.
 
 
     ga = c.waveType.ga;
     be = c.waveType.be;
-    
+
     fm = exp.((log.(be) - log.(ga)) ./ ga);
-    
+
     if sum(be.==0) != 0 && size(fm) == ()
-        fm = (log(2))^(1 / ga); 
+        fm = (log(2))^(1 / ga);
     elseif sum(be.==0) != 0 && size(fm) != ()
-        fm[be.==0] = (log(2))^(1 / ga[be.==0]); 
+        fm[be.==0] = (log(2))^(1 / ga[be.==0]);
     end
 
     fm = fm / (2 * pi);
-    
+
     return fm
 
 end
@@ -71,7 +71,7 @@ function getNOctaves(n1,c::CWT{W,T, <:Dog, N}) where {W, T, N}
 end
 # choose the number of octaves so the smallest support is twice the qmf
 getNOctaves(n1,c::CWT{W,T, <:ContOrtho, N}) where {W, T, N} = log2(n1) - 2 - log2(length(qmf(c.waveType))) + c.extraOctaves
-getNOctaves(n1,c::CWT{W,T, Morse, N}) where {W, T, N} = log2((n1>>1+1)/(morsefreq(c) + 1)) + c.extraOctaves 
+getNOctaves(n1,c::CWT{W,T, Morse, N}) where {W, T, N} = log2((n1>>1+1)/(morsefreq(c) + 1)) + c.extraOctaves
 # getNOctaves(n1,c::CWT{W,T, Morse, N}) where {W, T, N} = 4 + c.extraOctaves
 
 """
@@ -206,10 +206,10 @@ function locationShift(c::CWT{W, T, <:Dog, N}, s, ω, sWidth) where {W,T,N}
 end
 
 function locationShift(c::CWT{W, T, <:Morse, N}, s, ω, sWidth) where {W,T,N}
-        # s0 = c.waveType.cf * s * sWidth 
-        s0 = morsefreq(c) * s * sWidth 
-        # ω_shift = ω .+ c.waveType.cf * s0 
-        ω_shift = ω .+ s0 
+        # s0 = c.waveType.cf * s * sWidth
+        s0 = morsefreq(c) * s * sWidth
+        # ω_shift = ω .+ c.waveType.cf * s0
+        ω_shift = ω .+ s0
     return (s0, ω_shift)
 end
 
