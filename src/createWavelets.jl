@@ -1,30 +1,3 @@
-function morsefreq(c::CWT{W,T,Morse,N}) where {W,T,N}
-    
-    # measures of frequency for generalized Morse wavelet. [with F. Rekibi]
-    # the output returns the modal or peak
-    
-    # For be=0, the "wavelet" becomes an analytic lowpass filter
-    
-    
-    # Lilly and Olhede (2009).  Higher-order properties of analytic wavelets.  
-    # IEEE Trans. Sig. Proc., 57 (1), 146--160.
-
-
-    ga = c.waveType.ga;
-    be = c.waveType.be;
-    
-    fm = exp.((log.(be) - log.(ga)) ./ ga);
-    
-    if sum(be.==0) != 0 && size(fm) == ()
-        fm = (log(2))^(1 / ga); 
-    elseif sum(be.==0) != 0 && size(fm) != ()
-        fm[be.==0] = (log(2))^(1 / ga[be.==0]); 
-    end
-    
-    return fm
-
-end
-
 
 """
     daughter = mother(this::CWT{W, T, <:ContWaveClass, N},

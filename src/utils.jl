@@ -1,30 +1,25 @@
+"""
+    morsefreq(c::CWT{W,T,Morse,N}) where {W,T,N}
+
+Measures of frequency for generalized Morse wavelet. [with F. Rekibi]
+The output returns the modal or peak.
+For `be=0`, the wavelet becomes an analytic lowpass filter.
+Reference: Lilly and Olhede (2009).  Higher-order properties of analytic wavelets.  
+IEEE Trans. Sig. Proc., 57 (1), 146--160.
+"""
 function morsefreq(c::CWT{W,T,Morse,N}) where {W,T,N}
+    ga = c.waveType.ga
+    be = c.waveType.be
 
-    # measures of frequency for generalized Morse wavelet. [with F. Rekibi]
-    # the output returns the modal or peak
+    fm = @. exp((log(be) - log(ga)) / ga)
 
-    # For be=0, the "wavelet" becomes an analytic lowpass filter
-
-
-    # Lilly and Olhede (2009).  Higher-order properties of analytic wavelets.
-    # IEEE Trans. Sig. Proc., 57 (1), 146--160.
-
-
-    ga = c.waveType.ga;
-    be = c.waveType.be;
-
-    fm = exp.((log.(be) - log.(ga)) ./ ga);
-
-    if sum(be.==0) != 0 && size(fm) == ()
-        fm = (log(2))^(1 / ga);
-    elseif sum(be.==0) != 0 && size(fm) != ()
-        fm[be.==0] = (log(2))^(1 / ga[be.==0]);
+    if sum(be.==0) != 0 && isempty(fm)
+        fm = (log(2))^(1 / ga)
+    elseif sum(be.==0) != 0 && !isempty(fm)
+        fm[be.==0] = (log(2))^(1 / ga[be.==0])
     end
 
-    fm = fm / (2 * pi);
-
     return fm
-
 end
 
 
