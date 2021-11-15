@@ -1,12 +1,12 @@
 struct Morlet <: ContWaveClass
-    σ::Float64 # \sigma is the time/space trade-off. as sigma->0, the spacial resolution increases; below 5, there is a danger of being non-analytic. Default is 5.8
+    σ::Float64 # σ is the time/space trade-off. as σ->0, the spacial resolution increases; below 5, there is a danger of being non-analytic. Default is 5.8
     κσ::Float64
     cσ::Float64
 end
 """
-    morl = Morlet(σ::T) where T<: Real
+    morl = Morlet(σ::T) where T <: Real
 
-    return the Morlet wavelet with first central frequency parameter σ, which controls the time-frequency trade-off. As σ goes to zero, all of the information becomes spatial. Default is `` 2π``, and it is recommended that you stay within 3-12. Above this range, the overlap between wavelets becomes impractically small. Below it, the mean subtraction term approaches the magnitude of the wavelet, so they become a sum of Gaussians rather than Gaussians.
+Return the Morlet wavelet with first central frequency parameter `σ`, which controls the time-frequency trade-off. As σ goes to zero, all of the information becomes spatial. Default is `2π`, and it is recommended that you stay within 3-12. Above this range, the overlap between wavelets becomes impractically small. Below it, the mean subtraction term approaches the magnitude of the wavelet, so they become a sum of Gaussians rather than Gaussians.
 """
 function Morlet(σ::T) where T <: Real
     κσ = exp(-σ^2 / 2)
@@ -25,9 +25,9 @@ struct Morse <: ContinuousWavelets.ContWaveClass
     cf::Float64
 end
 """
-    morse = Morse(ga::T,be::T,cf::T) where T<: Float64
+    morse = Morse(ga::T,be::T,cf::T) where T <: Float64
 
-    return the Morse wavelet with the central frequency parameter cf, gamma parameter ga and beta parameter be.
+Return the Morse wavelet with the central frequency parameter `cf`, gamma parameter `ga`` and beta parameter `be``.
 """
 function Morse_convert(ga::Real, be::Real, cf::Real) 
     ga, be, cf = Float64.(ga), Float64.(be), Float64.(cf)
