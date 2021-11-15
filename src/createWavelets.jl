@@ -1,36 +1,9 @@
-function morsefreq(c::CWT{W,T,Morse,N}) where {W,T,N}
-    
-    # measures of frequency for generalized Morse wavelet. [with F. Rekibi]
-    # the output returns the modal or peak
-    
-    # For be=0, the "wavelet" becomes an analytic lowpass filter
-    
-    
-    # Lilly and Olhede (2009).  Higher-order properties of analytic wavelets.  
-    # IEEE Trans. Sig. Proc., 57 (1), 146--160.
-
-
-    ga = c.waveType.ga;
-    be = c.waveType.be;
-    
-    fm = exp.((log.(be) - log.(ga)) ./ ga);
-    
-    if sum(be.==0) != 0 && size(fm) == ()
-        fm = (log(2))^(1 / ga); 
-    elseif sum(be.==0) != 0 && size(fm) != ()
-        fm[be.==0] = (log(2))^(1 / ga[be.==0]); 
-    end
-    
-    return fm
-
-end
-
 
 """
-    daughter = mother(this::CWT{W, T, <:ContWaveClass, N},
-                        s::Real, nInOctave::Int, ω::AbstractArray{<:Real,1}) where {W, T, N}
+    mother(this::CWT{W, T, <:ContWaveClass, N}, s::Real, nInOctave::Int,
+        ω::AbstractArray{<:Real,1}) where {W, T, N} -> daughter
 
-given a CWT object, return a rescaled version of the mother wavelet, in the
+Given a CWT object, return a rescaled version of the mother wavelet, in the
 fourier domain. ω is the frequency, which is fftshift-ed. s is the scale
 variable.
 """
@@ -65,35 +38,35 @@ end
 function mother(this::CWT{W,T,Morse,N}, s::Real, sWidth::Real,
                   ω::AbstractArray{<:Real,1}) where {W,T,N}
     
-    ga = this.waveType.ga;
-    be = this.waveType.be;
-    cf = this.waveType.cf;
-    p = this.p;
+    ga = this.waveType.ga
+    be = this.waveType.be
+    cf = this.waveType.cf
+    p = this.p
 
-    fo = morsefreq(this);
-    fact = cf/fo;
+    fo = morsefreq(this)
+    fact = cf/fo
     
     #  ω = LinRange(0,1-(1/len),len)
-    # om = 2 * pi * ω./ fact / max(1, s);
-    #om = 2 * pi * (ω / s)./ fact;
-    # om = (ω / s) / cf;
-    # om = (ω / s) / fact;
+    # om = 2 * pi * ω./ fact / max(1, s)
+    #om = 2 * pi * (ω / s)./ fact
+    # om = (ω / s) / cf
+    # om = (ω / s) / fact
 
-    om = (ω / s);
+    om = ω / s
 
     if be == 0
-        daughter = 2 * exp.(-om.^ga);
+        daughter = @. 2 * exp(-om^ga)
     else
-        daughter = 2 * exp.(-be.*log.(fo) .+ fo.^ga .+ be.*log.(om) .- om.^ga);
+        daughter = @. 2 * exp(-be*log(fo) + fo^ga + be*log(om) - om^ga)
     end
     
-    daughter[1] = 1/2*daughter[1]; # Due to unit step function
+    daughter[1] = 1/2*daughter[1] # Due to unit step function
     # Ensure nice lowpass filters for beta=0;
     # Otherwise, doesn't matter since wavelets vanishes at zero frequency
 
     if any(daughter .!= daughter)
         @warn "the given values of gamma and beta are numerically unstable"
-        daughter[daughter .!= daughter] .= 0;
+        daughter[daughter .!= daughter] .= 0
     end
     
     return ContinuousWavelets.normalize(daughter, s, p)
@@ -106,8 +79,9 @@ function mother(this::CWT{W,T,<:ContOrtho,N}, s::Real, itpψ,
     daughter = circshift(daughter, -round(Int, n1 / s / 2))
     return daughter
 end
+
 function normalize(daughter, s, p)
-    if p == Inf
+    if isinf(p)
         normTerm = maximum(abs.(daughter))
     else
         normTerm = s^(1 / p)
@@ -118,8 +92,8 @@ end
 """
     father(c::CWT, ω, averagingType::aT) where {aT<:Averaging}
 
-this creates the averaging function, which covers the low frequency
-information, and is emphatically not analytic. aT determines whether it has the
+This creates the averaging function, which covers the low frequency
+information, and is emphatically not analytic. `aT` determines whether it has the
 same form as the wavelets (`Father`), or just a bandpass `Dirac`.
 `c.averagingLength` gives the number of octaves (base 2) that are covered by
 the averaging function. The width is then derived so that it matches the next
@@ -133,7 +107,7 @@ For the Paul wavelets, it's a easy calculation to see that the mean of a paul
 wavelet of order m is (m+1)/s, while σ=sqrt(m+1)/s. So we set the variance so
 that the averaging function has 1σ at the central frequency of the last scale.
 
-the derivative of a Gaussian (Dog) has a pretty nasty form for the mean and
+The derivative of a Gaussian (Dog) has a pretty nasty form for the mean and
 variance; eventually, if you set 1/2 * σ_{averaging}=⟨ω⟩_{highest scale wavelet}, you
 will get the scale of the averaging function to be
 `s*gamma((c.α+2)/2)/sqrt(gamma((c.α+1)/2)*(gamma((c.α+3)/2)-gamma((c.α+2)/2)))`
@@ -180,9 +154,9 @@ end
 
 
 @doc """
-      (daughters, ω) = computeWavelets(n1::Integer, c::CWT{W}; T=Float64, J1::Int64=-1, dt::S=NaN, s0::V=NaN) where {S<:Real,
-                                                                   W<:WaveletBoundary, V}
-just precomputes the wavelets used by transform c::CWT{W}. For details, see cwt
+    computeWavelets(n1::Integer, c::CWT{W}; T=Float64, J1::Int64=-1, dt::S=NaN, s0::V=NaN)
+        where {S<:Real, W<:WaveletBoundary, V} -> daughters, ω
+Precomputes the wavelets used by transform c::CWT{W}. For details, see cwt.
 """
 function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, J1::Int64=-1, dt::S=NaN, s0::V=NaN, space=false) where {S <: Real,B <: WaveletBoundary,V,W,CT}
     # don't alter scaling with sampling information if it doesn't exists
