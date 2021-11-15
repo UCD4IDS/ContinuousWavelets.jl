@@ -32,7 +32,7 @@ struct CWT{B,S,W <: ContWaveClass,N,isAn} <: ContWave{B,S}
 end
 
 # aliased = ((:Q,:s,:scalingFactor), (:β,:decreasing), (:p, :normalization))
-function processKeywordArgs(Q, β, p;kwargs...)
+function processKeywordArgs(Q, β, p; kwargs...)
     keysVarg = keys(kwargs)
     if :s in keysVarg
         Q = kwargs[:s]
@@ -86,7 +86,7 @@ end
 
 function calculateProperties(w::Morlet)
     σ = w.σ
-    fourierFactor = (4 * π) / (σ + sqrt(2 + σ.^2))
+    fourierFactor = (4 * π) / (σ + sqrt(2 + σ^2))
     coi = 1 / sqrt(2)
     α = -1
     σ = [w.σ, w.κσ, w.cσ]
@@ -95,7 +95,7 @@ end
 
 function calculateProperties(w::Dog)
     α = order(w)
-    fourierFactor = 2 * π * sqrt(2 ./ (2 * α + 1))
+    fourierFactor = 2 * π * sqrt(2 / (2 * α + 1))
     coi = 1 / sqrt(2)
     σ = [NaN]
     return fourierFactor, coi, α, σ, w
