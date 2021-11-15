@@ -53,10 +53,8 @@ function getNWavelets(n1, c::CWT)
 end
 
 
-
-
 """
-different wavelet familes need to end at a different number of octaves because they have different tail behavior
+Different wavelet familes need to end at a different number of octaves because they have different tail behavior.
 """
 getNOctaves(n1,c::CWT{W,T, M, N}) where {W, T, N, M} = log2(n1>>1+1) + c.extraOctaves
 # choose the number of octaves so the last mean, which is at s*σ[1]
@@ -156,10 +154,7 @@ function genSamplePoints(nOct, c)
     firstWavelet, lastWavelet, stepSize
 end
 
-"""
-
-adjust the length of the storage based on the boundary conditions
-"""
+"Adjust the length of the storage based on the boundary conditions."
 function setn(n1, c)
     if boundaryType(c) <: ZPBoundary
         base2 = ceil(Int,log2(n1));   # power of 2 nearest to n1
@@ -178,10 +173,6 @@ function setn(n1, c)
     end
     return n, nSpace
 end
-
-
-
-
 
 
 # computing averaging function utils
@@ -213,10 +204,9 @@ function locationShift(c::CWT{W, T, <:Morse, N}, s, ω, sWidth) where {W,T,N}
     return (s0, ω_shift)
 end
 
-"""
-get the mean of the mother wavelet where s=1
-"""
-function getMean(c::CWT{W, T, <:Dog},s=1) where {W,T}
+
+"Get the mean of the mother wavelet where s=1."
+function getMean(c::CWT{W, T, <:Dog}, s=1) where {W,T}
     Gm1 = gamma((c.α+1)/2)
     Gm2 = gamma((c.α+2)/2)
     Gm2 / Gm1 * sqrt(2) * s^2
@@ -229,9 +219,11 @@ function getMean(c::CWT{W, T, <:Morse},s=1) where {W,T}
     #return s*c.waveType.cf
     return s*morsefreq(c)
 end
+
 """
     getStd(c::CWT{W, T, <:Dog}, s=1) where {W,T}
-get the standard deviation of the mother wavelet
+
+Get the standard deviation of the mother wavelet.
 """
 getStd(c::CWT{W, T, <:Dog}, s=1) where {W,T} = sqrt(c.α + 1 - getMean(c)^2)*s^(3/2)
 getStd(c::CWT{W, T, <:Paul},s=1) where {W, T} = sqrt((c.α+2)*(c.α+1)) * s
@@ -259,7 +251,10 @@ end
 
 """
     arrayOfFreqs = getMeanFreq(Ŵ, δt=1000)
-Calculate each of the mean frequencies of a collection of analytic or real wavelets Ŵ. assumes a sampling rate of 2kHz, so the maximum frequency is 1kHz. Change δt to adjust to your problem.
+
+Calculate each of the mean frequencies of a collection of analytic or real wavelets Ŵ.
+This assumes a sampling rate of 2kHz, so the maximum frequency is 1kHz. Change δt to adjust
+to your problem.
 """
 function getMeanFreq(Ŵ, δt=2000)
     eachNorm = [norm(w,1) for w in eachslice(Ŵ,dims=ndims(Ŵ))]'
@@ -283,8 +278,9 @@ function getContWaveFromOrtho(c,N)
 end
 
 """
-    nIters, sigLength = calcDepth(w,N)
-given a `CWT` with an orthogonal wavelet type, calculate the depth `nIters`
+    calcDepth(w,N) -> nIters, sigLength
+
+Given a `CWT` with an orthogonal wavelet type, calculate the depth `nIters`
 necessary to get a resulting wavelet longer than `N`. `sigLength` is the
 resulting length.
 """
@@ -324,8 +320,11 @@ genInterp(ψ) = interpolate(ψ, BSpline(Quadratic(Reflect(OnGrid()))))
 
 
 """
-    β = computeDualWeights(Ŵ)
-compute the weight given to each wavelet so that in the Fourier domain, the sum across wavelets is as close to 1 at every frequency below the peak of the last wavelet (that is `β' .*abs.(Ŵ[1:lastFreq,:]) ≈ ones(lastFreq)` in an ℓ^2 sense)
+    computeDualWeights(Ŵ) -> β
+
+Compute the weight given to each wavelet so that in the Fourier domain, the sum across
+wavelets is as close to 1 at every frequency below the peak of the last wavelet
+(that is `β' .*abs.(Ŵ[1:lastFreq,:]) ≈ ones(lastFreq)` in an ℓ^2 sense).
 """
 function computeDualWeights(Ŵ, wav)
     @views lastReasonableFreq = computeLastFreq(Ŵ[:,end], wav)
@@ -342,7 +341,11 @@ computeLastFreq(ŵ, wav::CWT{W,T,<:Morlet}) where {W,T} = findlast(abs.(ŵ) .>
 
 """
     computeNaiveDualWeights(Ŵ, wav, n1)
-Compute the dual weights using the scaling amounts and the normalization power p. Primarily used when the least squares version is poorly constructed. When the least squares version doesn't perform well, this is also likely to have poor reconstruction, but it won't give extremely negative or oscillatory weights like the least squares version.
+
+Compute the dual weights using the scaling amounts and the normalization power p. Primarily
+used when the least squares version is poorly constructed. When the least squares version
+doesn't perform well, this is also likely to have poor reconstruction, but it won't give
+extremely negative or oscillatory weights like the least squares version.
 """
 function computeNaiveDualWeights(Ŵ, wav, n1)
     _, _, sRange, _ = ContinuousWavelets.getNWavelets(n1, wav)
@@ -370,8 +373,9 @@ function computeNaiveDualWeights(Ŵ, wav, n1)
 end
 
 """
-    dualCover, dualNorm = getDualCoverage(n,cWav, invType)
-get the sum of the weights and its deviation from 1
+    getDualCoverage(n,cWav, invType) -> dualCover, dualNorm
+
+Get the sum of the weights and its deviation from 1.
 """
 function getDualCoverage(n,cWav, invType)
     Ŵ = computeWavelets(n,cWav)[1]
@@ -392,7 +396,10 @@ function dualDeviance(n, cWav, naive)
 end
 
 """
-Explicitly construct the canonical dual frame elements for a translation invariant frame. This is likely to end poorly due to the low representation at high frequencies.
+    explicitConstruction(Ŵ)
+
+Explicitly construct the canonical dual frame elements for a translation invariant frame.
+This is likely to end poorly due to the low representation at high frequencies.
 """
 function explicitConstruction(Ŵ)
     Ŵdual = conj.(Ŵ ./ [norm(ŵ)^2 for ŵ in eachslice(Ŵ,dims=1)])
