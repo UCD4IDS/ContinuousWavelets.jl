@@ -22,14 +22,14 @@
   you will need to scale wave by δt^(1/2).
   The default assumption is that the sampling rate is 1kHz.
 
-  """
+"""
 function cwt(Y::AbstractArray{T,N}, cWav::CWT, daughters, fftPlans = 1) where {N, T}
     @assert typeof(N)<:Integer
     # vectors behave a bit strangely, so we reshape them
     if N==1
         Y= reshape(Y,(length(Y), 1))
     end
-    n1 = size(Y, 1);
+    n1 = size(Y, 1)
 
     _, nScales, _ = getNWavelets(n1, cWav)
     #construct time series to analyze, pad if necessary
@@ -50,7 +50,7 @@ function cwt(Y::AbstractArray{T,N}, cWav::CWT, daughters, fftPlans = 1) where {N
         OutType = T
     end
 
-    wave = zeros(OutType, size(x)..., nScales);  # result array;
+    wave = zeros(OutType, size(x)..., nScales)  # result array
     # faster if we put the example index on the outside loop through all scales
     # and compute transform
     if isAnalytic(cWav.waveType)
@@ -71,6 +71,7 @@ function cwt(Y::AbstractArray{T,N}, cWav::CWT, daughters, fftPlans = 1) where {N
 
     return wave
 end
+
 function ensureComplex(T)
     if T <: Real
         return Complex{T}
@@ -78,6 +79,7 @@ function ensureComplex(T)
         return T
     end
 end
+
 # there are 4 cases to deal with
 #       input Type | Real | Complex
 #       analytic?  |----------------
@@ -226,9 +228,11 @@ end
 
 
 """
-period,scale, coi = caveats(Y::AbstractArray{T}, c::CWT{W}; J1::S=NaN) where {T<:Real, S<:Real, W<:WaveletBoundary}
+    caveats(Y::AbstractArray{T}, c::CWT{W}; J1::S=NaN) where {T<:Real, S<:Real, W<:WaveletBoundary} -> period,scale, coi
 
-returns the period, the scales, and the cone of influence for the given wavelet transform. If you have sampling information, you will need to scale the vector scale appropriately by 1/δt, and the actual transform by δt^(1/2).
+Returns the period, the scales, and the cone of influence for the given wavelet transform.
+If you have sampling information, you will need to scale the vector scale appropriately by
+1/δt, and the actual transform by δt^(1/2).
 """
 function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=1/1000, s0::V=NaN) where {S<:Real, W<:WaveletBoundary, V <: Real}
     # don't alter scaling with sampling information if it doesn't exists
@@ -252,10 +256,10 @@ function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=1/1000, s0::V=NaN) where {S<
     coi = (fλ * dt / sqrt(2)).*coi
 
 
-    n1 = length(Y);
+    n1 = length(Y)
     # J1 is the total number of elements
     if isnan(J1) || (J1<0)
-        J1=floor(Int,(log2(n1))*c.Q);
+        J1=floor(Int,(log2(n1))*c.Q)
     end
     #....construct time series to analyze, pad if necessary
     if boundaryType(c) == ZPBoundary
@@ -270,6 +274,7 @@ function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=1/1000, s0::V=NaN) where {S<
     coi = c.coi*scale  # COI [Sec.3g]
     return sj, freqs, period, scale, coi
 end
+
 cwt(Y::AbstractArray{T}, w::ContWaveClass; varargs...) where {T<:Number, S<:Real, V<:Real} = cwt(Y,CWT(w); varargs...)
 caveats(Y::AbstractArray{T}, w::ContWaveClass; J1::S=NaN) where {T<: Number, S<: Real} = caveats(Y,CWT(w),J1=J1)
 cwt(Y::AbstractArray{T}) where T<:Real = cwt(Y,Morlet())
@@ -285,13 +290,13 @@ struct PenroseDelta <: InverseType end
 Compute the inverse wavelet transform using one of three dual frames. The default uses delta functions with weights chosen via a least squares method, the `PenroseDelta()` below. This is chosen as a default because the Morlet wavelets tend to fail catastrophically using the canonical dual frame (the `dualFrames()` type).
 
     icwt(res::AbstractArray, cWav::CWT, inverseStyle::PenroseDelta)
-return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_{ji}``, where ``β_j`` is chosen to solve the least squares problem ``\\|Ŵβ-1\\|_2^2``, where ``Ŵ`` is the Fourier domain representation of the `cWav` wavelets. In both this case and `NaiveDelta()`, the fourier transform of ``δ`` is the constant function, thus this least squares problem.
+Return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_{ji}``, where ``β_j`` is chosen to solve the least squares problem ``\\|Ŵβ-1\\|_2^2``, where ``Ŵ`` is the Fourier domain representation of the `cWav` wavelets. In both this case and `NaiveDelta()`, the fourier transform of ``δ`` is the constant function, thus this least squares problem.
 
     icwt(res::AbstractArray, cWav::CWT, inverseStyle::NaiveDelta)
-return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_{ji}``, where ``β_j`` is chosen to negate the scale factor ``(^1/_s)^{^1/_p}``. Generally less accurate than choosing the weights using `PenroseDelta`. This is the method discussed in Torrence and Compo.
+Return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_{ji}``, where ``β_j`` is chosen to negate the scale factor ``(^1/_s)^{^1/_p}``. Generally less accurate than choosing the weights using `PenroseDelta`. This is the method discussed in Torrence and Compo.
 
     icwt(res::AbstractArray, cWav::CWT, inverseStyle::dualFrames)
-return the inverse continuous wavelet transform, computed using the canonical dual frame ``\\tilde{\\widehat{ψ}} = \\frac{ψ̂_n(ω)}{∑_n\\|ψ̂_n(ω)\\|^2}``. The algorithm is to compute the cwt again, but using the canonical dual frame; consiquentially, it is the most computationally intensive of the three algorithms, and typically the best behaved. Will be numerically unstable if the high frequencies of all of the wavelets are too small however, and tends to fail spectacularly in this case.
+Return the inverse continuous wavelet transform, computed using the canonical dual frame ``\\tilde{\\widehat{ψ}} = \\frac{ψ̂_n(ω)}{∑_n\\|ψ̂_n(ω)\\|^2}``. The algorithm is to compute the cwt again, but using the canonical dual frame; consiquentially, it is the most computationally intensive of the three algorithms, and typically the best behaved. Will be numerically unstable if the high frequencies of all of the wavelets are too small however, and tends to fail spectacularly in this case.
 
 """
 function icwt(res::AbstractArray, cWav::CWT, inverseStyle::PenroseDelta)
