@@ -176,8 +176,8 @@ adjust(c::CWT) = 1
 adjust(c::CWT{W, T, <:Dog}) where {W,T} = 1/(im)^(c.α)
 
 function locationShift(c::CWT{W, T, <:Morlet, N}, s, ω, sWidth) where {W,T,N}
-        s0 = 3*c.σ[1] *s*sWidth
-        ω_shift = ω .+ c.σ[1] * s0
+    s0 = 3*c.σ[1] *s*sWidth
+    ω_shift = ω .+ c.σ[1] * s0
     return (s0, ω_shift)
 end
 
@@ -191,10 +191,10 @@ function locationShift(c::CWT{W, T, <:Dog, N}, s, ω, sWidth) where {W,T,N}
 end
 
 function locationShift(c::CWT{W, T, <:Morse, N}, s, ω, sWidth) where {W,T,N}
-        # s0 = c.waveType.cf * s * sWidth
-        s0 = morsefreq(c) * s * sWidth
-        # ω_shift = ω .+ c.waveType.cf * s0
-        ω_shift = ω .+ s0
+    # s0 = c.waveType.cf * s * sWidth
+    s0 = morsefreq(c) * s * sWidth
+    # ω_shift = ω .+ c.waveType.cf * s0
+    ω_shift = ω .+ s0
     return (s0, ω_shift)
 end
 
@@ -206,10 +206,10 @@ function getMean(c::CWT{W, T, <:Dog}, s=1) where {W,T}
     Gm2 / Gm1 * sqrt(2) * s^2
 end
 getMean(c::CWT{W,T,<:Paul}, s=1) where {W,T} = (c.α+1)*s
-function getMean(c::CWT{W, T, <:Morlet},s=1) where {W,T}
+function getMean(c::CWT{W, T, <:Morlet}, s=1) where {W,T}
     return s*c.σ[1]
 end
-function getMean(c::CWT{W, T, <:Morse},s=1) where {W,T}
+function getMean(c::CWT{W, T, <:Morse}, s=1) where {W,T}
     #return s*c.waveType.cf
     return s*morsefreq(c)
 end
@@ -244,23 +244,22 @@ function getUpperBound(c::CWT{W, T, <:Paul, N}, s) where {W,T,N}
 end
 
 """
-    arrayOfFreqs = getMeanFreq(Ŵ, δt=1000)
+    getMeanFreq(Ŵ, fsample=2000) -> arrayOfFreqs
 
-Calculate each of the mean frequencies of a collection of analytic or real wavelets Ŵ.
-This assumes a sampling rate of 2kHz, so the maximum frequency is 1kHz. Change δt to adjust
-to your problem.
+Calculate each of the mean frequencies of a collection of analytic or real wavelets `Ŵ`.
+The default sampling rate `fsample=2kHz`, so the maximum frequency is 1kHz.
 """
-function getMeanFreq(Ŵ, δt=2000)
-    eachNorm = [norm(w,1) for w in eachslice(Ŵ,dims=ndims(Ŵ))]'
-    freqs = range(0,δt/2, length= size(Ŵ,1))
-    dropdims(sum(freqs .* abs.(Ŵ), dims=1) ./ eachNorm,dims=1)
+function getMeanFreq(Ŵ, fsample=2000)
+    eachNorm = [norm(w,1) for w in eachslice(Ŵ, dims=ndims(Ŵ))]'
+    freqs = range(0, fsample/2, length=size(Ŵ,1))
+    dropdims(sum(freqs .* abs.(Ŵ), dims=1) ./ eachNorm, dims=1)
 end
 
-function getMeanFreq(n1, cw::CWT, δt=2000)
+function getMeanFreq(n1, cw::CWT, fsample=2000)
     Ŵ, ω = computeWavelets(n1,cw)
-    eachNorm = [norm(w,1) for w in eachslice(Ŵ,dims=ndims(Ŵ))]'
-    freqs = range(0,δt/2, length= size(Ŵ,1))
-    dropdims(sum(freqs .* abs.(Ŵ), dims=1) ./ eachNorm,dims=1)
+    eachNorm = [norm(w,1) for w in eachslice(Ŵ, dims=ndims(Ŵ))]'
+    freqs = range(0, fsample/2, length=size(Ŵ,1))
+    dropdims(sum(freqs .* abs.(Ŵ), dims=1) ./ eachNorm, dims=1)
 end
 
 
