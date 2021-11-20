@@ -2,7 +2,7 @@ using ContinuousWavelets, Plots, Wavelets, FFTW, Logging
 global_logger(SimpleLogger(min_level = Logging.Error))
 global_logger(Logging.SimpleLogger(stderr, Logging.Error))
 n = 2047;
-t = range(0, n / 1000, length = n); # 1kHz sampling rate
+t = range(0, n / 2000, length = n); # 2kHz sampling rate
 f = testfunction(n, "Doppler");
 p1 = plot(t, f, legend = false, title = "Doppler", xticks = false, linewidth = 2)
 c = wavelet(Morlet(π), β = 2);

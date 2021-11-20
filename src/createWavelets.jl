@@ -154,21 +154,11 @@ end
 
 
 @doc """
-    computeWavelets(n1::Integer, c::CWT{W}; T=Float64, J1::Int64=-1, dt::S=NaN, s0::V=NaN)
+    computeWavelets(n1::Integer, c::CWT{W}; T=Float64, dt::S=NaN, s0::V=NaN)
         where {S<:Real, W<:WaveletBoundary, V} -> daughters, ω
-Precomputes the wavelets used by transform c::CWT{W}. For details, see cwt.
+Precomputes the wavelets used by transform. For details, see cwt.
 """
-function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, J1::Int64=-1, dt::S=NaN, s0::V=NaN, space=false) where {S <: Real,B <: WaveletBoundary,V,W,CT}
-    # don't alter scaling with sampling information if it doesn't exists
-    fλ = (4 * π) / (c.σ[1] + sqrt(2 + c.σ[1]^2))
-    if isnan(dt) || (dt < 0)
-        dt = 1
-    end
-    # smallest resolvable scale
-    if isnan(s0) || (s0 < 0)
-        s0 = 2 * dt / fλ
-    end
-
+function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, space=false) where {S <: Real,B <: WaveletBoundary,V,W,CT}
     nOctaves, totalWavelets, sRange, sWidth = getNWavelets(n1, c)
     # padding determines the actual number of elements
     n, nSpace = setn(n1, c)

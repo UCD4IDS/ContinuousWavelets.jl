@@ -7,20 +7,16 @@
                                                              S<:Real,
                                                              U<:Number,
                                                              W<:WaveletBoundary,
-                                                             WT<:Union{<:Morlet,
-                                                                       <:Paul}}
+                                                             WT<:ContWaveClass}
 
   return the continuous wavelet transform along the first axis with averaging.
-  `wave`, is (signalLength)×(nscales+1)×(previous dimensions), of type T of
-  Y. averagingLength defines the number of octaves (powers of 2) that are
-  replaced by an averaging function. This has form averagingType, which can be
+  `wave`, is (signalLength)×(nscales+1)×(previous dimensions), of type `T` of
+  `Y`. `averagingLength` defines the number of octaves (powers of 2) that are
+  replaced by an averaging function. This has form `averagingType`, which can be
   one of `Father()` or `Dirac()`- in the `Father()` case, it uses the same form
-  as for the wavelets, while the `Dirac` uses a constant window. J1 is the
-  total number of scales; default (when J1=NaN, or is negative) is just under
-  the maximum possible number, i.e. the log base 2 of the length of the signal,
-  times the number of wavelets per octave. If you have sampling information,
-  you will need to scale wave by δt^(1/2).
-  The default assumption is that the sampling rate is 1kHz.
+  as for the wavelets, while the `Dirac` uses a constant window. If you have
+  sampling information, you will need to scale wave by δt^(1/p). The default
+  assumption is that the sampling rate is 2kHz.
 
 """
 function cwt(Y::AbstractArray{T,N}, cWav::CWT, daughters, fftPlans = 1) where {N, T}
@@ -226,59 +222,8 @@ function cwt(Y::AbstractArray{T}, c::CWT{W}; varArgs...) where {T<:Number, S<:Re
     return cwt(Y, c, daughters)
 end
 
-
-"""
-    caveats(Y::AbstractArray{T}, c::CWT{W}; J1::S=NaN) where {T<:Real, S<:Real, W<:WaveletBoundary} -> period,scale, coi
-
-Returns the period, the scales, and the cone of influence for the given wavelet transform.
-If you have sampling information, you will need to scale the vector scale appropriately by
-1/δt, and the actual transform by δt^(1/2).
-"""
-function caveats(n1, c::CWT{W}; J1::Int64=-1, dt::S=1/1000, s0::V=NaN) where {S<:Real, W<:WaveletBoundary, V <: Real}
-    # don't alter scaling with sampling information if it doesn't exists
-    fλ = (4*π) / (c.σ[1] + sqrt(2 + c.σ[1]^2))
-    if isnan(dt) || (dt<0)
-        dt = 1
-    end
-
-    # smallest resolvable scale
-    if isnan(s0) || (s0<0)
-        s0 = 2 * dt / fλ
-    end
-    sj = s0 * 2.0.^(collect(0:J1)./c.Q)
-    # Fourier equivalent frequencies
-    freqs = 1 ./ (fλ .* sj)
-
-    # Determines the cone-of-influence. Note that it is returned as a function
-    # of time in Fourier periods. Uses triangualr Bartlett window with
-    # non-zero end-points.
-    coi = (n1 / 2 .- abs.(collect(0:n1-1) .- (n1 - 1) ./ 2))
-    coi = (fλ * dt / sqrt(2)).*coi
-
-
-    n1 = length(Y)
-    # J1 is the total number of elements
-    if isnan(J1) || (J1<0)
-        J1=floor(Int,(log2(n1))*c.Q)
-    end
-    #....construct time series to analyze, pad if necessary
-    if boundaryType(c) == ZPBoundary
-        base2 = round(Int,log(n1)/log(2));   # power of 2 nearest to N
-        n = length(Y)+2^(base2+1)-n1
-    elseif boundaryType(c) == PerBoundary
-        n = length(Y)*2
-    end
-    ω = [0:floor(Int, n/2); -floor(Int,n/2)+1:-1]*2π
-    period = c.fourierFactor*2 .^((0:J1)/c.Q)
-    scale = [1E-5; 1:((n1+1)/2-1); reverse((1:(n1/2-1)),dims=1); 1E-5]
-    coi = c.coi*scale  # COI [Sec.3g]
-    return sj, freqs, period, scale, coi
-end
-
 cwt(Y::AbstractArray{T}, w::ContWaveClass; varargs...) where {T<:Number, S<:Real, V<:Real} = cwt(Y,CWT(w); varargs...)
-caveats(Y::AbstractArray{T}, w::ContWaveClass; J1::S=NaN) where {T<: Number, S<: Real} = caveats(Y,CWT(w),J1=J1)
 cwt(Y::AbstractArray{T}) where T<:Real = cwt(Y,Morlet())
-caveats(Y::AbstractArray{T}) where T<:Real = caveats(Y,Morlet())
 
 abstract type InverseType end
 struct DualFrames <: InverseType end
