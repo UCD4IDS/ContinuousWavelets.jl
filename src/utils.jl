@@ -401,62 +401,48 @@ end
 
 
 """
-    caveats(Y::AbstractArray{T}, c::CWT{W}; J1::S=NaN) where {T<:Real, S<:Real, W<:WaveletBoundary} -> period,scale, coi
+    caveats(n1, c::CWT{B,CT,W}; coiTolerance = exp(-2), fsample = 2000) -> sRange, meanFreqs, coi
 
+Given a length `n1` and a CWT struct `c`, returns the scales `sRange` used, the mean frequencies of the wavelets `meanFreqs`, and the cone of influence `coi` for each wavelet.
 Returns the period, the scales, and the cone of influence for the given wavelet transform.
 If you have sampling information, you will need to scale the vector scale appropriately by
 1/δt, and the actual transform by δt^(1/p).
 """
-function caveats(n1, c::CWT{W}; fsample::S = 2000, s0::V = NaN) where {S<:Real,W<:WaveletBoundary,V<:Real}
-    # don't alter scaling with sampling information if it doesn't exists
-    fλ = (4 * π) / (c.σ[1] + sqrt(2 + c.σ[1]^2))
-    if isnan(fsample) || (fsample < 0)
-        fsample = 1
-    end
+function caveats(n1, c::CWT; coiTolerance = exp(-2), fsample = 2000)
+    nOctaves, totalWavelets, sRange, sWidth = getNWavelets(n1, c)
+    # padding determines the actual number of elements
+    n, nSpace = setn(n1, c)
+    # indicates whether we should keep a spot for the father wavelet
+    isAve = !(typeof(c.averagingType) <: NoAve)
 
-    J1 = -1
-    # smallest resolvable scale
-    if isnan(s0) || (s0 < 0)
-        s0 = 2 * fsample / fλ
-    end
-    sj = s0 * 2.0 .^ (collect(0:J1) ./ c.Q)
     # Fourier equivalent frequencies
-    freqs = getMeanFreq(Ŵ, δt = 2000)
-
-    # Determines the cone-of-influence. Note that it is returned as a function
-    # of time in Fourier periods. Uses triangualr Bartlett window with
-    # non-zero end-points.
-    coi = (n1 / 2 .- abs.(collect(0:n1-1) .- (n1 - 1) ./ 2))
-    coi = (fλ * fsample / sqrt(2)) .* coi
-
-    # J1 is the total number of elements
-    if isnan(J1) || (J1 < 0)
-        J1 = floor(Int, (log2(n1)) * c.Q)
-    end
-    #....construct time series to analyze, pad if necessary
-    if boundaryType(c) == ZPBoundary
-        base2 = ceil(Int, log(n1) / log(2))   # power of 2 nearest to N
-        n = 2^(base2 + 1)
-    elseif boundaryType(c) == PerBoundary
-        n = 2n1
-    else
-        n = n1
-    end
-
-    ω = [0:floor(Int, n / 2); -floor(Int, n / 2)+1:-1] * 2π
-    period = c.fourierFactor * 2 .^ ((0:J1) / c.Q)
-    scale = [1E-5; 1:((n1+1)/2-1); reverse((1:(n1/2-1)), dims = 1); 1E-5]
-    coi = c.coi * scale  # COI [Sec.3g]
-    return sj, freqs, period, scale, coi
+    Ŵ, ω = computeWavelets(n1, c)
+    freqs = getMeanFreq(Ŵ, fsample)
+    coi = directCoiComputation(n1, c; coiTolerance = coiTolerance)
+    return sRange, freqs, coi
 end
 
-caveats(Y::AbstractArray{T}, w::ContWaveClass) where {T<:Number,S<:Real} = caveats(Y, CWT(w), J1 = J1)
-caveats(Y::AbstractArray{T}) where {T<:Real} = caveats(Y, Morlet())
+caveats(Y::AbstractArray{T}, w::ContWaveClass) where {T<:Number,S<:Real} = caveats(size(Y, 1), CWT(w), J1 = J1)
 
 """
-    coi(n, s, ::W) where W <: ContWaveClass
+    directCoiComputation(n1, c::CWT; coiTolerance = exp(-2)) -> coi
 
-for a signal of length n
+A straightforward computation of the cone of influence directly from the
+constructed wavelets. `coi` is a binary matrix of dimensions `(signalLength)×(nscales+1)`
+that indicates when the autocorrelation of the wavlet is greater than
+`coiTolerance` of the maximum value.
+"""
+function directCoiComputation(n1, c::CWT; coiTolerance = exp(-2))
+    ψ, ω = ContinuousWavelets.computeWavelets(n1, c, space = true)
+    autoCorr = cat([sum(ψ .* conj.(circshift(ψ, (ii, 0))), dims = 1) for ii = 1:size(ψ, 1)]..., dims = 1) # auto correlation in time domain
+    normedAutoCorr = autoCorr ./ maximum(abs.(autoCorr), dims = 1) # normalize by the max norm
+    return abs.(normedAutoCorr) .>= coiTolerance # the cone is where the autocorrelation is larger than the tolerance
+end
+
+"""
+    coi(n, s, wave::CWT)
+
+for a signal of length `n` and wavelet transform of type wave, return a binary vector indicating the cone of influence from the edges so that the auto-correlation of the wavelet has decreased by a factor of ``\\textrm{e}^2``.
 """
 function coi(n, s, ::Morlet)
     sqrt(2) * s
