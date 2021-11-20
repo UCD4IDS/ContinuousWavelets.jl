@@ -4,31 +4,31 @@
 #   W ContWaveClass
 #   N the type of value of the normalization
 #   isAn boolean for whether this is an analytic transform or not
-struct CWT{B,S,W <: ContWaveClass,N,isAn} <: ContWave{B,S}
+struct CWT{B,S,W<:ContWaveClass,N,isAn} <: ContWave{B,S}
     Q::S # the number of wavelets per octave, ie the scaling is s=2^(j/scalingfactor)
     β::S # the amount that Q decreases per octave
     fourierFactor::S
     coi::S
     α::Int   # the order for a Paul and the number of derivatives
-                         # for a DOG
+    # for a DOG
     σ::Array{S} # the morlet wavelet parameters
-                            # (σ,κσ,cσ). NaN if not morlet.
+    # (σ,κσ,cσ). NaN if not morlet.
     waveType::W        # because multiple dispatch is good TODO this is actually redundant, make a function called waveType that extracts this from above
     extraOctaves::S # adjust the last frequency used, in case you need frequencies beyond where the wavelets are well defined.
     averagingLength::S   # the number of scales to override with averaging.
     averagingType::Average # either Dirac or mother; the first uniformly
-                             # represents the lowest frequency information,
-                             # while the second constructs
-                             # a wavelet using Daughter that has mean frequency
-                             # zero, and std equal to
-                             # the first non-removed wavelet's mean
+    # represents the lowest frequency information,
+    # while the second constructs
+    # a wavelet using Daughter that has mean frequency
+    # zero, and std equal to
+    # the first non-removed wavelet's mean
     frameBound::S       # if positive, set the frame bound of the
-                             # transform to be frameBound. Otherwise leave it
-                             # so that each wavelet has an L2 norm of 1
+    # transform to be frameBound. Otherwise leave it
+    # so that each wavelet has an L2 norm of 1
     p::N                     # the normalization that is preserved for the
-                             # wavelets as the scale changes. The conjugate
-                             # p-norm is preserved for the  signal. Should be
-                             # larger than 1
+    # wavelets as the scale changes. The conjugate
+    # p-norm is preserved for the  signal. Should be
+    # larger than 1
 end
 
 # aliased = ((:Q,:s,:scalingFactor), (:β,:decreasing), (:p, :normalization))
@@ -58,11 +58,11 @@ end
     CWT(wave::ContWaveClass, Q=8, boundary::WaveletBoundary=SymBoundary(),
     averagingType::Average = Father(), averagingLength::Int = 4, frameBound=1, p::N=Inf, β=4)
 """
-function CWT(wave::WC, Q=8, boundary::B=DEFAULT_BOUNDARY,
-             averagingType::A=Father(),
-             averagingLength::Real=0,
-             frameBound=1, p::N=Inf,
-             β=4; extraOctaves=0, kwargs...) where {WC <: ContWaveClass,A <: Average,B <: WaveletBoundary,N <: Real}
+function CWT(wave::WC, Q = 8, boundary::B = DEFAULT_BOUNDARY,
+    averagingType::A = Father(),
+    averagingLength::Real = 0,
+    frameBound = 1, p::N = Inf,
+    β = 4; extraOctaves = 0, kwargs...) where {WC<:ContWaveClass,A<:Average,B<:WaveletBoundary,N<:Real}
     Q, β, p = processKeywordArgs(Q, β, p; kwargs...) # some names are redundant
     @assert β > 0
     @assert p >= 1
@@ -76,11 +76,11 @@ function CWT(wave::WC, Q=8, boundary::B=DEFAULT_BOUNDARY,
 
     # S is the most permissive type of the listed variables
     S = promote_type(typeof(Q), typeof(β),
-                     typeof(frameBound), typeof(p),
-                     typeof(tdef[1]), typeof(tdef[2]))
+        typeof(frameBound), typeof(p),
+        typeof(tdef[1]), typeof(tdef[2]))
     return CWT{B,S,WC,N,isAnalytic(wave)}(S(Q), S(β), tdef..., S(extraOctaves),
-                            S(averagingLength), averagingType, S(frameBound),
-                            S(p))
+        S(averagingLength), averagingType, S(frameBound),
+        S(p))
 end
 
 
@@ -149,10 +149,10 @@ end
     frameBound=1, p=Inf, β=4, kwargs...)
 A constructor for the `CWT` type, using keyword rather than positional options.
 """
-function wavelet(wave::WC; Q=8, boundary::T=DEFAULT_BOUNDARY,
-                 averagingType::A=Father(), averagingLength=0,
-                 frameBound=1, p::N=Inf, β=4,
-                 kwargs...) where {WC <: ContWaveClass,A <: Average,T <: WaveletBoundary,N <: Real}
+function wavelet(wave::WC; Q = 8, boundary::T = DEFAULT_BOUNDARY,
+    averagingType::A = Father(), averagingLength = 0,
+    frameBound = 1, p::N = Inf, β = 4,
+    kwargs...) where {WC<:ContWaveClass,A<:Average,T<:WaveletBoundary,N<:Real}
     return CWT(wave, Q, boundary, averagingType, averagingLength, frameBound,
-               p, β; kwargs...)
+        p, β; kwargs...)
 end
