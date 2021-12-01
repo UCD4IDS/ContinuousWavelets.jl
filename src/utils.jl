@@ -447,3 +447,73 @@ for a signal of length `n` and wavelet transform of type wave, return a binary v
 function coi(n, s, ::Morlet)
     sqrt(2) * s
 end
+
+@doc raw"""
+    crossSpectrum(X, Y, c::CWT)
+
+Compute the cross spectrum of signals `X` and `Y`, which is defined as ``S(\\conj{C(X)})``
+Note that unlike `cwt`, `crossSpectrum` only works for collections `X` and `Y` of vectors of shape (signalLength)×(nSignals), and outputs a collection of cross spectrums that has shape (signalLength)×(nscales+1)×(nSignalsX)×(nSignalsY).
+
+# Examples
+```jldoctest
+julia> crossSpectrum(X, Y)
+insert result of crossSpectrum(X, Y)
+```
+"""
+function crossSpectrum(X, Y, c::CWT{B,S,W,N,isAn}) where {B,S,W,N,isAn}
+    aveCXY, _ = sharedCrossSpectrum(X, Y, c)
+    return aveCXY
+end
+
+@doc raw"""
+    waveletCoherence(X, Y, c)
+
+Compute the wavelet coherence between `X` and `Y`. This is given by the power of the cross spectrum, normalized by smoothed powers of both `X` and `Y`. Explicitly, that is ``\frac{|S(C^*(X)C(Y))|^2}{S(|C(X)|^2)S(|C(Y)|^2)}``
+
+# Examples
+```jldoctest
+julia> waveletCoherence(X,Y,c)
+insert result of waveletCoherence(X,Y,c)
+```
+"""
+function waveletCoherence(X, Y, c)
+    (aveCXY, aveWavelet, CX, CY) = sharedCrossSpectrum(X, Y, c)
+    aveCX = abs.(dropdims(ContinuousWavelets.cwt(abs.(CX) .^ 2, c, aveWavelet), dims = 2))
+    aveCY = abs.(dropdims(ContinuousWavelets.cwt(abs.(CY) .^ 2, c, aveWavelet), dims = 2))
+    return abs.(aveCXY) .^ 2 ./ (aveCX .* aveCY)
+end
+
+"""
+`waveletCoherence` depends on results precomputed by `crossSpectrum` in addition to the actual output of `crossSpectrum`.
+"""
+function sharedCrossSpectrum(X, Y, c)
+    # ensure that the wavelet transform uses some sort of averaging
+    isAve = !(typeof(c.averagingType) <: NoAve)
+    if !isAve
+        cAve = CWT(c.waveType, c.Q, ContinuousWavelets.boundaryType(c)(), ContinuousWavelets.Father(), c.averagingLength, c.frameBound, c.p, c.β)
+    else
+        cAve = c
+    end
+
+    # make sure both X and Y have the right shape
+    if ndims(X) < 2
+        X = reshape(X, (size(X)..., 1))
+    elseif ndims(X) > 2
+        X = reshape(X, (size(X, 1), :))
+    end
+    if ndims(Y) < 2
+        Y = reshape(Y, (size(Y)..., 1))
+    elseif ndims(Y) > 2
+        Y = reshape(Y, (size(Y, 1), :))
+    end
+    daughters, _ = ContinuousWavelets.computeWavelets(size(Y, 1), cAve)
+    aveWavelet = daughters[:, 1:1] ./ norm(daughters[:, 1:1], c.p) # we need an averaging function that returns the ave value, rather than the one that preserves the frame bound
+    CX = ContinuousWavelets.cwt(X, cAve, daughters)
+    CY = ContinuousWavelets.cwt(Y, cAve, daughters)
+    # reshape so we can do an outer product
+    CX = reshape(CX, (size(CX)[1:3]..., 1))
+    CY = reshape(CY, (size(CY)[1:2]..., 1, size(CY, 3)))
+    CXY = conj.(CX) .* CY # conjugate of the first times the second
+    aveCXY = dropdims(ContinuousWavelets.cwt(CXY, cAve, aveWavelet), dims = 2) # get the average of the multiplication
+    return (aveCXY, aveWavelet, CX, CY)
+end

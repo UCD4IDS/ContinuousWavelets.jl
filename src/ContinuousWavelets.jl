@@ -11,6 +11,7 @@ import Wavelets.wavelet
 import Wavelets.WT.name, Wavelets.WT.class, Wavelets.WT.vanishingmoments
 
 export ContWave, CWT, cwt, icwt
+export crossSpectrum, waveletCoherence
 
 # Boundaries
 export WaveletBoundary, PerBoundary, ZPBoundary, NullBoundary, SymBoundary,
@@ -25,7 +26,7 @@ export DualFrames, NaiveDelta, PenroseDelta, InverseType
 # CWT constructors
 export wavelet, waveletType
 # general utilities
-export qmf, computeWavelets, getNWavelets, mother, father, getMeanFreq, isAnalytic, getDualCoverage
+export qmf, computeWavelets, getNWavelets, mother, father, getMeanFreq, isAnalytic, getDualCoverage, caveats
 
 @doc """
     ContWave{Boundary,T}

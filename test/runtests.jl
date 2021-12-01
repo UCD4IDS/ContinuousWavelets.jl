@@ -1,4 +1,3 @@
-using Revise
 using ContinuousWavelets, Wavelets, Interpolations, LinearAlgebra
 using Test
 using FFTW
@@ -14,7 +13,3 @@ end
 #       test averaging types
 #            various extra dimensions
 #            inverse is actually functional
-sj, freqs, period, scale, coi = ContinuousWavelets.caveats(128, wavelet(morl))
-plot(coi)
-plot(randn(10))
-typeof(wavelet(morl))
