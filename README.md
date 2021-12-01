@@ -17,8 +17,8 @@ Basic Usage
 Install via the package manager and load with `using`
 
 ```julia
-julia> Pkg.add("Wavelets")
-julia> using Wavelets
+julia> Pkg.add("ContinuousWavelets")
+julia> using ContinuousWavelets
 ```
 
 Basic usage example on a doppler test function. 
