@@ -1,7 +1,7 @@
 name = "ContinuousWavelets"
 uuid = "96eb917e-2868-4417-9cb6-27e7ff17528f"
 authors = ["dsweber2 <david.weber2@protonmail.com> and contributors"]
-version = "1.0.0"
+version = "1.0.1"
 
 [deps]
 AbstractFFTs = "621f4979-c628-5d54-868e-fcf4e3e8185c"
@@ -26,6 +26,7 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Wavelets = "29a6e085-ba6d-5f35-a997-948ac2efa89a"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [targets]
-test = ["Test", "FFTW", "Wavelets", "Interpolations", "LinearAlgebra", "Logging"]
+test = ["Test", "FFTW", "Wavelets", "Interpolations", "LinearAlgebra", "Logging", "Random"]
