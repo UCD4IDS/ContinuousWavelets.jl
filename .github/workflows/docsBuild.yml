@@ -16,14 +16,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
-        env:
-          PYTHON: ""
         with:
           version: '1.6'
       - name: Install dependencies
         run: |
           sudo apt install libxt6 libxrender1 libxext6 libqt5widgets5
       - name: Instantiate
+        env:
+          PYTHON: ""
         run: |
           julia --project=docs -e '
             using Pkg
@@ -32,6 +32,7 @@ jobs:
             Pkg.instantiate()'
       - name: Build and deploy
         env:
+          PYTHON: ""
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
