@@ -2,13 +2,13 @@ name: Docs
 on:
   workflow_dispatch:
   push:
-    paths: # rebuild the docs when the version changes or the docs change
-    - docs/*
-    - Project.toml
-  pull_request: # run when pull requests are made
+    paths:  # rebuild the docs when the version changes or the docs change
+      - docs/*
+      - Project.toml
+  pull_request:  # run when pull requests are made
     paths:
-    - docs/*
-    - Project.toml
+      - docs/*
+      - Project.toml
 jobs:
   docs:
     name: Documentation
@@ -16,12 +16,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@latest
+        env:
+          PYTHON: ""
         with:
           version: '1.6'
       - name: Install dependencies
         run: |
           sudo apt install libxt6 libxrender1 libxext6 libqt5widgets5
-      - name: Instantiate 
+      - name: Instantiate
         run: |
           julia --project=docs -e '
             using Pkg
