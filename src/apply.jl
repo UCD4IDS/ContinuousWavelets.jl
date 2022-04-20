@@ -19,7 +19,7 @@
   assumption is that the sampling rate is 2kHz.
 
 """
-function cwt(Y::AbstractArray{T,N}, cWav::CWT, daughters, fftPlans = 1) where {N,T}
+function cwt(Y::AbstractArray{T,N}, cWav::CWT, daughters, fftPlans=1) where {N,T}
     @assert typeof(N) <: Integer
     # vectors behave a bit strangely, so we reshape them
     if N == 1
@@ -62,7 +62,7 @@ function cwt(Y::AbstractArray{T,N}, cWav::CWT, daughters, fftPlans = 1) where {N
     ax = axes(wave)
     wave = wave[1:n1, ax[2:end]...]
     if N == 1
-        wave = dropdims(wave, dims = 3)
+        wave = dropdims(wave, dims=3)
     end
 
     return wave
@@ -131,7 +131,7 @@ function analyticTransformReal!(wave, daughters, x̂, fftPlan, ::Union{Father,Di
     # the averaging function isn't analytic, so we need to do both positive and
     # negative frequencies
     @views tmpWave = x̂ .* daughters[:, 1]
-    @views wave[(n1+1):end, outer..., 1] = reverse(conj.(tmpWave[2:end-isSourceEven, outer...]), dims = 1)
+    @views wave[(n1+1):end, outer..., 1] = reverse(conj.(tmpWave[2:end-isSourceEven, outer...]), dims=1)
     @views wave[1:n1, outer..., 1] = tmpWave
     @views wave[:, outer..., 1] = fftPlan \ (wave[:, outer..., 1])  # averaging
     for j = 2:size(daughters, 2)
@@ -206,9 +206,9 @@ function reflect(Y, bt)
     n1 = size(Y, 1)
     if typeof(bt) <: ZPBoundary
         base2 = ceil(Int, log2(n1))   # power of 2 nearest to N
-        x = cat(Y, zeros(2^(base2) - n1, size(Y)[2:end]...), dims = 1)
+        x = cat(Y, zeros(2^(base2) - n1, size(Y)[2:end]...), dims=1)
     elseif typeof(bt) <: SymBoundary
-        x = cat(Y, reverse(Y, dims = 1), dims = 1)
+        x = cat(Y, reverse(Y, dims=1), dims=1)
     else
         x = Y
     end
@@ -247,7 +247,7 @@ function icwt(res::AbstractArray, cWav::CWT, ::PenroseDelta)
     Ŵ = computeWavelets(size(res, 1), cWav)[1]
     β = computeDualWeights(Ŵ, cWav)
     testDualCoverage(β, Ŵ)
-    compXRecon = sum(res .* β, dims = 2)
+    compXRecon = sum(res .* β, dims=2)
     imagXRecon = irfft(im * rfft(imag.(compXRecon), 1), size(compXRecon, 1)) # turns out the dual frame for the imaginary part is rather gross in the time domain
     return imagXRecon + real.(compXRecon)
 end
