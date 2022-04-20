@@ -1,9 +1,9 @@
-#wave = cwts[4]; bc = bcs[1]; β=βs[2]; ave = averagingLengths[end]; n = ns[1]; testF = typesOfTestFunctions[1]; inverseType = inversionMethods[3]
+#wave = cwts[2]; bc = bcs[2]; β=βs[1]; ave = averagingLengths[1]; n = ns[2]; testF = typesOfTestFunctions[1]; inverseType = inversionMethods[3]; eOct=0
 #wave = morl; bc = ZPBoundary(); ave = -1; n = 1382; testF = "just Core"; inverseType = DualFrames(); β = 1.5; eOct = 0
 @testset "Inversion" begin
     bcs =(ContinuousWavelets.PerBoundary(), ContinuousWavelets.ZPBoundary(),)
     cwts = (ContinuousWavelets.dog2,ContinuousWavelets.morl)
-    βs =(1,)
+    βs =(2,)
     averagingLengths=(0,)
     extraOctaves=(0,)
     typesOfTestFunctions = ["Doppler"]
