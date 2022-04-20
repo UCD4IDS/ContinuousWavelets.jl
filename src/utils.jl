@@ -92,60 +92,54 @@ end
 
 
 function polySpacing(nOct, c)
-    a = max(getMinScaling(c) + c.averagingLength, 0)
-    O = nOct
+    a = getMinScaling(c) + c.averagingLength
     β = c.β
     Q = c.Q
-    if O ≤ a
+    if nOct ≤ a
         # averagingLength and the min scaling are too large for anything to be done
         return [1.0]
-    elseif 0 < O - a ≤ 1
+    elseif 0 < nOct - a ≤ 1
         # there's only one octave, just return the linear rate of Q
-        return range(a, O, length = 1 + round(Int, Q))
+        return range(a, nOct, length = 1 + round(Int, Q))
     end
     # x is the index, y is the scale
-    # y= b*x^(1/β), solve for a and b with
-    # (x₀,y₀)=(1, aveLength + minScale)
-    # dy/dx = 1/s, so the Quality factor gives the slope at the last frequency
-    b = (β / Q)^(1 / β) * (O)^((β - 1) / β)
-    # the point x so that the second condition holds
-    lastWavelet = Q * (O) / β
-    # the point so that the first wavelet is at a
-    firstWavelet = (a / b)^β
+    # y= a + b*x^(1/β), solve for b and the final point x₁ so that
+    # y(x₁) = nOct
+    # dy/dx(x₁) = 1/Q
+    lastWavelet = c.Q * (nOct - a)
+    b = 1/c.Q * lastWavelet ^ ((β-1)/β)
     # step size so that there are actually Q wavelets in the last octave
-    startOfLastOctave = ((nOct - 1) / b)^β
+    startOfLastOctave = ((nOct-a - 1) / b)^β
     stepSize = (lastWavelet - startOfLastOctave) / Q
-    samplePoints = range(firstWavelet, stop = lastWavelet,
-        step = stepSize)#, length = round(Int, O * Q^(1/p)))
-    return b .* (samplePoints) .^ (1 / β)
+    roundedStepSize = lastWavelet / round(Int64, lastWavelet/stepSize)
+    samplePoints = range(0, stop = lastWavelet,
+        step = roundedStepSize)
+    return a .+ b .* (samplePoints) .^ (1 / β)
 end
 
 # a utility to just get the start, stop, and step size used in polySpacing. Only used for explanatory purposes
 function genSamplePoints(nOct, c)
     a = getMinScaling(c) + c.averagingLength
-    O = nOct
     β = c.β
     Q = c.Q
-    if O ≤ a
+    if nOct ≤ a
         # averagingLength and the min scaling are too large for anything to be done
         return [1.0]
-    elseif 0 < O - a ≤ 1
+    elseif 0 < nOct - a ≤ 1
         # there's only one octave, just return the linear rate of Q
-        return range(a, O, length = 1 + round(Int, Q))
+        return range(a, nOct, length = 1 + round(Int, Q))
     end
     # x is the index, y is the scale
-    # y= b*x^(1/β), solve for a and b with
-    # (x₀,y₀)=(1, aveLength + minScale)
-    # dy/dx = 1/s, so the Quality factor gives the slope at the last frequency
-    b = (β / Q)^(1 / β) * (O)^((β - 1) / β)
-    # the point x so that the second condition holds
-    lastWavelet = Q * (O) / β
-    # the point so that the first wavelet is at a
-    firstWavelet = (a / b)^β
+    # y= a + b*x^(1/β), solve for b and the final point x₁ so that
+    # y(x₁) = nOct
+    # dy/dx(x₁) = 1/Q
+    lastWavelet = c.Q * (nOct - a)
+    b = 1/c.Q * lastWavelet ^ ((β-1)/β)
     # step size so that there are actually Q wavelets in the last octave
-    startOfLastOctave = ((nOct - 1) / b)^β
+    startOfLastOctave = ((nOct-a - 1) / b)^β
     stepSize = (lastWavelet - startOfLastOctave) / Q
-    firstWavelet, lastWavelet, stepSize
+    roundedStepSize = lastWavelet / round(Int64, lastWavelet/stepSize)
+    0, lastWavelet, roundedStepSize
 end
 
 "Adjust the length of the storage based on the boundary conditions."

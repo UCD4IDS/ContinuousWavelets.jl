@@ -39,9 +39,9 @@ are:
     domain Gaussian with mean subtracted. `Morlet(σ::T) where T<: Real`. `σ`
     gives the frequency domain variance of the mother Wavelet. As `σ` goes to
     zero, all of the information becomes spatial. Default is `morl` which has
-    σ=2π.
+    ``\\sigma=2\\pi``.
 
-    ``\\psi\\hat(\\omega) \\propto \\textrm{e}^{-\\frac{\\mu^2}{2}}\\big(\\textrm{e}^{-(\\mu - \\omega)^2} -\\textrm{e}^{\\frac{\\omega^2-\\mu^2}{2}}\\big)``
+    ``\\psi\\hat(\\omega) \\propto \\textrm{e}^{-\\frac{\\sigma^2}{2}}\\big(\\textrm{e}^{-(\\sigma - \\omega)^2} -\\textrm{e}^{\\frac{\\omega^2-\\sigma^2}{2}}\\big)``
 
 - `Paul{N}`: A complex analytic wavelet, also known as Cauchy wavelets. `pauln` for n in `1:20` e.g. `paul5`
 
