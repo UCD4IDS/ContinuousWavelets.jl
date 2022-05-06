@@ -100,20 +100,20 @@ function polySpacing(nOct, c)
         return [1.0]
     elseif 0 < nOct - a ≤ 1
         # there's only one octave, just return the linear rate of Q
-        return range(a, nOct, length = 1 + round(Int, Q))
+        return range(a, nOct, length=1 + round(Int, Q))
     end
     # x is the index, y is the scale
     # y= a + b*x^(1/β), solve for b and the final point x₁ so that
     # y(x₁) = nOct
     # dy/dx(x₁) = 1/Q
     lastWavelet = c.Q * (nOct - a)
-    b = 1/c.Q * lastWavelet ^ ((β-1)/β)
+    b = 1 / c.Q * lastWavelet^((β - 1) / β)
     # step size so that there are actually Q wavelets in the last octave
-    startOfLastOctave = ((nOct-a - 1) / b)^β
+    startOfLastOctave = ((nOct - a - 1) / b)^β
     stepSize = (lastWavelet - startOfLastOctave) / Q
-    roundedStepSize = lastWavelet / round(Int64, lastWavelet/stepSize)
-    samplePoints = range(0, stop = lastWavelet,
-        step = roundedStepSize)
+    roundedStepSize = lastWavelet / round(Int64, lastWavelet / stepSize)
+    samplePoints = range(0, stop=lastWavelet,
+        step=roundedStepSize)
     return a .+ b .* (samplePoints) .^ (1 / β)
 end
 
@@ -127,18 +127,18 @@ function genSamplePoints(nOct, c)
         return [1.0]
     elseif 0 < nOct - a ≤ 1
         # there's only one octave, just return the linear rate of Q
-        return range(a, nOct, length = 1 + round(Int, Q))
+        return range(a, nOct, length=1 + round(Int, Q))
     end
     # x is the index, y is the scale
     # y= a + b*x^(1/β), solve for b and the final point x₁ so that
     # y(x₁) = nOct
     # dy/dx(x₁) = 1/Q
     lastWavelet = c.Q * (nOct - a)
-    b = 1/c.Q * lastWavelet ^ ((β-1)/β)
+    b = 1 / c.Q * lastWavelet^((β - 1) / β)
     # step size so that there are actually Q wavelets in the last octave
-    startOfLastOctave = ((nOct-a - 1) / b)^β
+    startOfLastOctave = ((nOct - a - 1) / b)^β
     stepSize = (lastWavelet - startOfLastOctave) / Q
-    roundedStepSize = lastWavelet / round(Int64, lastWavelet/stepSize)
+    roundedStepSize = lastWavelet / round(Int64, lastWavelet / stepSize)
     0, lastWavelet, roundedStepSize
 end
 
@@ -194,16 +194,16 @@ end
 
 
 "Get the mean of the mother wavelet where s=1."
-function getMean(c::CWT{W,T,<:Dog}, s = 1) where {W,T}
+function getMean(c::CWT{W,T,<:Dog}, s=1) where {W,T}
     Gm1 = gamma((c.α + 1) / 2)
     Gm2 = gamma((c.α + 2) / 2)
     Gm2 / Gm1 * sqrt(2) * s^2
 end
-getMean(c::CWT{W,T,<:Paul}, s = 1) where {W,T} = (c.α + 1) * s
-function getMean(c::CWT{W,T,<:Morlet}, s = 1) where {W,T}
+getMean(c::CWT{W,T,<:Paul}, s=1) where {W,T} = (c.α + 1) * s
+function getMean(c::CWT{W,T,<:Morlet}, s=1) where {W,T}
     return s * c.σ[1]
 end
-function getMean(c::CWT{W,T,<:Morse}, s = 1) where {W,T}
+function getMean(c::CWT{W,T,<:Morse}, s=1) where {W,T}
     #return s*c.waveType.cf
     return s * morsefreq(c)
 end
@@ -213,10 +213,10 @@ end
 
 Get the standard deviation of the mother wavelet.
 """
-getStd(c::CWT{W,T,<:Dog}, s = 1) where {W,T} = sqrt(c.α + 1 - getMean(c)^2) * s^(3 / 2)
-getStd(c::CWT{W,T,<:Paul}, s = 1) where {W,T} = sqrt((c.α + 2) * (c.α + 1)) * s
-getStd(c::CWT{W,T,<:Morlet}, s = 1) where {W,T} = (s * c.β^0.8) / sqrt(2)
-getStd(c::CWT{W,T,<:Morse}, s = 1) where {W,T} = (s * c.β^0.8) / sqrt(2)
+getStd(c::CWT{W,T,<:Dog}, s=1) where {W,T} = sqrt(c.α + 1 - getMean(c)^2) * s^(3 / 2)
+getStd(c::CWT{W,T,<:Paul}, s=1) where {W,T} = sqrt((c.α + 2) * (c.α + 1)) * s
+getStd(c::CWT{W,T,<:Morlet}, s=1) where {W,T} = (s * c.β^0.8) / sqrt(2)
+getStd(c::CWT{W,T,<:Morse}, s=1) where {W,T} = (s * c.β^0.8) / sqrt(2)
 
 function locationShift(c::CWT{W,T,<:Paul,N}, s, ω, sWidth) where {W,T,N}
     s0 = s * sqrt(c.α + 1)
@@ -290,7 +290,7 @@ nextLength(curr, orig) = curr * 2 + orig - 1 # upsample then convolve
 function padTo(v, N)
     nDiff = N - length(v)
     if nDiff > 0 # there should be more entries than there are
-        cat(v, zeros(eltype(v), max(N - length(v), 0)), dims = 1)
+        cat(v, zeros(eltype(v), max(N - length(v), 0)), dims=1)
     elseif nDiff == 0
         return v
     else # there are too many, so chop off half the difference from each side
@@ -343,13 +343,13 @@ function computeNaiveDualWeights(Ŵ, wav, n1)
     if isAve && size(Ŵ, 2) > 1
         # averaging needs to have maximum value of 1
         aveMultiplier = 1 / norm(Ŵ[:, 1], Inf)
-        dual = sum(Ŵ[:, 2:end] .* sToTheP, dims = 2)
+        dual = sum(Ŵ[:, 2:end] .* sToTheP, dims=2)
         renormalize = norm(dual, Inf)
         dual ./= renormalize
         #dual += Ŵ[:,1] .* sToTheP[1]
-        β = cat(aveMultiplier, 2 .* sToTheP ./ renormalize..., dims = 2)
+        β = cat(aveMultiplier, 2 .* sToTheP ./ renormalize..., dims=2)
     elseif size(Ŵ, 2) > 1
-        dual = sum(Ŵ .* sToTheP, dims = 2)
+        dual = sum(Ŵ .* sToTheP, dims=2)
         β = sToTheP ./ norm(dual, Inf)
         β[2:end] .* 2
     else
@@ -367,14 +367,14 @@ Get the sum of the weights and its deviation from 1.
 function getDualCoverage(n, cWav, invType)
     Ŵ = computeWavelets(n, cWav)[1]
     if invType isa DualFrames
-        dualCover = sum(conj.(Ŵ) .* explicitConstruction(Ŵ), dims = 2)
+        dualCover = sum(conj.(Ŵ) .* explicitConstruction(Ŵ), dims=2)
         return dualCover, norm(dualCover .- 1)
     elseif invType isa PenroseDelta
         β = computeDualWeights(Ŵ, cWav)
     elseif invType isa NaiveDelta
         β = computeNaiveDualWeights(Ŵ, cWav, n)
     end
-    dualCover = sum(conj.(β) .* Ŵ, dims = 2)
+    dualCover = sum(conj.(β) .* Ŵ, dims=2)
     dualCover, norm(dualCover .- 1)
 end
 
@@ -389,7 +389,7 @@ Explicitly construct the canonical dual frame elements for a translation invaria
 This is likely to end poorly due to the low representation at high frequencies.
 """
 function explicitConstruction(Ŵ)
-    Ŵdual = conj.(Ŵ ./ [norm(ŵ)^2 for ŵ in eachslice(Ŵ, dims = 1)])
+    Ŵdual = conj.(Ŵ ./ [norm(ŵ)^2 for ŵ in eachslice(Ŵ, dims=1)])
 end
 
 
@@ -402,7 +402,7 @@ Returns the period, the scales, and the cone of influence for the given wavelet 
 If you have sampling information, you will need to scale the vector scale appropriately by
 1/δt, and the actual transform by δt^(1/p).
 """
-function caveats(n1, c::CWT; coiTolerance = exp(-2), fsample = 2000)
+function caveats(n1, c::CWT; coiTolerance=exp(-2), fsample=2000)
     nOctaves, totalWavelets, sRange, sWidth = getNWavelets(n1, c)
     # padding determines the actual number of elements
     n, nSpace = setn(n1, c)
@@ -412,11 +412,11 @@ function caveats(n1, c::CWT; coiTolerance = exp(-2), fsample = 2000)
     # Fourier equivalent frequencies
     Ŵ, ω = computeWavelets(n1, c)
     freqs = getMeanFreq(Ŵ, fsample)
-    coi = directCoiComputation(n1, c; coiTolerance = coiTolerance)
+    coi = directCoiComputation(n1, c; coiTolerance=coiTolerance)
     return sRange, freqs, coi
 end
 
-caveats(Y::AbstractArray{T}, w::ContWaveClass) where {T<:Number,S<:Real} = caveats(size(Y, 1), CWT(w), J1 = J1)
+caveats(Y::AbstractArray{T}, w::ContWaveClass) where {T<:Number,S<:Real} = caveats(size(Y, 1), CWT(w), J1=J1)
 
 """
     directCoiComputation(n1, c::CWT; coiTolerance = exp(-2)) -> coi
@@ -426,10 +426,10 @@ constructed wavelets. `coi` is a binary matrix of dimensions `(signalLength)×(n
 that indicates when the autocorrelation of the wavlet is greater than
 `coiTolerance` of the maximum value.
 """
-function directCoiComputation(n1, c::CWT; coiTolerance = exp(-2))
-    ψ, ω = ContinuousWavelets.computeWavelets(n1, c, space = true)
-    autoCorr = cat([sum(ψ .* conj.(circshift(ψ, (ii, 0))), dims = 1) for ii = 1:size(ψ, 1)]..., dims = 1) # auto correlation in time domain
-    normedAutoCorr = autoCorr ./ maximum(abs.(autoCorr), dims = 1) # normalize by the max norm
+function directCoiComputation(n1, c::CWT; coiTolerance=exp(-2))
+    ψ, ω = ContinuousWavelets.computeWavelets(n1, c, space=true)
+    autoCorr = cat([sum(ψ .* conj.(circshift(ψ, (ii, 0))), dims=1) for ii = 1:size(ψ, 1)]..., dims=1) # auto correlation in time domain
+    normedAutoCorr = autoCorr ./ maximum(abs.(autoCorr), dims=1) # normalize by the max norm
     return abs.(normedAutoCorr) .>= coiTolerance # the cone is where the autocorrelation is larger than the tolerance
 end
 
@@ -472,8 +472,8 @@ insert result of waveletCoherence(X,Y,c)
 """
 function waveletCoherence(X, Y, c)
     (aveCXY, aveWavelet, CX, CY) = sharedCrossSpectrum(X, Y, c)
-    aveCX = abs.(dropdims(ContinuousWavelets.cwt(abs.(CX) .^ 2, c, aveWavelet), dims = 2))
-    aveCY = abs.(dropdims(ContinuousWavelets.cwt(abs.(CY) .^ 2, c, aveWavelet), dims = 2))
+    aveCX = abs.(dropdims(ContinuousWavelets.cwt(abs.(CX) .^ 2, c, aveWavelet), dims=2))
+    aveCY = abs.(dropdims(ContinuousWavelets.cwt(abs.(CY) .^ 2, c, aveWavelet), dims=2))
     return abs.(aveCXY) .^ 2 ./ (aveCX .* aveCY)
 end
 
@@ -508,6 +508,6 @@ function sharedCrossSpectrum(X, Y, c)
     CX = reshape(CX, (size(CX)[1:3]..., 1))
     CY = reshape(CY, (size(CY)[1:2]..., 1, size(CY, 3)))
     CXY = conj.(CX) .* CY # conjugate of the first times the second
-    aveCXY = dropdims(ContinuousWavelets.cwt(CXY, cAve, aveWavelet), dims = 2) # get the average of the multiplication
+    aveCXY = dropdims(ContinuousWavelets.cwt(CXY, cAve, aveWavelet), dims=2) # get the average of the multiplication
     return (aveCXY, aveWavelet, CX, CY)
 end
