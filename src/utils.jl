@@ -243,17 +243,16 @@ end
 Calculate each of the mean frequencies of a collection of analytic or real wavelets `Ŵ`.
 The default sampling rate `fsample=2kHz`, so the maximum frequency is 1kHz.
 """
-function getMeanFreq(Ŵ, fsample = 2000)
-    eachNorm = [norm(w, 1) for w in eachslice(Ŵ, dims = ndims(Ŵ))]'
-    freqs = range(0, fsample / 2, length = size(Ŵ, 1))
-    dropdims(sum(freqs .* abs.(Ŵ), dims = 1) ./ eachNorm, dims = 1)
+function getMeanFreq(Ŵ, fsample=2000)
+    eachNorm = [norm(w, 1) for w in Ŵ]'
+    freqs = range(0, fsample / 2, length=size(Ŵ[1], 1))
+    return map(ŵ -> sum(abs.(ŵ) .* freqs), Ŵ) ./ eachNorm'
+    dropdims(sum(freqs .* abs.(Ŵ), dims=1) ./ eachNorm, dims=1)
 end
 
-function getMeanFreq(n1, cw::CWT, fsample = 2000)
+function getMeanFreq(n1, cw::CWT, fsample=2000)
     Ŵ, ω = computeWavelets(n1, cw)
-    eachNorm = [norm(w, 1) for w in eachslice(Ŵ, dims = ndims(Ŵ))]'
-    freqs = range(0, fsample / 2, length = size(Ŵ, 1))
-    dropdims(sum(freqs .* abs.(Ŵ), dims = 1) ./ eachNorm, dims = 1)
+    getMeanFreq(Ŵ, fsample)
 end
 
 
