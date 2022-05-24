@@ -41,5 +41,9 @@
             # Guaranteed in a very different way for ContOrtho, and no guarantees made for just averaging
             @test max(abs.(Ŵ[end, :])...) / norm(supported, Inf) ≤ 1e-1
         end
+
+        # check that the father wavelet is actually positive
+        @test real(sum(Ŵ[:, 1])) .> 0
+        @test imag(sum(Ŵ[:, 1])) .>= 0
     end
 end

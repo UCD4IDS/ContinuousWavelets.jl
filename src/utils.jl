@@ -167,7 +167,7 @@ end
 
 # this makes sure the averaging function is real and positive
 adjust(c::CWT) = 1
-adjust(c::CWT{W,T,<:Dog}) where {W,T} = 1 / (im)^(c.α)
+adjust(c::CWT{W,T,<:Dog}) where {W,T} = 1 / (-im)^(c.α)
 
 function locationShift(c::CWT{W,T,<:Morlet,N}, s, ω, sWidth) where {W,T,N}
     s0 = 3 * c.σ[1] * s * sWidth
