@@ -59,7 +59,7 @@ are:
     `ContOrtho` objects via:
    + `cHaar` Haar Wavelets
    + `cBeyl` Beylkin Wavelets
-   + `cVaid` Vaidyanthan Wavelets
+   + `cVaid` Vaidyanathan Wavelets
    + `cDbn` Daubhechies Wavelets. n ranges from `1:Inf`
    + `cCoifn` Coiflets. n ranges from `2:2:8`
    + `cSymn` Symlets. n ranges from `4:10`
