@@ -1,9 +1,7 @@
 # Installation
 
-At the moment this package is unregistered, so you will have to do it the hard
-way. Either press `]` and run
+This package is registered in the general repository, so all you need to do is press `]` and run
+
 ```
-(@v9.9) pkg> add https://github.com/dsweber2/ContinuousWavelets.jl.git
+(@v9.9) pkg> ContinuousWavelets
 ```
-or download via git e.g. `git clone
-https://github.com/dsweber2/ContinuousWavelets.jl.git`.
