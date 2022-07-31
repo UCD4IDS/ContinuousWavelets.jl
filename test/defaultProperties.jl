@@ -6,7 +6,7 @@
     ns = (128, 1382, 2039)
     averagingLengths = (0, 0.5, 1, 2, 4)
     @testset "length $n, with type $wave, bc $bc, β=$β, ave=$(ave)" for n in ns, wave in cwts, bc in bcs, β in βs, ave in averagingLengths
-        wav = ContinuousWavelets.wavelet(wave, β = β, boundary = bc, averagingLength = ave)
+        wav = ContinuousWavelets.wavelet(wave, β=β, boundary=bc, averagingLength=ave)
         Ŵ, ω = (3, 1)
         with_logger(ConsoleLogger(stderr, Logging.Error)) do
             Ŵ, ω = ContinuousWavelets.computeWavelets(n, wav)

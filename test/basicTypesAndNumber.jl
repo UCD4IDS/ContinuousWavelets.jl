@@ -3,19 +3,21 @@
     xSizes = (33, 67, 128)
     boundaries = (DEFAULT_BOUNDARY, padded, NaivePer)
     sVals = [1, 2, 3.5, 8, 16]
-    βs = [1, 1.5,4.0]
-    waveTypes =(ContinuousWavelets.morl, dog0, paul4, cDb2, ContinuousWavelets.morse)
+    βs = [1, 1.5, 4.0]
+    waveTypes = (ContinuousWavelets.morl, dog0, paul4, cDb2, ContinuousWavelets.morse)
     @testset "xSz=$xSize, b=$boundary, s=$s, β=$β, wfc=$(wave)" for xSize in xSizes, boundary in boundaries, s in sVals, β in βs, wave in waveTypes
-        wfc = ContinuousWavelets.wavelet(wave, s=s, boundary=boundary,β=β)
-        xr = rand(Float64, xSize);
-        x32 = rand(Float32, xSize);
-        xc = rand(ComplexF64, xSize);
+        wfc = ContinuousWavelets.wavelet(wave, s=s, boundary=boundary, β=β)
+        xr = rand(Float64, xSize)
+        x32 = rand(Float32, xSize)
+        xc = rand(ComplexF64, xSize)
         # the sizes are of course broken at this size, so no warnings needed
-        yc = 3; yr = 3; y32 = 3
+        yc = 3
+        yr = 3
+        y32 = 3
         with_logger(ConsoleLogger(stderr, Logging.Error)) do
-            yr = ContinuousWavelets.cwt(xr, wfc);
-            y32 = ContinuousWavelets.cwt(x32, wfc);
-            yc = ContinuousWavelets.cwt(xc, wfc);
+            yr = ContinuousWavelets.cwt(xr, wfc)
+            y32 = ContinuousWavelets.cwt(x32, wfc)
+            yc = ContinuousWavelets.cwt(xc, wfc)
         end
         if isAnalytic(wfc.waveType)
             @test eltype(yr) == ComplexF64
@@ -26,7 +28,7 @@
             @test eltype(y32) == Float32
             @test eltype(yc) == ComplexF64
         end
-        nOctaves, totalWavelets, sRanges, sWidths = ContinuousWavelets.getNWavelets(xSize, wfc);
+        nOctaves, totalWavelets, sRanges, sWidths = ContinuousWavelets.getNWavelets(xSize, wfc)
         @test totalWavelets == size(yc, 2)
     end
 end

@@ -11,7 +11,7 @@ n1 = n;
         with_logger(ConsoleLogger(stderr, Logging.Error)) do
             res = ContinuousWavelets.cwt(x, wav)
         end
-        peaks = argmax(abs.(res), dims = 1)
+        peaks = argmax(abs.(res), dims=1)
         @test k - 2 <= peaks[end][1] <= k + 2 # give slight range to handle rounding issues
         Ŵ, ω = (3, 1)
         with_logger(ConsoleLogger(stderr, Logging.Error)) do
