@@ -1,11 +1,12 @@
 using Documenter, ContinuousWavelets
 ENV["PLOTS_TEST"] = "true"
 ENV["GKSwstype"] = "100"
-makedocs(sitename = "ContinuousWavelets.jl",
-    format = Documenter.HTML(),
-    authors = "David Weber",
-    clean = true,
-    pages = [
+makedocs(sitename="ContinuousWavelets.jl",
+    format=Documenter.HTML(),
+    authors="David Weber",
+    clean=true,
+    strict=true,
+    pages=[
         "basic usage" => "index.md",
         "Install" => "installation.md",
         "CWT" => [
@@ -18,5 +19,5 @@ makedocs(sitename = "ContinuousWavelets.jl",
     ])
 
 deploydocs(
-    repo = "github.com/dsweber2/ContinuousWavelets.jl.git",
+    repo="github.com/dsweber2/ContinuousWavelets.jl.git",
 )
