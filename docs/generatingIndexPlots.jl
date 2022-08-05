@@ -30,7 +30,7 @@ p1 = plot(f, legend=false, title="Smoothing and dropping bumps", linewidth=2)
 plot!(dropped, linewidth=3)
 l = @layout [a{0.3h}; b{0.7h}]
 plot(p1, p2, layout=l)
-
+savefig("bumps.svg")
 
 
 

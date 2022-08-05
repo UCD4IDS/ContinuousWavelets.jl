@@ -23,7 +23,7 @@ julia> using ContinuousWavelets
 
 Basic usage example on a doppler test function.
 
-```jldoctest ex
+```julia
 julia> using ContinuousWavelets, Plots, Wavelets
 
 julia> n = 2047;
@@ -42,32 +42,19 @@ julia> res = ContinuousWavelets.cwt(f, c)
 │   lowAprxAnalyt = 0.06186323501016359
 └ @ ContinuousWavelets ~/allHail/projects/ContinuousWavelets/src/sanityChecks.jl:6
 2047×31 Matrix{ComplexF64}:
- -2.84943e-6+3.86436e-19im    1.44519e-5-1.62298e-9im  …   0.000125192+0.000112017im   0.000109884+9.67013e-5im
- -2.84699e-6-6.11361e-20im    1.44509e-5-4.88515e-9im      -9.89185e-5+0.000149589im   -8.24222e-5+0.000130545im
- -2.84212e-6+4.37411e-20im    1.44489e-5-8.19594e-9im     -0.000180219-7.17018e-5im   -0.000153333-5.64666e-5im
- -2.83483e-6-3.11387e-19im    1.44459e-5-1.15878e-8im       2.75325e-5-0.000205094im    1.90839e-5-0.00016841im
- -2.82514e-6-1.31096e-19im    1.44419e-5-1.5093e-8im       0.000217137-3.06784e-5im    0.000172696-2.56466e-5im
- -2.81306e-6-3.38731e-19im    1.44369e-5-1.87442e-8im  …   0.000101677+0.000208577im    7.79501e-5+0.000162848im
- -2.79865e-6-9.8753e-19im     1.44309e-5-2.25737e-8im     -0.000166245+0.0001764im    -0.000128919+0.000132755im
- -2.78192e-6+4.91292e-20im    1.44239e-5-2.66139e-8im     -0.000231546-8.56946e-5im   -0.000172323-6.71036e-5im
- -2.76293e-6+5.80924e-19im    1.44159e-5-3.08974e-8im      -1.72186e-5-0.000244897im   -9.39619e-6-0.000179998im
-            ⋮                                          ⋱                                          ⋮
- 0.000172941+2.7571e-19im   -0.000580229+4.73334e-5im      -2.59937e-6-7.00815e-7im    -2.59966e-6-7.0039e-7im
- 0.000171274+1.41585e-19im  -0.000580627+4.17758e-5im      -2.58041e-6-6.22483e-7im    -2.58362e-6-6.24181e-7im
- 0.000169814-7.90531e-21im  -0.000580975+3.62141e-5im  …   -2.56582e-6-5.32728e-7im    -2.56497e-6-5.41108e-7im
- 0.000168561-5.81895e-20im  -0.000581273+3.06488e-5im      -2.57532e-6-4.46165e-7im    -2.56135e-6-4.4822e-7im
- 0.000167516-3.07438e-19im  -0.000581522+2.50805e-5im        -2.584e-6-4.03348e-7im    -2.57801e-6-3.83539e-7im
- 0.000166679-6.64104e-19im  -0.000581721+1.95096e-5im      -2.51699e-6-3.66859e-7im    -2.54192e-6-3.54776e-7im
- 0.000166051-1.45091e-18im  -0.000581871+1.39368e-5im       -2.4225e-6-2.1293e-7im      -2.4431e-6-2.37279e-7im
- 0.000165633+5.67188e-19im   -0.00058197+8.36266e-6im  …   -2.48306e-6+6.63823e-9im    -2.46986e-6-1.96881e-8im
- 0.000165423+1.25225e-18im   -0.00058202+2.78765e-6im      -2.65444e-6+5.18306e-8im    -2.63276e-6+4.61939e-8im
+ -2.84943e-6+3.86436e-19im   1.44519e-5-1.62298e-9im    1.39273e-5-3.07331e-8im    1.08277e-5-5.36965e-8im   7.74125e-6-8.67067e-8im  …    9.29111e-5+9.88368e-5im    0.000123188+0.000115321im   0.000125192+0.000112017im   0.000109884+9.67013e-5im
+ -2.84699e-6-6.11361e-20im   1.44509e-5-4.88515e-9im    1.39292e-5-9.21574e-8im    1.08334e-5-1.6091e-7im    7.75377e-6-2.59599e-7im     -0.000113733+0.000116674im  -0.000110639+0.000149352im   -9.89185e-5+0.000149589im   -8.24222e-5+0.000130545im
+ -2.84212e-6+4.37411e-20im   1.44489e-5-8.19594e-9im    1.39331e-5-1.53456e-7im    1.08446e-5-2.67585e-7im    7.7787e-6-4.30934e-7im     -0.000167268-0.000109989im  -0.000189571-8.93572e-5im   -0.000180219-7.17018e-5im   -0.000153333-5.64666e-5im
+            ⋮                                                                                                                         ⋱                                                                                                  ⋮
+ 0.000165633+5.67188e-19im  -0.00058197+8.36266e-6im  -0.000174944+4.74775e-6im  -0.000102926+3.76705e-6im  -6.69025e-5+3.10797e-6im  …   -2.52619e-6+6.30254e-8im    -2.50166e-6+3.43068e-8im    -2.48306e-6+6.63823e-9im    -2.46986e-6-1.96881e-8im
+ 0.000165423+1.25225e-18im  -0.00058202+2.78765e-6im  -0.000175007+1.58289e-6im  -0.000102997+1.2562e-6im   -6.69813e-5+1.03676e-6im      -2.70744e-6+6.32005e-8im    -2.67909e-6+5.74545e-8im    -2.65444e-6+5.18306e-8im    -2.63276e-6+4.61939e-8im
 
 
 ```
 
 And now we make a scalogram to actually interpret these entries:
 
-```jldoctest ex; output=false
+```julia
 freqs = getMeanFreq(ContinuousWavelets.computeWavelets(n, c)[1])
 freqs[1] = 0
 p2 = heatmap(t, freqs, log.(abs.(res).^2)', xlabel= "time (s)", ylabel="frequency (Hz)", colorbar=false, c=cgrad(:viridis, scale=:log10))
@@ -85,87 +72,29 @@ Plot{Plots.PyPlotBackend() n=2}
 
 As the cwt frame is redundant, there are many choices of dual/inverse frames. There are three available in this package, `NaiveDelta()`, `PenroseDelta()`, and `DualFrames()`. As a toy example, lets knock out the middle time of the bumps function and apply a high pass filter:
 
-```jldoctest ex; output = false
+```julia
 f = testfunction(n, "Bumps");
 p1 = plot(f, legend = false, title = "Bumps", xlims = (0, 2000), linewidth = 2)
 c = wavelet(dog2, β = 2)
-res = ContinuousWavelets.cwt(f, c)
-
-# output
-
-2047×27 Matrix{Float64}:
- 0.00262067   -0.00150482  -2.16134e-6  -9.32656e-7  -6.06247e-7  …  -3.75559e-8   -3.42124e-8   -3.11967e-8   -2.84659e-8
- 0.00262075   -0.00150528  -2.16503e-6  -9.32531e-7  -6.05646e-7     -2.985e-8     -2.61034e-8   -2.27191e-8   -1.96643e-8
- 0.00262089   -0.00150621  -2.17246e-6  -9.32285e-7  -6.0445e-7      -1.90126e-8   -1.53614e-8   -1.22211e-8   -9.55694e-9
- 0.00262111   -0.0015076   -2.18368e-6  -9.31925e-7  -6.02672e-7     -9.98394e-9   -7.26844e-9   -5.16474e-9   -3.5861e-9
- 0.00262141   -0.00150945  -2.1988e-6   -9.31463e-7  -6.00331e-7     -4.71452e-9   -3.17363e-9   -2.13149e-9   -1.45404e-9
- 0.00262177   -0.00151176  -2.21794e-6  -9.30914e-7  -5.97451e-7  …  -2.45418e-9   -1.71933e-9   -1.26651e-9   -9.85913e-10
- 0.00262221   -0.00151453  -2.24129e-6  -9.30297e-7  -5.94064e-7     -1.73806e-9   -1.36213e-9   -1.11251e-9   -9.3166e-10
- 0.00262272   -0.00151775  -2.26904e-6  -9.29635e-7  -5.90205e-7     -1.58516e-9   -1.31798e-9   -1.11305e-9   -9.48609e-10
- 0.00262331   -0.00152143  -2.30144e-6  -9.28953e-7  -5.85916e-7     -1.58454e-9   -1.33761e-9   -1.13556e-9   -9.66579e-10
- ⋮                                                                ⋱                               ⋮
- 0.000849844  -2.6919e-6   -1.4791e-7   -9.09068e-8  -6.38853e-8     -1.16171e-10  -9.78546e-11  -8.33283e-11  -7.26309e-11
- 0.000849526  -2.65506e-6  -1.48303e-7  -9.15682e-8  -6.47598e-8     -1.19867e-10  -9.80994e-11  -8.21291e-11  -6.83873e-11
- 0.000849248  -2.62298e-6  -1.48649e-7  -9.21537e-8  -6.55392e-8  …  -1.44725e-10  -1.07284e-10  -8.51327e-11  -7.16104e-11
- 0.00084901   -2.59559e-6  -1.48948e-7  -9.26608e-8  -6.62178e-8     -2.48154e-10  -1.59995e-10  -1.08585e-10  -7.82972e-11
- 0.000848811  -2.57284e-6  -1.49199e-7  -9.30869e-8  -6.67909e-8     -5.67241e-10  -3.66004e-10  -2.322e-10    -1.48171e-10
- 0.000848652  -2.5547e-6   -1.494e-7    -9.34302e-8  -6.72545e-8     -1.30662e-9   -9.4078e-10   -6.57973e-10  -4.46048e-10
- 0.000848533  -2.54112e-6  -1.49552e-7  -9.36891e-8  -6.76052e-8     -2.57098e-9   -2.07407e-9   -1.64632e-9   -1.28368e-9
- 0.000848453  -2.53208e-6  -1.49653e-7  -9.38624e-8  -6.78404e-8  …  -4.08749e-9   -3.57702e-9   -3.11482e-9   -2.69659e-9
- 0.000848413  -2.52757e-6  -1.49704e-7  -9.39492e-8  -6.79584e-8     -5.16548e-9   -4.71124e-9   -4.30053e-9   -3.92791e-9
-```
-
-```jldoctest ex
+res = ContinuousWavelets.cwt(f, c);
 # dropping the middle peaks
 res[620:1100, :] .= 0
 # and smoothing the remaining peaks
 res[:, 10:end] .= 0
 freqs = ContinuousWavelets.getMeanFreq(f, c)
 p2 = heatmap(1:n, freqs, abs.(res)', xlabel = "time (ms)", ylabel = "Frequency (Hz)", colorbar = false, c = :viridis)
-dropped = ContinuousWavelets.icwt(res, c, DualFrames())
-
-# output
-
-┌ Warning: the canonical dual frame is off by 3.8053445963886525e6, consider using one of the delta dual frames
-└ @ ContinuousWavelets ~/allHail/projects/ContinuousWavelets/src/sanityChecks.jl:37
-2047-element Vector{Float64}:
-  0.021353468263494175
-  0.021355106707309952
-  0.021358383142385133
-  0.0213632966799539
-  0.021369846027086553
-  0.02137802953320333
-  0.021387845249242986
-  0.021399290997235258
-  0.021412364447637153
-  ⋮
- -0.006147601225469837
- -0.006147062558231826
- -0.006146592492113732
- -0.006146190563893243
- -0.006145856346051334
- -0.006145589459921974
- -0.006145389587395019
- -0.006145256480782908
- -0.006145189970537515
-```
-
-```jldoctest ex; output=false
+dropped = ContinuousWavelets.icwt(res, c, DualFrames());
 p1 = plot(f, legend=false, title="Smoothing and dropping bumps", linewidth=2)
 plot!(dropped, linewidth=3)
 l = @layout [a{0.3h}; b{0.7h}]
 plot(p1, p2, layout=l)
-
-# output
-
-Plot{Plots.PyPlotBackend() n=3}
 ```
 
 ![Bumps](/docs/bumps.svg)
 
 It can also handle collections of examples at the same time, should you need to do a batch of transforms:
 
-```jldoctest ex
+```julia
 julia> exs = cat(testfunction(n, "Doppler"), testfunction(n, "Blocks"), testfunction(n, "Bumps"), testfunction(n, "HeaviSine"), dims=2);
 
 julia> c = wavelet(cDb2, β=2, extraOctaves=-0)
@@ -263,7 +192,7 @@ julia> res = circshift(ContinuousWavelets.cwt(exs, c), (0, 1, 0))
 
 And the plot of these:
 
-```jldoctest ex; output = false
+```julia
 p1 = plot(plot(exs[:, 1], legend=false, title="Doppler", yticks=[], xticks=[], linewidth=2), plot(exs[:, 2], legend=false, title="Blocks", yticks=[], xticks=[], linewidth=2), plot(exs[:, 3], legend=false, title="Bumps", yticks=[], xticks=[], linewidth=2), plot(exs[:, 4], legend=false, title="HeaviSine", yticks=[], xticks=[], linewidth=2), layout=(1, 4))
 p2 = plot(heatmap(identity.(res[:, :, 1])', xticks=false, yticks=[], c=:viridis, colorbar=false), heatmap(identity.(res[:, :, 2])', xticks=false, yticks=[], c=:viridis, colorbar=false), heatmap(identity.(res[:, :, 3])', xticks=false, yticks=[], c=:viridis, colorbar=false), heatmap(identity.(res[:, :, 4])', xticks=false, yticks=[], c=:viridis, colorbar=false), layout=(1, 4))
 l = @layout [a{0.3h}; b{0.7h}]
