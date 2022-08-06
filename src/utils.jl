@@ -447,6 +447,9 @@ Compute the cross spectrum of signals `X` and `Y`, which is defined as ``S(\\con
 Note that unlike `cwt`, `crossSpectrum` only works for collections `X` and `Y` of vectors of shape (signalLength)×(nSignals), and outputs a collection of cross spectrums that has shape (signalLength)×(nscales+1)×(nSignalsX)×(nSignalsY).
 
 # Examples
+```@meta
+DocTestFilters = r"\@ ContinuousWavelets .*"
+```
 ```jldoctest
 julia> using ContinuousWavelets, Random
 
@@ -459,7 +462,7 @@ julia> c = wavelet(morl)
 julia> Xspec = crossSpectrum(X, Y, c); size(Xspec)
 ┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
 │   lowAprxAnalyt = 0.038173051785201154
-└ @ ContinuousWavelets ~/allHail/projects/ContinuousWavelets/src/sanityChecks.jl:6
+└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
 (2053, 18, 4, 4)
 
 julia> Xspec[:,:,1,1]
@@ -521,7 +524,10 @@ end
 Compute the wavelet coherence between `X` and `Y`. This is given by the power of the cross spectrum, normalized by smoothed powers of both `X` and `Y`. Explicitly, that is ``\frac{|S(C^*(X)C(Y))|^2}{S(|C(X)|^2)S(|C(Y)|^2)}``.
 
 # Examples
-```jldoctest
+```@meta
+DocTestFilters = r"\@ ContinuousWavelets .*"
+```
+```jldoctest ex
 julia> using ContinuousWavelets, Random
 
 julia> rng = MersenneTwister(23425); Y = randn(rng, 2053, 4);
@@ -533,7 +539,7 @@ julia> c = wavelet(morl)
 julia> wCo = waveletCoherence(X, Y, c);
 ┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
 │   lowAprxAnalyt = 0.038173051785201154
-└ @ ContinuousWavelets ~/allHail/projects/ContinuousWavelets/src/sanityChecks.jl:6
+└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
 
 julia> wCo[:,:,1,1]
 2053×18 Matrix{Float64}:

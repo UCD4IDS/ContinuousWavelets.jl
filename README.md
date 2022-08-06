@@ -40,7 +40,7 @@ julia> c = wavelet(Morlet(π), β=2)
 julia> res = ContinuousWavelets.cwt(f, c)
 ┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
 │   lowAprxAnalyt = 0.06186323501016359
-└ @ ContinuousWavelets ~/allHail/projects/ContinuousWavelets/src/sanityChecks.jl:6
+└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
 2047×31 Matrix{ComplexF64}:
  -2.84943e-6+3.86436e-19im   1.44519e-5-1.62298e-9im    1.39273e-5-3.07331e-8im    1.08277e-5-5.36965e-8im   7.74125e-6-8.67067e-8im  …    9.29111e-5+9.88368e-5im    0.000123188+0.000115321im   0.000125192+0.000112017im   0.000109884+9.67013e-5im
  -2.84699e-6-6.11361e-20im   1.44509e-5-4.88515e-9im    1.39292e-5-9.21574e-8im    1.08334e-5-1.6091e-7im    7.75377e-6-2.59599e-7im     -0.000113733+0.000116674im  -0.000110639+0.000149352im   -9.89185e-5+0.000149589im   -8.24222e-5+0.000130545im
@@ -64,7 +64,7 @@ plot(p1,p2,layout=l)
 # output
 ┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
 │   lowAprxAnalyt = 0.06186323501016359
-└ @ ContinuousWavelets ~/allHail/projects/ContinuousWavelets/src/sanityChecks.jl:6
+└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
 Plot{Plots.PyPlotBackend() n=2}
 ```
 
@@ -103,7 +103,7 @@ julia> c = wavelet(cDb2, β=2, extraOctaves=-0)
 julia> res = circshift(ContinuousWavelets.cwt(exs, c), (0, 1, 0))
 ┌ Warning: the highest frequency wavelet has more than 1% its max at the end, so it may not be analytic. Think carefully
 │   highAprxAnalyt = 0.2677814440444114
-└ @ ContinuousWavelets ~/allHail/projects/ContinuousWavelets/src/sanityChecks.jl:10
+└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:10
 2047×32×4 Array{Float64, 3}:
 [:, :, 1] =
   1.89367e-5   0.000266033  0.000196408  2.69195e-5  -3.89652e-5    2.16388e-5    5.12054e-6    1.28445e-5    8.80563e-6   -3.03165e-6   …   4.1931e-5   2.56883e-5   1.11543e-5   0.0001302     0.00014971    0.000121129   9.23682e-5    4.6727e-5    2.99983e-6
