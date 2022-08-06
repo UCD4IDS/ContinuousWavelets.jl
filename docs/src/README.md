@@ -27,7 +27,7 @@ julia> using ContinuousWavelets
 
 Basic usage example on a doppler test function.
 
-```jldoctest ex
+```jldoctest ex; filter= r"[0-9]\.[0-9]{5}e-[0-9][5-9]"
 julia> using Random
 
 julia> Random.seed!(1234);
@@ -47,7 +47,7 @@ julia> res = ContinuousWavelets.cwt(f, c)
 │   lowAprxAnalyt = 0.06186323501016359
 └ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
 2047×31 Matrix{ComplexF64}:
- -2.84943e-6+3.86436e-19im  …   0.000109884+9.67013e-5im
+ -2.84943e-6+3.86536e-19im  …   0.000109884+9.67013e-5im
  -2.84699e-6-6.11361e-20im      -8.24222e-5+0.000130545im
  -2.84212e-6+4.37411e-20im     -0.000153333-5.64666e-5im
  -2.83483e-6-3.11387e-19im       1.90839e-5-0.00016841im
@@ -145,7 +145,7 @@ dropped = ContinuousWavelets.icwt(res, c, DualFrames())
 
 It can also handle collections of examples at the same time, should you need to do a batch of transforms:
 
-```jldoctest ex
+```jldoctest ex; filter= r"[0-9]\.[0-9]{5}e-[0-9][5-9]"
 julia> using Wavelets
 
 julia> exs = cat(testfunction(n, "Doppler"), testfunction(n, "Blocks"), testfunction(n, "Bumps"), testfunction(n, "HeaviSine"), dims=2);
