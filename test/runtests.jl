@@ -1,9 +1,9 @@
 using ContinuousWavelets, Wavelets, Interpolations, LinearAlgebra
-using Test
+using Test, Documenter
 using FFTW
 using Logging, Random
 @testset "ContinuousWavelets.jl" begin
-    # Write your tests here.
+    doctest(ContinuousWavelets)
     include("basicTypesAndNumber.jl")
     include("deltaSpikes.jl")
     include("utilsTests.jl")

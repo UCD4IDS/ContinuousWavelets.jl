@@ -1,5 +1,5 @@
 include("make.jl")
-doctest(ContinuousWavelets, fix=true)
+doctest(ContinuousWavelets)
 using ContinuousWavelets, Plots, Wavelets
 n = 2047;
 t = range(0, n / 1000, length=n); # 1kHz sampling rate
