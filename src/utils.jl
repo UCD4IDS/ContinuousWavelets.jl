@@ -461,7 +461,7 @@ julia> c = wavelet(morl)
 
 julia> Xspec = crossSpectrum(X, Y, c); size(Xspec)
 ┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
-│   lowAprxAnalyt = 0.038173051785201154
+│   lowAprxAnalyt = 0.038173
 └ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
 (2053, 18, 4, 4)
 
@@ -469,7 +469,6 @@ julia> Xspec[:,:,1,1]
 2053×18 Matrix{ComplexF64}:
  -5.24953e-5+5.40781e-20im  …  8.04088e-6-2.27563e-14im
  -5.25855e-5+1.07093e-20im     8.04716e-6-2.25757e-14im
-  -5.2766e-5-3.30814e-20im     8.06082e-6-2.2219e-14im
             ⋮               ⋱
   1.79944e-5+7.12807e-20im     9.05792e-6+5.93478e-15im
    1.6786e-5+2.05713e-20im     8.97579e-6+5.98214e-15im
@@ -478,7 +477,6 @@ julia> Xspec[:,:,1,2]
 2053×18 Matrix{ComplexF64}:
    0.00010865+1.01396e-20im  …  4.51034e-6+5.79035e-6im
   0.000108391+4.88923e-20im     4.50665e-6+5.73936e-6im
-  0.000107875-3.90038e-20im     4.49934e-6+5.63796e-6im
              ⋮               ⋱
  -0.000175201+1.07167e-20im     4.67897e-6+1.11652e-6im
  -0.000175656+2.03995e-20im     4.65226e-6+1.07173e-6im
@@ -510,26 +508,24 @@ julia> c = wavelet(morl)
 
 julia> wCo = waveletCoherence(X, Y, c);
 ┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
-│   lowAprxAnalyt = 0.038173051785201154
+│   lowAprxAnalyt = 0.038173
 └ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
 
 julia> wCo[:,:,1,1]
 2053×18 Matrix{Float64}:
- 0.969189   …  1.0
- 0.96828       1.0
- 0.966475      1.0
- ⋮          ⋱
- 0.0247819     1.0
- 0.0219171     1.0
+ 0.969189   0.854792  …  1.0  1.0  1.0  1.0  1.0
+ 0.96828    0.853079     1.0  1.0  1.0  1.0  1.0
+ ⋮                    ⋱            ⋮
+ 0.0247819  0.994494     1.0  1.0  1.0  1.0  1.0
+ 0.0219171  0.994579     1.0  1.0  1.0  1.0  1.0
 
 julia> wCo[:,:,1,2]
 2053×18 Matrix{Float64}:
- 0.952459  …  0.325306
- 0.951494     0.320263
- 0.949561     0.310414
- ⋮         ⋱
- 0.922912     0.294779
- 0.925507     0.294994
+ 0.952459  0.57212   0.844804  …  0.0702893  0.325306
+ 0.951494  0.57209   0.844596     0.0657064  0.320263
+ ⋮                             ⋱
+ 0.922912  0.992654  0.448617     0.297905   0.294779
+ 0.925507  0.992768  0.452893     0.299066   0.294994
 
 ```
 """

@@ -44,7 +44,7 @@ julia> c = wavelet(Morlet(π), β=2)
 
 julia> res = ContinuousWavelets.cwt(f, c)
 ┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
-│   lowAprxAnalyt = 0.06186323501016359
+│   lowAprxAnalyt = 0.061863
 └ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
 2047×31 Matrix{ComplexF64}:
  -2.84943e-6+3.86436e-19im  …  0.000109884+9.67013e-5im
@@ -85,17 +85,18 @@ res[620:1100, :] .= 0
 res[:, 10:end] .= 0
 freqs = ContinuousWavelets.getMeanFreq(f, c)
 dropped = ContinuousWavelets.icwt(res, c, DualFrames())
+round.(dropped,sigdigits=12)
 
 # output
 
 ┌ Warning: the canonical dual frame is off by 3.8053445963886525e6, consider using one of the delta dual frames
-└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:37
+└ @ ContinuousWavelets ~/allHail/projects/ContinuousWavelets/src/sanityChecks.jl:37
 2047-element Vector{Float64}:
-  0.021353468263494175
-  0.021355106707309952
+  0.0213534682635
+  0.0213551067073
   ⋮
- -0.006145256480782908
- -0.006145189970537515
+ -0.00614525648078
+ -0.00614518997054
 ```
 
 It can also handle collections of examples at the same time, should you need to do a batch of transforms:
@@ -109,7 +110,7 @@ julia> c = wavelet(cDb2, β=2, extraOctaves=-0)
 
 julia> res = circshift(ContinuousWavelets.cwt(exs, c), (0, 1, 0))
 ┌ Warning: the highest frequency wavelet has more than 1% its max at the end, so it may not be analytic. Think carefully
-│   highAprxAnalyt = 0.2677814440444114
+│   highAprxAnalyt = 0.26778
 └ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:10
 2047×32×4 Array{Float64, 3}:
 [:, :, 1] =
