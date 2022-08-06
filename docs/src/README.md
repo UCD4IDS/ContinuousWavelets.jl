@@ -1,5 +1,5 @@
 ```@meta
-DocTestFilters = r"\@ ContinuousWavelets .*"
+DocTestFilters = [r"\@ ContinuousWavelets .*", r"[ +-][0-9]\.[0-9]{5}e-[0-9][5-9]"]
 ```
 
 # ContinuousWavelets
@@ -27,7 +27,7 @@ julia> using ContinuousWavelets
 
 Basic usage example on a doppler test function.
 
-```jldoctest ex; filter= r"[0-9]\.[0-9]{5}e-[0-9][5-9]"
+```jldoctest ex
 julia> using Random
 
 julia> Random.seed!(1234);
@@ -101,7 +101,7 @@ round.(dropped,sigdigits=12)
 
 It can also handle collections of examples at the same time, should you need to do a batch of transforms:
 
-```jldoctest ex; filter= r"[0-9]\.[0-9]{5}e-[0-9][5-9]"
+```jldoctest ex
 julia> using Wavelets
 
 julia> exs = cat(testfunction(n, "Doppler"), testfunction(n, "Blocks"), testfunction(n, "Bumps"), testfunction(n, "HeaviSine"), dims=2);

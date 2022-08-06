@@ -448,9 +448,9 @@ Note that unlike `cwt`, `crossSpectrum` only works for collections `X` and `Y` o
 
 # Examples
 ```@meta
-DocTestFilters = r"\@ ContinuousWavelets .*"
+DocTestFilters = [r"\@ ContinuousWavelets .*", r"[0-9]\.[0-9]{5}e-[0-9][5-9]"]
 ```
-```jldoctest; filter= r"[0-9]\.[0-9]{5}e-[0-9][5-9]"
+```jldoctest
 julia> using ContinuousWavelets, Random
 
 julia> rng = MersenneTwister(23425); Y = randn(rng, 2053, 4);
