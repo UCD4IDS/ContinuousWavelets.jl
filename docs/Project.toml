@@ -9,4 +9,4 @@ PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
 Wavelets = "29a6e085-ba6d-5f35-a997-948ac2efa89a"
 
 [compat]
-Documenter = "0.25"
+Documenter = "0.27"
