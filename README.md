@@ -42,11 +42,11 @@ julia> res = ContinuousWavelets.cwt(f, c)
 │   lowAprxAnalyt = 0.06186323501016359
 └ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
 2047×31 Matrix{ComplexF64}:
- -2.84943e-6+3.86436e-19im  …  0.000109884+9.67013e-5im
- -2.84699e-6-6.11361e-20im     -8.24222e-5+0.000130545im
+ -1.48637e-6+3.8241e-19im   …  0.000109978+9.67834e-5im
+ -1.48602e-6+5.15534e-19im     -8.24922e-5+0.000130656im
             ⋮               ⋱             ⋮
- 0.000165633+5.67188e-19im  …  -2.46986e-6-1.96881e-8im
- 0.000165423+1.25225e-18im     -2.63276e-6+4.61939e-8im
+ 0.000435175+2.30636e-19im  …  -2.47195e-6-1.97048e-8im
+ 0.000435027-8.28725e-19im     -2.63499e-6+4.62331e-8im
 ```
 
 And now we make a scalogram to actually visualize these entries:
@@ -72,7 +72,7 @@ res = ContinuousWavelets.cwt(f, c);
 res[620:1100, :] .= 0
 # and smoothing the remaining peaks
 res[:, 10:end] .= 0
-freqs = ContinuousWavelets.getMeanFreq(f, c)
+freqs = ContinuousWavelets.getMeanFreq(length(f), c)
 p2 = heatmap(1:n, freqs, abs.(res)', xlabel = "time (ms)", ylabel = "Frequency (Hz)", colorbar = false, c = :viridis)
 dropped = ContinuousWavelets.icwt(res, c, DualFrames());
 p1 = plot(f, legend=false, title="Smoothing and dropping bumps", linewidth=2)

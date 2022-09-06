@@ -37,8 +37,9 @@
         end
         # if the averaging length is 0 and its only averaging at the sizes given, something is wrong
         @test size(Ŵ, 2) > 1 || ave > 0
-        if !(wave isa ContOrtho) && size(Ŵ, 2) > 1
-            # Guaranteed in a very different way for ContOrtho, and no guarantees made for just averaging
+        # make sure that the highest frequency support is small relative to the space domain
+        # Guaranteed in a very different way for ContOrtho, no guarantees made for just averaging, and the averaging length needs to leave 6.5 octaves
+        if !(wave isa ContOrtho) && size(Ŵ, 2) > 1 && log2(n) - ave > 6.5
             @test max(abs.(Ŵ[end, :])...) / norm(supported, Inf) ≤ 1e-1
         end
 

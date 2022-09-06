@@ -47,11 +47,11 @@ julia> res = ContinuousWavelets.cwt(f, c)
 │   lowAprxAnalyt = 0.061863
 └ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
 2047×31 Matrix{ComplexF64}:
- -2.84943e-6+3.86436e-19im  …  0.000109884+9.67013e-5im
- -2.84699e-6-6.11361e-20im     -8.24222e-5+0.000130545im
+ -1.48637e-6+3.8241e-19im   …  0.000109978+9.67834e-5im
+ -1.48602e-6+5.15534e-19im     -8.24922e-5+0.000130656im
             ⋮               ⋱             ⋮
- 0.000165633+5.67188e-19im  …  -2.46986e-6-1.96881e-8im
- 0.000165423+1.25225e-18im     -2.63276e-6+4.61939e-8im
+ 0.000435175+2.30636e-19im  …  -2.47195e-6-1.97048e-8im
+ 0.000435027-8.28725e-19im     -2.63499e-6+4.62331e-8im
 
 
 ```
@@ -67,11 +67,11 @@ res = ContinuousWavelets.cwt(f, c)
 # output
 
 2047×27 Matrix{Float64}:
- 0.00262067   -0.00150482  …  -3.11967e-8  -2.84659e-8
- 0.00262075   -0.00150528     -2.27191e-8  -1.96643e-8
+ 0.000926575  -0.00150445  …  -3.1189e-8   -2.84589e-8
+ 0.000926735  -0.00150491     -2.27135e-8  -1.96595e-8
  ⋮                         ⋱   ⋮
- 0.000848453  -2.53208e-6  …  -3.11482e-9  -2.69659e-9
- 0.000848413  -2.52757e-6     -4.30053e-9  -3.92791e-9
+ 0.000250708  -2.53146e-6  …  -3.11406e-9  -2.69593e-9
+ 0.000250698  -2.52694e-6     -4.29947e-9  -3.92694e-9
 ```
 
 ```jldoctest ex
@@ -83,20 +83,20 @@ res = ContinuousWavelets.cwt(f, c)
 res[620:1100, :] .= 0
 # and smoothing the remaining peaks
 res[:, 10:end] .= 0
-freqs = ContinuousWavelets.getMeanFreq(f, c)
+freqs = ContinuousWavelets.getMeanFreq(length(f), c)
 dropped = ContinuousWavelets.icwt(res, c, DualFrames())
 round.(dropped,sigdigits=12)
 
 # output
 
-┌ Warning: the canonical dual frame is off by 3.8053445963886525e6, consider using one of the delta dual frames
-└ @ ContinuousWavelets ~/allHail/projects/ContinuousWavelets/src/sanityChecks.jl:37
+┌ Warning: the canonical dual frame is off by 3.8062806957832226e6, consider using one of the delta dual frames
+└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets/src/sanityChecks.jl:41
 2047-element Vector{Float64}:
-  0.0213534682635
-  0.0213551067073
-  ⋮
- -0.00614525648078
- -0.00614518997054
+ 0.0069417253841
+ 0.00694223965946
+ ⋮
+ 0.00268854944484
+ 0.00268852311536
 ```
 
 It can also handle collections of examples at the same time, should you need to do a batch of transforms:
@@ -111,7 +111,7 @@ julia> c = wavelet(cDb2, β=2, extraOctaves=-0)
 julia> res = circshift(ContinuousWavelets.cwt(exs, c), (0, 1, 0))
 ┌ Warning: the highest frequency wavelet has more than 1% its max at the end, so it may not be analytic. Think carefully
 │   highAprxAnalyt = 0.26778
-└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:10
+└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:12
 2047×32×4 Array{Float64, 3}:
 [:, :, 1] =
  1.89367e-5  0.000266033  …  4.6727e-5    2.99983e-6

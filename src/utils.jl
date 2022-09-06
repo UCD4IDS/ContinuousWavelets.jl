@@ -457,29 +457,26 @@ julia> rng = MersenneTwister(23425); Y = randn(rng, 2053, 4);
 
 julia> X = Y .+ 3;
 
-julia> c = wavelet(morl)
+julia> c = wavelet(morl, β = 2)
 
 julia> Xspec = crossSpectrum(X, Y, c); size(Xspec)
-┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
-│   lowAprxAnalyt = 0.038173
-└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
-(2053, 18, 4, 4)
+(2053, 29, 4, 4)
 
 julia> Xspec[:,:,1,1]
-2053×18 Matrix{ComplexF64}:
- -5.24953e-5+5.40781e-20im  …  8.04088e-6-2.27563e-14im
- -5.25855e-5+1.07093e-20im     8.04716e-6-2.25757e-14im
+2053×29 Matrix{ComplexF64}:
+ -4.14517e-5+2.19692e-20im  …  1.19877e-5-7.07215e-15im
+ -4.14157e-5+2.23209e-21im     1.19896e-5-7.06562e-15im
             ⋮               ⋱
-  1.79944e-5+7.12807e-20im     9.05792e-6+5.93478e-15im
-   1.6786e-5+2.05713e-20im     8.97579e-6+5.98214e-15im
+ 0.000119144+4.38332e-21im     1.70054e-5+1.85809e-15im
+ 0.000119178+1.3884e-20im      1.69993e-5+1.8598e-15im
 
 julia> Xspec[:,:,1,2]
-2053×18 Matrix{ComplexF64}:
-   0.00010865+1.01396e-20im  …  4.51034e-6+5.79035e-6im
-  0.000108391+4.88923e-20im     4.50665e-6+5.73936e-6im
-             ⋮               ⋱
- -0.000175201+1.07167e-20im     4.67897e-6+1.11652e-6im
- -0.000175656+2.03995e-20im     4.65226e-6+1.07173e-6im
+2053×29 Matrix{ComplexF64}:
+  5.42995e-5-1.94343e-20im  …    2.649e-6-1.22869e-6im
+   5.4303e-5-1.52994e-20im      2.6479e-6-1.23329e-6im
+            ⋮               ⋱
+ -3.17457e-5-1.12611e-20im     4.71683e-6+3.72814e-6im
+ -3.17719e-5+1.44436e-20im     4.71417e-6+3.7279e-6im
 
 ```
 """
@@ -504,28 +501,26 @@ julia> rng = MersenneTwister(23425); Y = randn(rng, 2053, 4);
 
 julia> X = Y .+ 3;
 
-julia> c = wavelet(morl)
+julia> c = wavelet(morl,β=2)
 
 julia> wCo = waveletCoherence(X, Y, c);
-┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
-│   lowAprxAnalyt = 0.038173
-└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
+
 
 julia> wCo[:,:,1,1]
-2053×18 Matrix{Float64}:
- 0.969189   0.854792  …  1.0  1.0  1.0  1.0  1.0
- 0.96828    0.853079     1.0  1.0  1.0  1.0  1.0
- ⋮                    ⋱            ⋮
- 0.0247819  0.994494     1.0  1.0  1.0  1.0  1.0
- 0.0219171  0.994579     1.0  1.0  1.0  1.0  1.0
+2053×29 Matrix{Float64}:
+ 0.688432  1.0  1.0  1.0  1.0  …  1.0  1.0  1.0  1.0  1.0
+ 0.687333  1.0  1.0  1.0  1.0     1.0  1.0  1.0  1.0  1.0
+ ⋮                             ⋱       ⋮
+ 0.952408  1.0  1.0  1.0  1.0     1.0  1.0  1.0  1.0  1.0
+ 0.952626  1.0  1.0  1.0  1.0     1.0  1.0  1.0  1.0  1.0
 
 julia> wCo[:,:,1,2]
-2053×18 Matrix{Float64}:
- 0.952459  0.57212   0.844804  …  0.0702893  0.325306
- 0.951494  0.57209   0.844596     0.0657064  0.320263
+2053×29 Matrix{Float64}:
+ 0.995092  0.984109  0.952974  …  0.128329  0.0335945
+ 0.995082  0.984082  0.952852     0.128308  0.0336075
  ⋮                             ⋱
- 0.922912  0.992654  0.448617     0.297905   0.294779
- 0.925507  0.992768  0.452893     0.299066   0.294994
+ 0.652498  0.994972  0.992932     0.19849   0.0902301
+ 0.653111  0.994978  0.992951     0.198585  0.0902469
 
 ```
 """

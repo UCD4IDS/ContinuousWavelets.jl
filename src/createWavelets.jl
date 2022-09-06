@@ -114,14 +114,14 @@ will get the scale of the averaging function to be
 
 """
 function father(c::CWT, ω, averagingType::Father, sWidth)
-    s = 2^(getMinScaling(c) + c.averagingLength)
-    s0, ω_shift = locationShift(c, s, ω, sWidth)
+    s = 2^(getMinScaling(c) + c.averagingLength - 1)
+    s0, ω_shift = locationShift(c, s, ω, 1)
     averaging = adjust(c) .* mother(c, s0, 1, ω_shift)
 end
 
 function father(c::CWT{W,T,<:Dog,N}, ω, averagingType::Father, sWidth) where {W,T,N}
-    s = 2^(getMinScaling(c) + c.averagingLength)
-    s0, ω_shift = locationShift(c, s, ω, sWidth)
+    s = 2^(getMinScaling(c) + c.averagingLength - 1)
+    s0, ω_shift = locationShift(c, s, ω, 1)
     averaging = -adjust(c) .* mother(c, s0, 1, ω_shift)
 end
 
@@ -137,7 +137,7 @@ end
 # dirac version (that is, just a window around zero)
 function father(c::CWT{<:WaveletBoundary,T}, ω,
                        averagingType::Dirac, sWidth) where {T}
-    s = 2^(getMinScaling(c) + c.averagingLength) * sWidth
+    s = 2^(getMinScaling(c) + c.averagingLength)
     averaging = zeros(T, size(ω))
     upperBound = getUpperBound(c, s)
     averaging[abs.(ω) .<= upperBound] .= 1
@@ -145,7 +145,7 @@ function father(c::CWT{<:WaveletBoundary,T}, ω,
 end
 
 function father(c::CWT{W, T, <:Morse}, ω, averagingType::ContinuousWavelets.Father, sWidth) where {W,T}
-    s = 2^(getMinScaling(c) + c.averagingLength)
+    s = 2^(getMinScaling(c) + c.averagingLength - 1)
     s0, ω_shift = locationShift(c, s, ω, sWidth)
     averaging = adjust(c) .* mother(c, s0, sWidth, ω_shift)
     return averaging
