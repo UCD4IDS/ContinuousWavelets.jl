@@ -89,7 +89,7 @@ round.(dropped,sigdigits=12)
 
 # output
 
-┌ Warning: the canonical dual frame is off by 3.8062806957832226e6, consider using one of the delta dual frames
+┌ Warning: the canonical dual frame is off by 3.81e6, consider using one of the delta dual frames
 └ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets/src/sanityChecks.jl:41
 2047-element Vector{Float64}:
  0.0069417253841

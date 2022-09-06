@@ -38,7 +38,7 @@ function testDualCoverage(canonicalDualFrame)
     dualCover = sum(canonicalDualFrame, dims = 2)
     err = norm(dualCover .- 1)
     if err > 50
-        @warn "the canonical dual frame is off by $(err), consider using one of the delta dual frames"
+        @warn "the canonical dual frame is off by $(round(err,sigdigits=3)), consider using one of the delta dual frames"
     end
 end
 
