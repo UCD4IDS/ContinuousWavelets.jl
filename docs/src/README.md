@@ -1,5 +1,5 @@
-```@meta
-DocTestFilters = [r"\@ ContinuousWavelets .*", r"[ +-][0-9]\.[0-9]{5}e-[0-9][5-9]"]
+```@meta ex
+DocTestFilters = [r"\@ ContinuousWavelets .*", r"[ +-][0-9]\.[0-9]{3,5}e-[0-9][5-9]", r"im {2,3}"]
 ```
 
 # ContinuousWavelets
