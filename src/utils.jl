@@ -447,9 +447,6 @@ Compute the cross spectrum of signals `X` and `Y`, which is defined as ``S(\\con
 Note that unlike `cwt`, `crossSpectrum` only works for collections `X` and `Y` of vectors of shape (signalLength)×(nSignals), and outputs a collection of cross spectrums that has shape (signalLength)×(nscales+1)×(nSignalsX)×(nSignalsY).
 
 # Examples
-```@meta
-DocTestFilters = [r"\@ ContinuousWavelets .*", r"[0-9]\.[0-9]{5}e-[0-9][5-9]"]
-```
 ```jldoctest
 julia> using ContinuousWavelets, Random
 
@@ -491,9 +488,6 @@ end
 Compute the wavelet coherence between `X` and `Y`. This is given by the power of the cross spectrum, normalized by smoothed powers of both `X` and `Y`. Explicitly, that is ``\frac{|S(C^*(X)C(Y))|^2}{S(|C(X)|^2)S(|C(Y)|^2)}``.
 
 # Examples
-```@meta
-DocTestFilters = r"\@ ContinuousWavelets .*"
-```
 ```jldoctest ex
 julia> using ContinuousWavelets, Random
 
