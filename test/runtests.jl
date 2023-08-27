@@ -7,9 +7,10 @@ ENV["COLUMNS"] = "60"
 @testset "ContinuousWavelets.jl" begin
     doctest(ContinuousWavelets, doctestfilters=[
         r"\@ ContinuousWavelets .*",
-        r"[ +-][0-9]\.[0-9]{3,5}e-1[5-9]",
-        r"[ +-][0-9]\.[0-9]{3,5}e-[2-9][0-9]",
+        r"[ +-]*[0-9]\.[0-9]{3,5}e-1[5-9]",
+        r"[ +-]*[0-9]\.[0-9]{3,5}e-[2-9][0-9]",
         r"im {2,7}",
+        r" *⋮"
     ])
     include("basicTypesAndNumber.jl")
     include("deltaSpikes.jl")
