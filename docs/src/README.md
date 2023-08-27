@@ -47,9 +47,6 @@ julia> f = testfunction(n, "Doppler");
 
 julia> c = wavelet(Morlet(π), β=2);
 
-julia> c
-CWT{Morlet mean 3.141592653589793, Father Wavelet, Q=8.0, β=2.0,aveLen=0.0, frame=1.0, norm=Inf, extraOctaves=0.0}
-
 julia> res = ContinuousWavelets.cwt(f, c)
 ┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
 │   lowAprxAnalyt = 0.061863
@@ -113,9 +110,6 @@ julia> using Wavelets
 julia> exs = cat(testfunction(n, "Doppler"), testfunction(n, "Blocks"), testfunction(n, "Bumps"), testfunction(n, "HeaviSine"), dims=2);
 
 julia> c = wavelet(cDb2, β=2, extraOctaves=-0);
-
-julia> c
-CWT{Continuous db2, Father Wavelet, Q=8.0, β=2.0,aveLen=0.0, frame=1.0, norm=Inf, extraOctaves=0.0}
 
 julia> res = circshift(ContinuousWavelets.cwt(exs, c), (0, 1, 0))
 ┌ Warning: the highest frequency wavelet has more than 1% its max at the end, so it may not be analytic. Think carefully
