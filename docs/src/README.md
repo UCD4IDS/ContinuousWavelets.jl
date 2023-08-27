@@ -1,7 +1,3 @@
-```@meta
-DocTestFilters = [r"\@ ContinuousWavelets .*", r"[ +-][0-9]\.[0-9]{5}e-[0-9][5-9]"]
-```
-
 # ContinuousWavelets
 
 [![Build Status](https://travis-ci.com/dsweber2/ContinuousWavelets.jl.svg?branch=master)](https://travis-ci.com/dsweber2/ContinuousWavelets.jl)
