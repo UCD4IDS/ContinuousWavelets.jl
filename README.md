@@ -36,7 +36,6 @@ julia> p1 = plot(t, f, legend=false, title="Doppler", xticks=false)
 Plot{Plots.PyPlotBackend() n=1}
 
 julia> c = wavelet(Morlet(π), β=2)
-
 CWT{Morlet mean 3.141592653589793, Father Wavelet, Q=8.0, β=2.0,aveLen=0.0, frame=1.0, norm=Inf, extraOctaves=0.0}
 
 julia> res = ContinuousWavelets.cwt(f, c)
@@ -91,7 +90,6 @@ It can also handle collections of examples at the same time, should you need to 
 julia> exs = cat(testfunction(n, "Doppler"), testfunction(n, "Blocks"), testfunction(n, "Bumps"), testfunction(n, "HeaviSine"), dims=2);
 
 julia> c = wavelet(cDb2, β=2, extraOctaves=-0)
-
 CWT{Continuous db2, Father Wavelet, Q=8.0, β=2.0,aveLen=0.0, frame=1.0, norm=Inf, extraOctaves=0.0}
 
 julia> res = circshift(ContinuousWavelets.cwt(exs, c), (0, 1, 0))
