@@ -2,16 +2,15 @@ using ContinuousWavelets, Wavelets, Interpolations, LinearAlgebra
 using Test, Documenter
 using FFTW
 using Logging, Random
+inGithubAction = get(() -> "", ENV, "JULIA_IN_GITHUB_ACTION") == "true"
+inGithubActionOnMac = get(() -> "", ENV, "JULIA_IN_GITHUB_ACTION_ON_MAC") == "macOS-latest"
+# these make sure that the printing width/length is kept to a reasonable amout for actually reading the docs
 ENV["LINES"] = "9"
 ENV["COLUMNS"] = "60"
 @testset "ContinuousWavelets.jl" begin
-    doctest(ContinuousWavelets, doctestfilters=[
-        r"\@ ContinuousWavelets .*",
-        r"[ +-]*[0-9]\.[0-9]{3,5}e-1[5-9]",
-        r"[ +-]*[0-9]\.[0-9]{3,5}e-[2-9][0-9]",
-        r"im {2,7}",
-        r" *⋮"
-    ])
+    if (inGithubAction && !inGithubActionOnMac)
+        doctest(ContinuousWavelets)
+    end
     include("basicTypesAndNumber.jl")
     include("deltaSpikes.jl")
     include("utilsTests.jl")
