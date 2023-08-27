@@ -37,10 +37,12 @@ Plot{Plots.PyPlotBackend() n=1}
 
 julia> c = wavelet(Morlet(π), β=2)
 
+CWT{Morlet mean 3.141592653589793, Father Wavelet, Q=8.0, β=2.0,aveLen=0.0, frame=1.0, norm=Inf, extraOctaves=0.0}
+
 julia> res = ContinuousWavelets.cwt(f, c)
 ┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
-│   lowAprxAnalyt = 0.06186323501016359
-└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:6
+│   lowAprxAnalyt = 0.061863
+└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:7
 2047×31 Matrix{ComplexF64}:
  -1.48637e-6+3.8241e-19im   …  0.000109978+9.67834e-5im
  -1.48602e-6+5.15534e-19im     -8.24922e-5+0.000130656im
@@ -90,6 +92,7 @@ julia> exs = cat(testfunction(n, "Doppler"), testfunction(n, "Blocks"), testfunc
 
 julia> c = wavelet(cDb2, β=2, extraOctaves=-0)
 
+CWT{Continuous db2, Father Wavelet, Q=8.0, β=2.0,aveLen=0.0, frame=1.0, norm=Inf, extraOctaves=0.0}
 
 julia> res = circshift(ContinuousWavelets.cwt(exs, c), (0, 1, 0))
 ┌ Warning: the highest frequency wavelet has more than 1% its max at the end, so it may not be analytic. Think carefully
