@@ -6,9 +6,9 @@ t = range(0, n / 2000, length = n); # 2kHz sampling rate
 f = testfunction(n, "Doppler");
 p1 = plot(t, f, legend = false, title = "Doppler", xticks = false, linewidth = 2)
 c = wavelet(Morlet(π), β = 2);
-res = ContinuousWavelets.cwt(f, c)
+res = cwt(f, c)
 # plotting
-freqs = getMeanFreq(ContinuousWavelets.computeWavelets(n, c)[1])
+freqs = getMeanFreq(computeWavelets(n, c)[1])
 freqs[1] = 0
 p2 = heatmap(
     t,
@@ -32,7 +32,7 @@ waveType = Morlet()
 Ψ1 = wavelet(waveType, s = 8, β = dRate, averagingLength = 2)
 # sketch of how the frequencies are chosen
 pyplot()
-locs = ContinuousWavelets.polySpacing(8, Ψ1);
+locs = polySpacing(8, Ψ1);
 #Figure 3.1
 scatter(
     1:length(locs),
@@ -51,7 +51,7 @@ scatter!(
     color = :black,
     label = :none,
 )
-firstW, lastW, stepS = ContinuousWavelets.genSamplePoints(8, Ψ1)
+firstW, lastW, stepS = genSamplePoints(8, Ψ1)
 b = (dRate / Ψ1.Q)^(1 ./ dRate) * (8 + Ψ1.averagingLength)^((dRate - 1) / dRate)
 t = range(1, stop = length(locs), step = 0.1)
 curve =
@@ -277,7 +277,7 @@ p1 = plot(
     layout = (1, 4),
 )
 c = wavelet(cDb2, β = 2, extraOctaves = -0);
-res = circshift(ContinuousWavelets.cwt(exs, c), (0, 1, 0))
+res = circshift(cwt(exs, c), (0, 1, 0))
 p2 = plot(
     heatmap(
         identity.(res[:, :, 1])',
@@ -312,15 +312,15 @@ p2 = plot(
 l = @layout [a{0.3h}; b{0.7h}]
 plot(p1, p2, layout = l)
 savefig("multiEx.svg")
-ContinuousWavelets.getNOctaves(n, wavelet(cCoif2))
+getNOctaves(n, wavelet(cCoif2))
 log2(n)
 n / 2
 c = wavelet(cCoif2, β = 1, Q = 1)
-wave, ω = ContinuousWavelets.computeWavelets(n, wavelet(cCoif4, β = 1, Q = 1); space = true)
+wave, ω = computeWavelets(n, wavelet(cCoif4, β = 1, Q = 1); space = true)
 i = 1;
 count(abs.(wave[:, i]) / norm(wave[:, i]) .> 1e-7);
 plot(wave[1000:1090, end])
-ContinuousWavelets.calcDepth(c, n)
+calcDepth(c, n)
 log2(n)
 log2(length(qmf(c.waveType)))
 log2(n)
@@ -391,12 +391,12 @@ plot(p1, p2, layout = l)
 f = testfunction(n, "Bumps");
 p1 = plot(f, legend = false, title = "Bumps", xlims = (0, 2000), linewidth = 2)
 c = wavelet(dog2, β = 2);
-res = ContinuousWavelets.cwt(f, c)
+res = cwt(f, c)
 # dropping the middle peaks
 res[620:1100, :] .= 0
 # and smoothing the remaining peaks
 res[:, 10:end] .= 0
-freqs = ContinuousWavelets.getMeanFreq(f, c)
+freqs = getMeanFreq(f, c)
 p2 = heatmap(
     1:n,
     freqs,
@@ -406,7 +406,7 @@ p2 = heatmap(
     colorbar = false,
     c = :viridis,
 )
-dropped = ContinuousWavelets.icwt(res, c, DualFrames())
+dropped = icwt(res, c, DualFrames())
 p1 = plot(f, legend = false, title = "Smoothing and dropping bumps", linewidth = 2)
 plot!(dropped, linewidth = 3)
 l = @layout [a{0.3h}; b{0.7h}]
@@ -418,7 +418,7 @@ f = testfunction(n, "Blocks") + 0.10randn(n)
 f = testfunction(n, "HeaviSine")
 wave = wavelet(morl)
 fCWT = cwt(f, wave)
-fRecon = ContinuousWavelets.icwt(fCWT, wave, DualFrames())
+fRecon = icwt(fCWT, wave, DualFrames())
 plot([real.(fRecon) f], labels = ["reconstructed" "original"])
 plot(fRecon)
 deNoiseCWT = copy(fCWT)
@@ -427,7 +427,7 @@ heatmap((abs.(fCWT) / norm(fCWT, Inf))' .< 0.01)
 heatmap(fCWT', c = :viridis)
 heatmap(deNoiseCWT', c = :viridis)
 heatmap(fCWT' - deNoiseCWT')
-fRecon = ContinuousWavelets.icwt(deNoiseCWT, wave, DualFrames())
+fRecon = icwt(deNoiseCWT, wave, DualFrames())
 plot([fRecon f], labels = ["reconstructed" "original"])
 plot(
     plot(f, title = "with noise"),
@@ -435,7 +435,7 @@ plot(
     layout = (2, 1),
     legend = false,
 )
-fRecon = ContinuousWavelets.icwt(fCWT, wave, DualFrames())
+fRecon = icwt(fCWT, wave, DualFrames())
 plot([real.(fRecon) f])
 
 

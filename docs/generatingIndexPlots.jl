@@ -6,8 +6,8 @@ t = range(0, n / 1000, length = n); # 1kHz sampling rate
 f = testfunction(n, "Doppler");
 p1 = plot(t, f, legend = false, title = "Doppler", xticks = false)
 c = wavelet(Morlet(π), β = 2);
-res = ContinuousWavelets.cwt(f, c)
-freqs = getMeanFreq(ContinuousWavelets.computeWavelets(n, c)[1])
+res = cwt(f, c)
+freqs = getMeanFreq(computeWavelets(n, c)[1])
 freqs[1] = 0
 p2 = heatmap(
     t,
@@ -26,12 +26,12 @@ savefig("doppler.svg")
 
 f = testfunction(n, "Bumps");
 c = wavelet(dog2, β = 2);
-res = ContinuousWavelets.cwt(f, c)
+res = cwt(f, c)
 # dropping the middle peaks
 res[620:1100, :] .= 0
 # and smoothing the remaining peaks
 res[:, 10:end] .= 0
-freqs = ContinuousWavelets.getMeanFreq(f, c)
+freqs = getMeanFreq(f, c)
 p2 = heatmap(
     1:n,
     freqs,
@@ -41,7 +41,7 @@ p2 = heatmap(
     colorbar = false,
     c = :viridis,
 )
-dropped = ContinuousWavelets.icwt(res, c, DualFrames())
+dropped = icwt(res, c, DualFrames())
 p1 = plot(f, legend = false, title = "Smoothing and dropping bumps", linewidth = 2)
 plot!(dropped, linewidth = 3)
 l = @layout [a{0.3h}; b{0.7h}]
@@ -58,7 +58,7 @@ exs = cat(
     dims = 2,
 );
 c = wavelet(cDb2, β = 2, extraOctaves = -0)
-res = circshift(ContinuousWavelets.cwt(exs, c), (0, 1, 0))
+res = circshift(cwt(exs, c), (0, 1, 0))
 
 p1 = plot(
     plot(

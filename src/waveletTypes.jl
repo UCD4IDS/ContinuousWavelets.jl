@@ -22,7 +22,7 @@ const morl = Morlet()
 Base.show(io::IO, x::Morlet) = print(io, "Morlet mean $(x.σ)")
 
 
-struct Morse <: ContinuousWavelets.ContWaveClass
+struct Morse <: ContWaveClass
     ga::Float64
     be::Float64
     cf::Float64

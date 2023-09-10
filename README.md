@@ -38,7 +38,7 @@ Plot{Plots.PyPlotBackend() n=1}
 julia> c = wavelet(Morlet(π), β=2)
 CWT{Morlet mean 3.141592653589793, Father Wavelet, Q=8.0, β=2.0,aveLen=0.0, frame=1.0, norm=Inf, extraOctaves=0.0}
 
-julia> res = ContinuousWavelets.cwt(f, c)
+julia> res = cwt(f, c)
 ┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
 │   lowAprxAnalyt = 0.061863
 └ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:7
@@ -53,7 +53,7 @@ julia> res = ContinuousWavelets.cwt(f, c)
 And now we make a scalogram to actually visualize these entries:
 
 ```julia
-freqs = getMeanFreq(ContinuousWavelets.computeWavelets(n, c)[1])
+freqs = getMeanFreq(computeWavelets(n, c)[1])
 freqs[1] = 0
 p2 = heatmap(t, freqs, log.(abs.(res).^2)', xlabel= "time (s)", ylabel="frequency (Hz)", colorbar=false, c=cgrad(:viridis, scale=:log10))
 l = @layout [a{.3h};b{.7h}]
@@ -68,14 +68,14 @@ As the cwt frame is redundant, there are many choices of dual/inverse frames. Th
 f = testfunction(n, "Bumps");
 p1 = plot(f, legend = false, title = "Bumps", xlims = (0, 2000), linewidth = 2)
 c = wavelet(dog2, β = 2)
-res = ContinuousWavelets.cwt(f, c);
+res = cwt(f, c);
 # dropping the middle peaks
 res[620:1100, :] .= 0
 # and smoothing the remaining peaks
 res[:, 10:end] .= 0
-freqs = ContinuousWavelets.getMeanFreq(length(f), c)
+freqs = getMeanFreq(length(f), c)
 p2 = heatmap(1:n, freqs, abs.(res)', xlabel = "time (ms)", ylabel = "Frequency (Hz)", colorbar = false, c = :viridis)
-dropped = ContinuousWavelets.icwt(res, c, DualFrames());
+dropped = icwt(res, c, DualFrames());
 p1 = plot(f, legend=false, title="Smoothing and dropping bumps", linewidth=2)
 plot!(dropped, linewidth=3)
 l = @layout [a{0.3h}; b{0.7h}]
@@ -92,7 +92,7 @@ julia> exs = cat(testfunction(n, "Doppler"), testfunction(n, "Blocks"), testfunc
 julia> c = wavelet(cDb2, β=2, extraOctaves=-0)
 CWT{Continuous db2, Father Wavelet, Q=8.0, β=2.0,aveLen=0.0, frame=1.0, norm=Inf, extraOctaves=0.0}
 
-julia> res = circshift(ContinuousWavelets.cwt(exs, c), (0, 1, 0))
+julia> res = circshift(cwt(exs, c), (0, 1, 0))
 ┌ Warning: the highest frequency wavelet has more than 1% its max at the end, so it may not be analytic. Think carefully
 │   highAprxAnalyt = 0.2677814440444114
 └ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:10
