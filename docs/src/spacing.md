@@ -15,8 +15,8 @@ Q = 8
 nOct = 8
 Ψ1 = wavelet(waveType, s=Q, β=dRate, averagingLength=2)
 # sketch of how the frequencies are chosen
-locs = polySpacing(nOct, Ψ1)
-a = getMinScaling(Ψ1) + Ψ1.averagingLength
+locs = ContinuousWavelets.polySpacing(nOct, Ψ1)
+a = ContinuousWavelets.getMinScaling(Ψ1) + Ψ1.averagingLength
 β = Ψ1.β
 lastWavelet = Ψ1.Q * (nOct - a)
 b = 1 / Q * lastWavelet^((β - 1) / β)
