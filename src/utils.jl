@@ -462,7 +462,7 @@ julia> rng = MersenneTwister(23425); Y = randn(rng, 2053, 4);
 
 julia> X = Y .+ 3;
 
-julia> c = wavelet(morl, β = 2)
+julia> c = wavelet(morl, β = 2);
 
 julia> Xspec = crossSpectrum(X, Y, c); size(Xspec)
 (2053, 29, 4, 4)
@@ -503,7 +503,7 @@ julia> rng = MersenneTwister(23425); Y = randn(rng, 2053, 4);
 
 julia> X = Y .+ 3;
 
-julia> c = wavelet(morl,β=2)
+julia> c = wavelet(morl,β=2);
 
 julia> wCo = waveletCoherence(X, Y, c);
 
