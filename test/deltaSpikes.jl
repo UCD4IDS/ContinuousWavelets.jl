@@ -2,7 +2,11 @@ n = 2039;
 n1 = n;
 # wav = wavs[2]; k = ks[1]
 @testset "Delta Spikes" begin
-    wavs = (ContinuousWavelets.wavelet(cDb2), ContinuousWavelets.wavelet(cCoif4), ContinuousWavelets.wavelet(cBeyl))
+    wavs = (
+        ContinuousWavelets.wavelet(cDb2),
+        ContinuousWavelets.wavelet(cCoif4),
+        ContinuousWavelets.wavelet(cBeyl),
+    )
     ks = (1093, 408)
     @testset "at $k, with type $(wav.waveType)" for k in ks, wav in wavs
         x = zeros(n)
@@ -11,7 +15,7 @@ n1 = n;
         with_logger(ConsoleLogger(stderr, Logging.Error)) do
             res = ContinuousWavelets.cwt(x, wav)
         end
-        peaks = argmax(abs.(res), dims=1)
+        peaks = argmax(abs.(res), dims = 1)
         @test k - 2 <= peaks[end][1] <= k + 2 # give slight range to handle rounding issues
         Ŵ, ω = (3, 1)
         with_logger(ConsoleLogger(stderr, Logging.Error)) do

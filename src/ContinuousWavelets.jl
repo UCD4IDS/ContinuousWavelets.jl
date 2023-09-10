@@ -14,8 +14,16 @@ export ContWave, CWT, cwt, icwt
 export crossSpectrum, waveletCoherence
 
 # Boundaries
-export WaveletBoundary, PerBoundary, ZPBoundary, NullBoundary, SymBoundary,
-    Periodic, DEFAULT_BOUNDARY, padded, NaivePer, SymBound
+export WaveletBoundary,
+    PerBoundary,
+    ZPBoundary,
+    NullBoundary,
+    SymBoundary,
+    Periodic,
+    DEFAULT_BOUNDARY,
+    padded,
+    NaivePer,
+    SymBound
 # wavelet types (note there are also export statements in the for loops of waveletTypes.jl)
 export Morlet, Paul, Dog, ContOrtho, Morse, name, vanishingmoments, ContOrtho
 export cHaar, cBeyl, cVaid, morl, morse
@@ -26,7 +34,15 @@ export DualFrames, NaiveDelta, PenroseDelta, InverseType
 # CWT constructors
 export wavelet, waveletType
 # general utilities
-export qmf, computeWavelets, getNWavelets, mother, father, getMeanFreq, isAnalytic, getDualCoverage, caveats
+export qmf,
+    computeWavelets,
+    getNWavelets,
+    mother,
+    father,
+    getMeanFreq,
+    isAnalytic,
+    getDualCoverage,
+    caveats
 
 @doc """
     ContWave{Boundary,T}

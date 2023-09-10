@@ -21,3 +21,6 @@ end
 #       test averaging types
 #            various extra dimensions
 #            inverse is actually functional
+using LanguageServer
+using JuliaFormatter
+format(".")
