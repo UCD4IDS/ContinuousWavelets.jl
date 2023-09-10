@@ -25,11 +25,11 @@ function testFourierDomainProperties(daughters, isAve)
     peakLocs = [x[1] for x in peakArgs] # the location of the peaks, irrespective of which wavelet has that peak location
     first = minimum(peakLocs) # the first peak
     last = maximum(peakLocs)
-    minimalRegionComparedToLastPeak =
-        maximum(peakFreqs) / minimum(abs.(netWeight[first:last]))
+    minimalRegionComparedToLastPeak = maximum(peakFreqs) /
+                                      minimum(abs.(netWeight[first:last]))
     if minimalRegionComparedToLastPeak > 2
-        minimalRegionComparedToLastPeak =
-            round(minimalRegionComparedToLastPeak, sigdigits = 5)
+        minimalRegionComparedToLastPeak = round(minimalRegionComparedToLastPeak,
+            sigdigits = 5)
         @warn "there are wavelets whose peaks are far enough apart that the trough between them is less than half the height of the highest frequency wavelet" minimalRegionComparedToLastPeak
     end
 end

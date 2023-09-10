@@ -43,8 +43,9 @@ name(::Morse) = "morse";
 vanishingmoments(::Morse) = 0;
 isAnalytic(::Morse) = true;
 const morse = Morse()
-Base.show(io::IO, x::Morse) =
+function Base.show(io::IO, x::Morse)
     print(io, "Morse gamma = $(x.ga), Morse beta = $(x.be), center frequency = $(x.cf)")
+end
 
 # TODO: include a sombrero wavelet, which is dog2.
 
@@ -54,10 +55,8 @@ Base.show(io::IO, x::Morse) =
 # abstract type Paul <: ContWaveClass end
 
 # continuous parameterized
-for (TYPE, NAMEBASE, MOMENTS, RANGE, ISAN) in (
-    (:Paul, "paul", -1, 1:20, true), # moments? TODO: is this a good range of parameters?
-    (:Dog, "dog", -1, 0:6, false),
-)
+for (TYPE, NAMEBASE, MOMENTS, RANGE, ISAN) in ((:Paul, "paul", -1, 1:20, true), # moments? TODO: is this a good range of parameters?
+    (:Dog, "dog", -1, 0:6, false))
     @eval begin
         struct $TYPE{N} <: ContWaveClass end# $TYPE end
         class(::$TYPE) = $(string(TYPE))
@@ -115,12 +114,10 @@ const cHaar = ContOrtho(WT.haar)
 const cBeyl = ContOrtho(WT.beyl)
 const cVaid = ContOrtho(WT.vaid)
 # parametric orthogonal
-for (TYPE, NAMEBASE, RANGE) in (
-    (:Daubechies, "Db", 1:10),
+for (TYPE, NAMEBASE, RANGE) in ((:Daubechies, "Db", 1:10),
     (:Coiflet, "Coif", 2:2:8),
     (:Symlet, "Sym", 4:10),
-    (:Battle, "Batt", 2:2:6),
-)
+    (:Battle, "Batt", 2:2:6))
     for NUM in RANGE
         CONSTNAME = Symbol(string("c", NAMEBASE, NUM))
         @eval begin

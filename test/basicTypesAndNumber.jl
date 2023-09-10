@@ -33,8 +33,7 @@
             @test eltype(y32) == Float32
             @test eltype(yc) == ComplexF64
         end
-        nOctaves, totalWavelets, sRanges, sWidths =
-            getNWavelets(xSize, wfc)
+        nOctaves, totalWavelets, sRanges, sWidths = getNWavelets(xSize, wfc)
         @test totalWavelets == size(yc, 2)
     end
 end

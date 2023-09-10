@@ -82,11 +82,9 @@ end
 #             yes  | both | fft
 #              no  | rfft | fft
 #  Analytic on Real input
-function prepSignalAndPlans(
-    x::AbstractArray{T},
+function prepSignalAndPlans(x::AbstractArray{T},
     cWav::CWT{W,S,WaTy,N,true},
-    fftPlans,
-) where {T<:Real,W,S,WaTy,N}
+    fftPlans) where {T<:Real,W,S,WaTy,N}
     # analytic wavelets that are being applied on real inputs
     if fftPlans isa Tuple{<:AbstractFFTs.Plan{<:Real},<:AbstractFFTs.Plan{<:Complex}}
         # they handed us the right kind of thing, so no need to make new ones
@@ -101,11 +99,9 @@ function prepSignalAndPlans(
 end
 
 #  Non-analytic on Real input
-function prepSignalAndPlans(
-    x::AbstractArray{T},
+function prepSignalAndPlans(x::AbstractArray{T},
     cWav::CWT{W,S,WaTy,N,false},
-    fftPlans,
-) where {T<:Real,W,S,WaTy,N}
+    fftPlans) where {T<:Real,W,S,WaTy,N}
     # real wavelets that are being applied on real inputs
     if fftPlans isa AbstractFFTs.Plan{<:Real}
         # they handed us the right kind of thing, so no need to make new ones
@@ -139,8 +135,9 @@ function analyticTransformReal!(wave, daughters, x̂, fftPlan, ::Union{Father,Di
     # the averaging function isn't analytic, so we need to do both positive and
     # negative frequencies
     @views tmpWave = x̂ .* daughters[:, 1]
-    @views wave[(n1+1):end, outer..., 1] =
-        reverse(conj.(tmpWave[2:end-isSourceEven, outer...]), dims = 1)
+    @views wave[(n1+1):end, outer..., 1] = reverse(conj.(tmpWave[2:end-isSourceEven,
+            outer...]),
+        dims = 1)
     @views wave[1:n1, outer..., 1] = tmpWave
     @views wave[:, outer..., 1] = fftPlan \ (wave[:, outer..., 1])  # averaging
     for j = 2:size(daughters, 2)
@@ -157,8 +154,8 @@ function analyticTransformComplex!(wave, daughters, x̂, fftPlan, ::Union{Father
     # the averaging function isn't analytic, so we need to do both positive and
     # negative frequencies
     @views positiveFreqs = x̂[1:n1, outer...] .* daughters[:, 1]
-    @views negativeFreqs =
-        x̂[(n1-isSourceEven+1):end, outer...] .* reverse(conj.(daughters[2:end, 1]))
+    @views negativeFreqs = x̂[(n1-isSourceEven+1):end, outer...] .*
+                           reverse(conj.(daughters[2:end, 1]))
     @views wave[(n1-isSourceEven+1):end, outer..., 1] = negativeFreqs
     @views wave[1:n1, outer..., 1] = positiveFreqs
     @views wave[:, outer..., 1] = fftPlan \ (wave[:, outer..., 1])  # averaging
@@ -189,13 +186,11 @@ function analyticTransformReal!(wave, daughters, x̂, fftPlan, ::NoAve)
 end
 
 
-function otherwiseTransform!(
-    wave::AbstractArray{<:Real},
+function otherwiseTransform!(wave::AbstractArray{<:Real},
     daughters,
     x̂,
     fromPlan,
-    averagingType,
-)
+    averagingType)
     # real wavelets on real data: that just makes sense
     outer = axes(x̂)[2:end]
     n1 = size(x̂, 1)
@@ -206,21 +201,20 @@ function otherwiseTransform!(
 end
 
 # if it isn't analytic, the output is complex only if the input is complex
-function otherwiseTransform!(
-    wave::AbstractArray{<:Complex},
+function otherwiseTransform!(wave::AbstractArray{<:Complex},
     daughters,
     x̂,
     fromPlan,
-    averagingType,
-)
+    averagingType)
     # applying a real transform to complex data is maybe a bit odd, but you do you
     outer = axes(x̂)[2:end]
     n1 = size(daughters, 1)
     isSourceEven = mod(size(fromPlan, 1) + 1, 2)
     for j = 1:size(daughters, 2)
         @views wave[1:n1, outer..., j] = @views x̂[1:n1, outer...] .* daughters[:, j]
-        @views wave[n1-isSourceEven+1:end, outer..., j] =
-            x̂[n1-isSourceEven+1:end, outer...] .* reverse(conj.(daughters[2:end, j]))
+        @views wave[n1-isSourceEven+1:end, outer..., j] = x̂[n1-isSourceEven+1:end,
+            outer...] .* reverse(conj.(daughters[2:end,
+            j]))
         @views wave[:, outer..., j] = fromPlan \ (wave[:, outer..., j])  # wavelet transform
     end
 end
@@ -239,17 +233,16 @@ function reflect(Y, bt)
 end
 
 
-function cwt(
-    Y::AbstractArray{T},
+function cwt(Y::AbstractArray{T},
     c::CWT{W};
-    varArgs...,
-) where {T<:Number,W<:WaveletBoundary}
+    varArgs...) where {T<:Number,W<:WaveletBoundary}
     daughters, ω = computeWavelets(size(Y, 1), c; varArgs...)
     return cwt(Y, c, daughters)
 end
 
-cwt(Y::AbstractArray{T}, w::ContWaveClass; varargs...) where {T<:Number} =
+function cwt(Y::AbstractArray{T}, w::ContWaveClass; varargs...) where {T<:Number}
     cwt(Y, CWT(w); varargs...)
+end
 cwt(Y::AbstractArray{T}) where {T<:Real} = cwt(Y, Morlet())
 
 abstract type InverseType end
@@ -299,8 +292,9 @@ function icwt(res::AbstractArray, cWav::CWT, ::DualFrames)
     return xRecon
 end
 
-icwt(Y::AbstractArray, w::ContWaveClass; varargs...) =
+function icwt(Y::AbstractArray, w::ContWaveClass; varargs...)
     icwt(Y, CWT(w), PenroseDelta(); varargs...)
+end
 icwt(Y::AbstractArray; varargs...) = icwt(Y, Morlet(), PenroseDelta(); varargs...)
 
 # CWT (continuous wavelet transform directly) TODO: direct if sufficiently small

@@ -53,10 +53,12 @@ Different wavelet familes need to end at a different number of octaves because t
 getNOctaves(n1, c::CWT{W,T,M,N}) where {W,T,N,M} = log2(n1 >> 1 + 1) + c.extraOctaves
 # choose the number of octaves so the last mean, which is at s*σ[1]
 # is 3 standard devations away from the end
-getNOctaves(n1, c::CWT{W,T,Morlet,N}) where {W,T,N} =
+function getNOctaves(n1, c::CWT{W,T,Morlet,N}) where {W,T,N}
     log2((n1 >> 1 + 1) / (c.σ[1] + 3)) + c.extraOctaves
-getNOctaves(n1, c::CWT{W,T,<:Paul,N}) where {W,T,N} =
+end
+function getNOctaves(n1, c::CWT{W,T,<:Paul,N}) where {W,T,N}
     log2((n1 >> 1 + 1) / (2c.α + 5)) + c.extraOctaves
+end
 # choose the number of octaves so the last mean is 5 standard deviations from the end
 function getNOctaves(n1, c::CWT{W,T,<:Dog,N}) where {W,T,N}
     μ = getMean(c)
@@ -64,10 +66,12 @@ function getNOctaves(n1, c::CWT{W,T,<:Dog,N}) where {W,T,N}
     log2(n1 >> 1 / (μ + 5σ)) + c.extraOctaves
 end
 # choose the number of octaves so the smallest support is twice the qmf
-getNOctaves(n1, c::CWT{W,T,<:ContOrtho,N}) where {W,T,N} =
+function getNOctaves(n1, c::CWT{W,T,<:ContOrtho,N}) where {W,T,N}
     log2(n1) - 2 - log2(length(qmf(c.waveType))) + c.extraOctaves
-getNOctaves(n1, c::CWT{W,T,Morse,N}) where {W,T,N} =
+end
+function getNOctaves(n1, c::CWT{W,T,Morse,N}) where {W,T,N}
     log2((n1 >> 1 + 1) / (morsefreq(c) + 1)) + c.extraOctaves
+end
 # getNOctaves(n1,c::CWT{W,T, Morse, N}) where {W, T, N} = 4 + c.extraOctaves
 
 """
@@ -325,8 +329,9 @@ end
 #     return β
 # end
 computeLastFreq(ŵ, wav) = length(ŵ) - 3 # we have constructed the wavelets so the last frequency is <1%, so trying to get it to 1 will fail
-computeLastFreq(ŵ, wav::CWT{W,T,<:Morlet}) where {W,T} =
-    findlast(abs.(ŵ) .> 1 / 4 * maximum(abs.(ŵ))) # the gaussian decay makes this way too large by the end
+function computeLastFreq(ŵ, wav::CWT{W,T,<:Morlet}) where {W,T}
+    findlast(abs.(ŵ) .> 1 / 4 * maximum(abs.(ŵ)))
+end # the gaussian decay makes this way too large by the end
 
 """
     computeNaiveDualWeights(Ŵ, wav, n1)
@@ -418,8 +423,9 @@ function caveats(n1, c::CWT; coiTolerance = exp(-2), fsample = 2000)
     return sRange, freqs, coi
 end
 
-caveats(Y::AbstractArray{T}, w::ContWaveClass) where {T<:Number} =
+function caveats(Y::AbstractArray{T}, w::ContWaveClass) where {T<:Number}
     caveats(size(Y, 1), CWT(w), J1 = J1)
+end
 
 """
     directCoiComputation(n1, c::CWT; coiTolerance = exp(-2)) -> coi
@@ -431,10 +437,8 @@ that indicates when the autocorrelation of the wavlet is greater than
 """
 function directCoiComputation(n1, c::CWT; coiTolerance = exp(-2))
     ψ, ω = ContinuousWavelets.computeWavelets(n1, c, space = true)
-    autoCorr = cat(
-        [sum(ψ .* conj.(circshift(ψ, (ii, 0))), dims = 1) for ii = 1:size(ψ, 1)]...,
-        dims = 1,
-    ) # auto correlation in time domain
+    autoCorr = cat([sum(ψ .* conj.(circshift(ψ, (ii, 0))), dims = 1) for ii = 1:size(ψ, 1)]...,
+        dims = 1) # auto correlation in time domain
     normedAutoCorr = autoCorr ./ maximum(abs.(autoCorr), dims = 1) # normalize by the max norm
     return abs.(normedAutoCorr) .>= coiTolerance # the cone is where the autocorrelation is larger than the tolerance
 end
@@ -540,16 +544,14 @@ function sharedCrossSpectrum(X, Y, c)
     # ensure that the wavelet transform uses some sort of averaging
     isAve = !(typeof(c.averagingType) <: NoAve)
     if !isAve
-        cAve = CWT(
-            c.waveType,
+        cAve = CWT(c.waveType,
             c.Q,
             ContinuousWavelets.boundaryType(c)(),
             ContinuousWavelets.Father(),
             c.averagingLength,
             c.frameBound,
             c.p,
-            c.β,
-        )
+            c.β)
     else
         cAve = c
     end

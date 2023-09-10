@@ -7,12 +7,10 @@ Given a CWT object, return a rescaled version of the mother wavelet, in the
 fourier domain. ω is the frequency, which is fftshift-ed. s is the scale
 variable.
 """
-function mother(
-    this::CWT{W,T,Morlet,N},
+function mother(this::CWT{W,T,Morlet,N},
     s::Real,
     sWidth::Real,
-    ω::AbstractArray{<:Real,1},
-) where {W,T,N}
+    ω::AbstractArray{<:Real,1}) where {W,T,N}
     constant = this.σ[3] * (π)^(1 / 4)
     gauss = exp.(-(this.σ[1] .- ω / s) .^ 2 / (sWidth^2))
     shift = this.σ[2] * exp.(-1 / 2 * (ω / s) .^ 2)
@@ -20,12 +18,10 @@ function mother(
     return normalize(daughter, s, this.p)
 end
 
-function mother(
-    this::CWT{W,T,<:Paul,N},
+function mother(this::CWT{W,T,<:Paul,N},
     s::Real,
     sWidth::Real,
-    ω::AbstractArray{<:Real,1},
-) where {W,T,N}
+    ω::AbstractArray{<:Real,1}) where {W,T,N}
     daughter = zeros(length(ω))
     constant = (2^this.α) / sqrt((this.α) * gamma(2 * (this.α)))
     polynomial = (ω[ω.>=0] / s) .^ (this.α)
@@ -34,12 +30,10 @@ function mother(
     return normalize(daughter, s, this.p)
 end
 
-function mother(
-    this::CWT{W,T,<:Dog,N},
+function mother(this::CWT{W,T,<:Dog,N},
     s::Real,
     sWidth::Real,
-    ω::AbstractArray{<:Real,1},
-) where {W,T,N}
+    ω::AbstractArray{<:Real,1}) where {W,T,N}
     constant = -(-im)^(this.α) / sqrt(gamma((this.α) + 1 / 2))
     polynomial = (ω / s) .^ (this.α)
     gauss = exp.(-(ω / s) .^ 2 / 2)
@@ -47,12 +41,10 @@ function mother(
     return normalize(daughter, s, this.p)
 end
 
-function mother(
-    this::CWT{W,T,Morse,N},
+function mother(this::CWT{W,T,Morse,N},
     s::Real,
     sWidth::Real,
-    ω::AbstractArray{<:Real,1},
-) where {W,T,N}
+    ω::AbstractArray{<:Real,1}) where {W,T,N}
 
     ga = this.waveType.ga
     be = this.waveType.be
@@ -88,14 +80,12 @@ function mother(
     return ContinuousWavelets.normalize(daughter, s, p)
 end
 
-function mother(
-    this::CWT{W,T,<:ContOrtho,N},
+function mother(this::CWT{W,T,<:ContOrtho,N},
     s::Real,
     itpψ,
     ω::AbstractArray{<:Real,1},
     n,
-    n1,
-) where {W,T,N}
+    n1) where {W,T,N}
     daughter = itpψ(range(1, stop = length(itpψ), step = length(itpψ) / n1 * s))
     daughter = padTo(daughter, n)
     daughter = circshift(daughter, -round(Int, n1 / s / 2))
@@ -147,15 +137,13 @@ function father(c::CWT{W,T,<:Dog,N}, ω, averagingType::Father, sWidth) where {W
     averaging = -adjust(c) .* mother(c, s0, 1, ω_shift)
 end
 
-function father(
-    c::CWT{B,T,W},
+function father(c::CWT{B,T,W},
     ω,
     averagingType::Father,
     fullVersion,
     s,
     N,
-    n1,
-) where {W<:ContOrtho,B,T}
+    n1) where {W<:ContOrtho,B,T}
     itp = genInterp(fullVersion)
 
     φ = itp(range(1, stop = length(fullVersion), step = length(fullVersion) / n1 * s))
@@ -171,12 +159,10 @@ function father(c::CWT{<:WaveletBoundary,T}, ω, averagingType::Dirac, sWidth) w
     return averaging
 end
 
-function father(
-    c::CWT{W,T,<:Morse},
+function father(c::CWT{W,T,<:Morse},
     ω,
     averagingType::ContinuousWavelets.Father,
-    sWidth,
-) where {W,T}
+    sWidth) where {W,T}
     s = 2^(getMinScaling(c) + c.averagingLength - 1)
     s0, ω_shift = locationShift(c, s, ω, sWidth)
     averaging = adjust(c) .* mother(c, s0, sWidth, ω_shift)
@@ -190,12 +176,10 @@ end
         where {S<:Real, W<:WaveletBoundary, V} -> daughters, ω
 Precomputes the wavelets used by transform. For details, see cwt.
 """
-function computeWavelets(
-    n1::Integer,
+function computeWavelets(n1::Integer,
     c::CWT{B,CT,W};
     T = Float64,
-    space = false,
-) where {B<:WaveletBoundary,W,CT}
+    space = false) where {B<:WaveletBoundary,W,CT}
     nOctaves, totalWavelets, sRange, sWidth = getNWavelets(n1, c)
     # padding determines the actual number of elements
     n, nSpace = setn(n1, c)
@@ -236,12 +220,10 @@ function computeWavelets(
     end
 end
 
-function computeWavelets(
-    n1::Integer,
+function computeWavelets(n1::Integer,
     c::CWT{B,CT,W};
     T = Float64,
-    space = false,
-) where {B<:WaveletBoundary,W<:ContOrtho,CT}
+    space = false) where {B<:WaveletBoundary,W<:ContOrtho,CT}
 
     # padding determines the actual number of elements
     n, nSpace = setn(n1, c)
@@ -301,11 +283,9 @@ function analyticOrNot(c::CWT{W,T,<:Union{Dog,ContOrtho},N}, n, totalWavelets) w
     return daughters
 end
 
-function analyticOrNot(
-    c::CWT{W,T,<:Union{Morlet,Paul,Morse},N},
+function analyticOrNot(c::CWT{W,T,<:Union{Morlet,Paul,Morse},N},
     n,
-    totalWavelets,
-) where {W,T,N}
+    totalWavelets) where {W,T,N}
     daughters = zeros(T, n, totalWavelets)
     return daughters
 end
@@ -320,19 +300,15 @@ end
 function computeWavelets(Y::Tuple, c::CWT{W}; T = Float64) where {W<:WaveletBoundary}
     return computeWavelets(Y[1], c; T = T)
 end
-function computeWavelets(
-    Y::AbstractArray{<:Integer},
+function computeWavelets(Y::AbstractArray{<:Integer},
     c::CWT{W};
-    T = Float64,
-) where {W<:WaveletBoundary}
+    T = Float64) where {W<:WaveletBoundary}
     return computeWavelets(Y[1], c, T = T)
 end
 
 # also ok to just hand the whole thing being transformed
-function computeWavelets(
-    Y::AbstractArray{<:Number},
+function computeWavelets(Y::AbstractArray{<:Number},
     c::CWT{W};
-    T = Float64,
-) where {W<:WaveletBoundary}
+    T = Float64) where {W<:WaveletBoundary}
     return computeWavelets(size(Y)[1], c, T = T)
 end

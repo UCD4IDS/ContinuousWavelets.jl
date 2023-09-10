@@ -2,11 +2,7 @@ n = 2039;
 n1 = n;
 # wav = wavs[2]; k = ks[1]
 @testset "Delta Spikes" begin
-    wavs = (
-        wavelet(cDb2),
-        wavelet(cCoif4),
-        wavelet(cBeyl),
-    )
+    wavs = (wavelet(cDb2), wavelet(cCoif4), wavelet(cBeyl))
     ks = (1093, 408)
     @testset "at $k, with type $(wav.waveType)" for k in ks, wav in wavs
         x = zeros(n)

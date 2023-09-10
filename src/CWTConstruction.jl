@@ -58,18 +58,16 @@ end
     CWT(wave::ContWaveClass, Q=8, boundary::WaveletBoundary=SymBoundary(),
     averagingType::Average = Father(), averagingLength::Int = 4, frameBound=1, p::N=Inf, β=4)
 """
-function CWT(
-    wave::WC,
-    Q=8,
-    boundary::B=DEFAULT_BOUNDARY,
-    averagingType::A=Father(),
-    averagingLength::Real=0,
-    frameBound=1,
-    p::N=Inf,
-    β=4;
-    extraOctaves=0,
-    kwargs...
-) where {WC<:ContWaveClass,A<:Average,B<:WaveletBoundary,N<:Real}
+function CWT(wave::WC,
+    Q = 8,
+    boundary::B = DEFAULT_BOUNDARY,
+    averagingType::A = Father(),
+    averagingLength::Real = 0,
+    frameBound = 1,
+    p::N = Inf,
+    β = 4;
+    extraOctaves = 0,
+    kwargs...) where {WC<:ContWaveClass,A<:Average,B<:WaveletBoundary,N<:Real}
     Q, β, p = processKeywordArgs(Q, β, p; kwargs...) # some names are redundant
     @assert β > 0
     @assert p >= 1
@@ -82,24 +80,20 @@ function CWT(
     end
 
     # S is the most permissive type of the listed variables
-    S = promote_type(
-        typeof(Q),
+    S = promote_type(typeof(Q),
         typeof(β),
         typeof(frameBound),
         typeof(p),
         typeof(tdef[1]),
-        typeof(tdef[2]),
-    )
-    return CWT{B,S,WC,N,isAnalytic(wave)}(
-        S(Q),
+        typeof(tdef[2]))
+    return CWT{B,S,WC,N,isAnalytic(wave)}(S(Q),
         S(β),
         tdef...,
         S(extraOctaves),
         S(averagingLength),
         averagingType,
         S(frameBound),
-        S(p),
-    )
+        S(p))
 end
 
 
@@ -160,8 +154,7 @@ function Base.show(io::IO, cf::CWT{W,S,WT,N}) where {W,S,WT,N}
     print(io,
         "CWT{$(cf.waveType), $(cf.averagingType), Q=$(cf.Q), β=$(cf.β)," *
         "aveLen=$(cf.averagingLength), frame=" *
-        "$(cf.frameBound), norm=$(cf.p), extraOctaves=$(cf.extraOctaves)}",
-    )
+        "$(cf.frameBound), norm=$(cf.p), extraOctaves=$(cf.extraOctaves)}")
 end
 
 
@@ -171,19 +164,16 @@ end
     frameBound=1, p=Inf, β=4, kwargs...)
 A constructor for the `CWT` type, using keyword rather than positional options.
 """
-function wavelet(
-    wave::WC;
-    Q=8,
-    boundary::T=DEFAULT_BOUNDARY,
-    averagingType::A=Father(),
-    averagingLength=0,
-    frameBound=1,
-    p::N=Inf,
-    β=4,
-    kwargs...
-) where {WC<:ContWaveClass,A<:Average,T<:WaveletBoundary,N<:Real}
-    return CWT(
-        wave,
+function wavelet(wave::WC;
+    Q = 8,
+    boundary::T = DEFAULT_BOUNDARY,
+    averagingType::A = Father(),
+    averagingLength = 0,
+    frameBound = 1,
+    p::N = Inf,
+    β = 4,
+    kwargs...) where {WC<:ContWaveClass,A<:Average,T<:WaveletBoundary,N<:Real}
+    return CWT(wave,
         Q,
         boundary,
         averagingType,
@@ -191,6 +181,5 @@ function wavelet(
         frameBound,
         p,
         β;
-        kwargs...
-    )
+        kwargs...)
 end

@@ -9,8 +9,7 @@
     typesOfTestFunctions = ["Doppler"]
     inversionMethods = [NaiveDelta(), PenroseDelta(), DualFrames()]
     ns = (128, 2039)
-    @testset "length $n, with type $wave, bc $bc, β=$β, ave=$(ave) ex=$(testF), inv=$(inverseType)" for n in
-                                                                                                        ns,
+    @testset "length $n, with type $wave, bc $bc, β=$β, ave=$(ave) ex=$(testF), inv=$(inverseType)" for n in ns,
         wave in cwts,
         bc in bcs,
         β in βs,
@@ -23,21 +22,19 @@
             if testF == "just Core"
                 x̂ = zeros(ComplexF64, n >> 1 + 1)
                 centralRegion = n >> 2 .+ (-10:10)
-                x̂[centralRegion] =
-                    5 * (11.5 .- abs.(range(-10 / 2, 10 / 2, length = 21))) .*
-                    randn(ComplexF64, 21)
+                x̂[centralRegion] = 5 *
+                                    (11.5 .- abs.(range(-10 / 2, 10 / 2, length = 21))) .*
+                                    randn(ComplexF64, 21)
                 x = irfft(x̂, n) # test function that is definitely solidly in the "safe" range
             else
                 x = testfunction(n, testF)
             end
 
-            wav = wavelet(
-                wave,
+            wav = wavelet(wave,
                 β = β,
                 boundary = bc,
                 averagingLength = ave,
-                extraOctaves = eOct,
-            )
+                extraOctaves = eOct)
             with_logger(ConsoleLogger(stderr, Logging.Error)) do
                 res = cwt(x, wav)
                 xRecon = real.(icwt(res, wav, inverseType))
