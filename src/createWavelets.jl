@@ -158,7 +158,7 @@ end
         where {S<:Real, W<:WaveletBoundary, V} -> daughters, ω
 Precomputes the wavelets used by transform. For details, see cwt.
 """
-function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, space=false) where {S <: Real,B <: WaveletBoundary,V,W,CT}
+function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, space=false) where {B<:WaveletBoundary,W,CT}
     nOctaves, totalWavelets, sRange, sWidth = getNWavelets(n1, c)
     # padding determines the actual number of elements
     n, nSpace = setn(n1, c)
@@ -191,14 +191,15 @@ function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, space=false) wh
     end
     testFourierDomainProperties(daughters, isAve)
     if space
-        x = zeros(T, n1); x[ceil(Int, n1 / 2)] = 1
+        x = zeros(T, n1)
+        x[ceil(Int, n1 / 2)] = 1
         return cwt(x, c, daughters), ω
     else
         return (daughters, ω)
     end
 end
 
-function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, space=false) where {S <: Real,B <: WaveletBoundary,V,W <: ContOrtho,CT}
+function computeWavelets(n1::Integer, c::CWT{B,CT,W}; T=Float64, space=false) where {B<:WaveletBoundary,W<:ContOrtho,CT}
 
     # padding determines the actual number of elements
     n, nSpace = setn(n1, c)
@@ -272,14 +273,14 @@ end
 
 # it's ok to just hand the total size, even if we're not transforming across
 # all dimensions
-function computeWavelets(Y::Tuple, c::CWT{W}; T=Float64) where {S <: Real,W <: WaveletBoundary}
+function computeWavelets(Y::Tuple, c::CWT{W}; T=Float64) where {W<:WaveletBoundary}
     return computeWavelets(Y[1], c; T=T)
 end
-function computeWavelets(Y::AbstractArray{<:Integer}, c::CWT{W}; T=Float64) where {S <: Real,W <: WaveletBoundary}
+function computeWavelets(Y::AbstractArray{<:Integer}, c::CWT{W}; T=Float64) where {W<:WaveletBoundary}
     return computeWavelets(Y[1], c, T=T)
 end
 
 # also ok to just hand the whole thing being transformed
-function computeWavelets(Y::AbstractArray{<:Number}, c::CWT{W}; T=Float64) where {S <: Real,W <: WaveletBoundary}
+function computeWavelets(Y::AbstractArray{<:Number}, c::CWT{W}; T=Float64) where {W<:WaveletBoundary}
     return computeWavelets(size(Y)[1], c, T=T)
 end

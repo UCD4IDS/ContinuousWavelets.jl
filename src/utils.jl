@@ -74,7 +74,7 @@ getMinScaling(c::CWT{W,T,<:Morlet,N}) where {W,T,N} = 1 / (c.β)^0.8 # morlet is
 getMinScaling(c::CWT{W,T,<:Paul,N}) where {W,T,N} = 2 / (2c.α + 1) # Paul presents some difficulties, as the decay changes quickly (like 1/t^(α+1))
 getMinScaling(c::CWT{W,T,<:Dog,N}) where {W,T,N} = 2 # like morlet, the decay for Dog is exponential and consistent across derivatives
 # getMinScaling(c::CWT{W,T,<:Morse,N}) where {W,T,N,M} = log2(2 * morsefreq(c))
-getMinScaling(c::CWT{W,T,<:Morse,N}) where {W,T,N,M} = 5 * morsefreq(c)
+getMinScaling(c::CWT{W,T,<:Morse,N}) where {W,T,N} = 5 * morsefreq(c)
 
 function varianceAdjust(this::CWT{W,T,M,N}, totalWavelets, nOct) where {W,T,N,M}
     # increases the width of the wavelets by σ[i] = (1+a(total-i)ᴾ)σₛ
@@ -414,7 +414,7 @@ function caveats(n1, c::CWT; coiTolerance=exp(-2), fsample=2000)
     return sRange, freqs, coi
 end
 
-caveats(Y::AbstractArray{T}, w::ContWaveClass) where {T<:Number,S<:Real} = caveats(size(Y, 1), CWT(w), J1=J1)
+caveats(Y::AbstractArray{T}, w::ContWaveClass) where {T<:Number} = caveats(size(Y, 1), CWT(w), J1=J1)
 
 """
     directCoiComputation(n1, c::CWT; coiTolerance = exp(-2)) -> coi
