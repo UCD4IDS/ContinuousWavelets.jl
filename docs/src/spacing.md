@@ -53,11 +53,11 @@ As some examples of how the wavelet bank changes as we change $\beta$:
 
 n=2047
 Ψ1 = wavelet(morl, s=8, β=1)
-d1, ξ = ContinuousWavelets.computeWavelets(n,Ψ1)
+d1, ξ = computeWavelets(n,Ψ1)
 Ψ2 = wavelet(morl, s=8, β =2)
-d2, ξ = ContinuousWavelets.computeWavelets(n,Ψ2)
+d2, ξ = computeWavelets(n,Ψ2)
 Ψ4 = wavelet(morl, s=8, β =4)
-d4, ξ = ContinuousWavelets.computeWavelets(n,Ψ4)
+d4, ξ = computeWavelets(n,Ψ4)
 matchingLimits = (minimum([d1 d2 d4]), maximum([d1 d2 d4]))#hide
 plot(heatmap(1:size(d1,2), ξ, d1, color=:Greys, yaxis = (L"\omega", ), xaxis = ("wavelet index", ), title=L"\beta=1"*" ("*L"\Psi1"*")", colorbar=false, clims=matchingLimits),  heatmap(1:size(d2,2), ξ, d2, color=:Greys, yticks=[], xaxis = ("wavelet index", ), title=L"\beta=2"*" ("*L"\Psi2"*")", colorbar=false, clims=matchingLimits),  heatmap(1:size(d4,2), ξ, d4,color=:Greys, yticks=[], xticks=[1, 5, 10, 14, 18], xaxis = ("wavelet index", ), title=L"\beta=4"*" ("*L"\Psi4"*")"), layout=(1,3), clims=matchingLimits, colorbar_title=L"\widehat{\psi_i}")
 savefig("changeBeta.png") #hide

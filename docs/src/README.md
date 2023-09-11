@@ -17,7 +17,7 @@ This package is an offshoot of [Wavelets.jl](https://github.com/JuliaDSP/Wavelet
 Thanks to [Felix Gerick](https://github.com/fgerick) for the initial implementation there, with extension and further adaptation by David Weber and any other contributors listed on the right.
 Currently, it implements 1D continuous wavelet transforms with the following mother wavelets:
 
-![Mothers](docs/mothers.svg)
+![Mothers](https://dsweber2.github.io/ContinuousWavelets.jl/dev/mothers.svg)
 
 Which covers several standard continuous wavelet families, both real and analytic, as well as continuous versions of the orthogonal wavelet transforms implemented in [Wavelets.jl](https://github.com/JuliaDSP/Wavelets.jl).
 
@@ -47,7 +47,7 @@ julia> f = testfunction(n, "Doppler");
 
 julia> c = wavelet(Morlet(π), β=2);
 
-julia> res = ContinuousWavelets.cwt(f, c)
+julia> res = cwt(f, c)
 ┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
 │   lowAprxAnalyt = 0.061863
 └ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:7
@@ -65,7 +65,7 @@ As the cwt frame is redundant, there are many choices of dual/inverse frames. Th
 using ContinuousWavelets, Wavelets
 f = testfunction(n, "Bumps");
 c = wavelet(dog2, β = 2)
-res = ContinuousWavelets.cwt(f, c)
+res = cwt(f, c)
 
 # output
 
@@ -81,13 +81,13 @@ res = ContinuousWavelets.cwt(f, c)
 using ContinuousWavelets, Wavelets
 f = testfunction(n, "Bumps");
 c = wavelet(dog2, β = 2)
-res = ContinuousWavelets.cwt(f, c)
+res = cwt(f, c)
 # dropping the middle peaks
 res[620:1100, :] .= 0
 # and smoothing the remaining peaks
 res[:, 10:end] .= 0
-freqs = ContinuousWavelets.getMeanFreq(length(f), c)
-dropped = ContinuousWavelets.icwt(res, c, DualFrames())
+freqs = getMeanFreq(length(f), c)
+dropped = icwt(res, c, DualFrames())
 round.(dropped,sigdigits=12)
 
 # output
@@ -111,7 +111,7 @@ julia> exs = cat(testfunction(n, "Doppler"), testfunction(n, "Blocks"), testfunc
 
 julia> c = wavelet(cDb2, β=2, extraOctaves=-0);
 
-julia> res = circshift(ContinuousWavelets.cwt(exs, c), (0, 1, 0))
+julia> res = circshift(cwt(exs, c), (0, 1, 0))
 ┌ Warning: the highest frequency wavelet has more than 1% its max at the end, so it may not be analytic. Think carefully
 │   highAprxAnalyt = 0.26778
 └ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:12

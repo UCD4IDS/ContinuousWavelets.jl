@@ -13,11 +13,11 @@ n= 2047;
 function mapTo(waveType, isReal=true,window=1:2047; d=1, kwargs...)
 	if isReal
 		c = wavelet(waveType; β=d, kwargs...)
-		waves,ω = ContinuousWavelets.computeWavelets(n,c)
+		waves,ω = computeWavelets(n,c)
 		return circshift(irfft(waves,2*n,1),(1024,0))[window,:]
 	else
 		c = wavelet(waveType; β=d, kwargs...)
-		waves,ω = ContinuousWavelets.computeWavelets(n,c)
+		waves,ω = computeWavelets(n,c)
         waves = cat(waves, zeros(2047,size(waves,2)),dims=1)
 		return circshift(ifft(waves,1),(1024,0))[window,:]
 	end

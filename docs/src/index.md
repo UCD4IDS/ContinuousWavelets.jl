@@ -14,7 +14,7 @@ n=2047;
 f = testfunction(n, "Doppler");
 p1=plot(f,legend=false,title="Doppler",xlims=(0,2000));
 c = wavelet(Morlet(π), averagingType=NoAve(), β=2);
-res = ContinuousWavelets.cwt(f, c)
+res = cwt(f, c)
 p2=heatmap(abs.(res)', xlabel= "time index",
 	ylabel="frequency index",colorbar=false);
 l=@layout [a{.3h};b{.7h}]
@@ -26,7 +26,7 @@ There are 4 warnings you may see with some regularity:
 ```@example basicEx
 julia> c = wavelet(Morlet(π), averagingType=NoAve(), β=2);
 
-julia> res = ContinuousWavelets.cwt(f, c);
+julia> res = cwt(f, c);
 ```
 
 This comes from checking the value of the wavelets at 0 frequency.
@@ -36,7 +36,7 @@ Solvable either by increasing `aveLen` or increasing the mother wavelet mean fre
 ```@example basicEx
 julia> c = wavelet(Morlet(1.5π), averagingType=NoAve(), β=2,extraOctaves=10);
 
-julia> res = ContinuousWavelets.cwt(f, c);
+julia> res = cwt(f, c);
 ```
 
 This occurs because some of the constructed wavelets have significant mass beyond above the frequency resolution achievable for this signal length.
@@ -45,7 +45,7 @@ Usually solvable by simply decreasing `extraOctaves`.
 ```@example basicEx
 julia> c = wavelet(Morlet(1.5π), averagingType=NoAve(), p=1);
 
-julia> res = ContinuousWavelets.cwt(f, c);
+julia> res = cwt(f, c);
 ```
 
 These two almost always occur together as having peaks sufficiently far apart is an easy way for some frequencies to have insufficient coverage.
