@@ -172,8 +172,7 @@ end
 
 
 @doc """
-    computeWavelets(n1::Integer, c::CWT{W}; T=Float64, dt::S=NaN, s0::V=NaN)
-        where {S<:Real, W<:WaveletBoundary, V} -> daughters, ω
+    computeWavelets(n1::Integer, c::CWT{B,CT,W}; T = Float64, space = false) where {B<:WaveletBoundary,W,CT} -> daughters, ω
 Precomputes the wavelets used by transform. For details, see cwt.
 """
 function computeWavelets(n1::Integer,
@@ -230,8 +229,6 @@ function computeWavelets(n1::Integer,
     nOctaves, totalWavelets, sRange, sWidth = getNWavelets(n1, c)
     # indicates whether we should keep a spot for the father wavelet
     isAve = !(typeof(c.averagingType) <: NoAve)
-    # I guess matlab did occasionally do something useful
-
 
     ω = computeOmega(n1, nSpace, n)
     daughters = zeros(nSpace, totalWavelets)
