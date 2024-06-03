@@ -1,5 +1,5 @@
 struct Morlet <: ContWaveClass
-    σ::Float64 # σ is the time/space trade-off. as σ->0, the spacial resolution increases; below 5, there is a danger of being non-analytic. Default is 5.8
+    σ::Float64 # σ is the time/space trade-off. as σ->0, the spacial resolution increases; below 5, there is a danger of being non-analytic. Default is 2π
     κσ::Float64
     cσ::Float64
 end
