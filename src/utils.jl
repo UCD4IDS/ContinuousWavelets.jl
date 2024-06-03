@@ -247,13 +247,13 @@ end
 """
     getMeanFreq(Ŵ, fsample=2000) -> arrayOfFreqs
 
-Calculate each of the mean frequencies of a collection of analytic or real wavelets `Ŵ`.
+Calculate each of the mean frequencies of a collection of analytic or real wavelets `Ŵ`, using the power spectral density.
 The default sampling rate `fsample=2kHz`, so the maximum frequency is 1kHz.
 """
 function getMeanFreq(Ŵ::Array, fsample = 2000)
-    eachNorm = [norm(w, 1) for w in eachcol(Ŵ)]
+    eachNorm = [norm(w, 2)^2 for w in eachcol(Ŵ)]
     freqs = range(0, fsample / 2, length = size(Ŵ, 1))
-    return map(ŵ -> sum(abs.(ŵ) .* freqs), eachcol(Ŵ)) ./ eachNorm
+    return map(ŵ -> sum(abs2.(ŵ) .* freqs), eachcol(Ŵ)) ./ eachNorm
 end
 
 function getMeanFreq(n1, cw::CWT, fsample = 2000)
@@ -306,8 +306,8 @@ end
 
 
 # create interpolater for the orthogonal cases
-genInterp(ψ) = interpolate(ψ, BSpline(Quadratic(Reflect(OnGrid()))))
-
+#genInterp(ψ) = scale(interpolate(ψ, BSpline(Cubic(Reflect(OnGrid())))), 1:length(ψ))
+genInterp(ψ) = linear_interpolation(1:length(ψ),ψ)
 
 
 

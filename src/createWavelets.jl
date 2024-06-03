@@ -186,7 +186,7 @@ function computeWavelets(n1::Integer,
     isAve = !(typeof(c.averagingType) <: NoAve)
     # I guess matlab did occasionally do something useful
 
-    ω = computeOmega(n1, nSpace, n)
+    ω = computeOmega(n1, n)
     daughters = analyticOrNot(c, n, totalWavelets)
 
     # if the nOctaves is small enough there are none not covered by the
@@ -230,7 +230,7 @@ function computeWavelets(n1::Integer,
     # indicates whether we should keep a spot for the father wavelet
     isAve = !(typeof(c.averagingType) <: NoAve)
 
-    ω = computeOmega(n1, nSpace, n)
+    ω = computeOmega(n1, n)
     daughters = zeros(nSpace, totalWavelets)
     φ, ψ, ψLen = getContWaveFromOrtho(c, nSpace)
     itpψ = genInterp(ψ)
@@ -287,7 +287,7 @@ function analyticOrNot(c::CWT{W,T,<:Union{Morlet,Paul,Morse},N},
     return daughters
 end
 
-function computeOmega(nOriginal, nSpace, nFreq)
+function computeOmega(nOriginal, nFreq)
     range(0, nOriginal >> 1 + 1, length = nFreq) # max size is the last frequency in the rfft of the original data size
 end
 # convenience methods
