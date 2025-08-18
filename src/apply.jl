@@ -260,7 +260,7 @@ Return the inverse continuous wavelet transform, computed using the simple dual 
     icwt(res::AbstractArray, cWav::CWT, inverseStyle::NaiveDelta)
 Return the inverse continuous wavelet transform, computed using the simple dual frame ``β_jδ_{ji}``, where ``β_j`` is chosen to negate the scale factor ``(^1/_s)^{^1/_p}``. Generally less accurate than choosing the weights using `PenroseDelta`. This is the method discussed in Torrence and Compo.
 
-    icwt(res::AbstractArray, cWav::CWT, inverseStyle::dualFrames)
+    icwt(res::AbstractArray, cWav::CWT, inverseStyle::DualFrames)
 Return the inverse continuous wavelet transform, computed using the canonical dual frame ``\\tilde{\\widehat{ψ}} = \\frac{ψ̂_n(ω)}{∑_n\\|ψ̂_n(ω)\\|^2}``. The algorithm is to compute the cwt again, but using the canonical dual frame; consequentially, it is the most computationally intensive of the three algorithms, and typically the best behaved. Will be numerically unstable if the high frequencies of all of the wavelets are too small however, and tends to fail spectacularly in this case.
 
 """
