@@ -1,5 +1,5 @@
 using ContinuousWavelets, Plots, Wavelets, FFTW, Logging
-global_logger(SimpleLogger(min_level = Logging.Error))
+global_logger(Base.SimpleLogger(stdout, Logging.Info))
 global_logger(Logging.SimpleLogger(stderr, Logging.Error))
 n = 2047;
 t = range(0, n / 2000, length = n); # 2kHz sampling rate
@@ -30,7 +30,7 @@ waveType = Morlet()
 Ψ1 = wavelet(waveType, s = 8, β = dRate, averagingLength = 2)
 # sketch of how the frequencies are chosen
 pyplot()
-locs = polySpacing(8, Ψ1);
+locs = ContinuousWavelets.polySpacing(8, Ψ1);
 #Figure 3.1
 scatter(1:length(locs),
     locs,
@@ -45,7 +45,7 @@ scatter!(length(locs):length(locs),
     markershape = :x,
     color = :black,
     label = :none)
-firstW, lastW, stepS = genSamplePoints(8, Ψ1)
+firstW, lastW, stepS = ContinuousWavelets.genSamplePoints(8, Ψ1)
 b = (dRate / Ψ1.Q)^(1 ./ dRate) * (8 + Ψ1.averagingLength)^((dRate - 1) / dRate)
 t = range(1, stop = length(locs), step = 0.1)
 curve = b .*
@@ -123,72 +123,87 @@ gr();
 Plots.reset_defaults()
 global_logger(Logging.SimpleLogger(stderr, Logging.Error))
 n = 2047;
-function mapTo(waveType, isReal = true, window = 1:2047; d = 1, kwargs...)
-    if isReal
-        c = wavelet(waveType; β = d, kwargs...)
-        waves, ω = computeWavelets(n, c)
-        return circshift(irfft(waves, 2 * n, 1), (1024, 0))[window, :]
+function mapTo(waveType, isReal = true, window = 1:2047; d = 1, γ = 4.0, β = 2.0, cf = 1.0, kwargs...)
+    if waveType == Morse
+        morse_wav = Morse(float(γ), float(β), float(cf))
+        c = wavelet(morse_wav; kwargs...)
     else
-        c = wavelet(waveType; β = d, kwargs...)
-        waves, ω = computeWavelets(n, c)
+        c = wavelet(waveType; β=d, kwargs...)
+    end
+    waves, ω = computeWavelets(n, c)
+    if isReal
+        return circshift(irfft(waves, 2*n, 1), (1024, 0))[window, :]
+    else
         waves = cat(waves, zeros(2047, size(waves, 2)), dims = 1)
         return circshift(ifft(waves, 1), (1024, 0))[window, :]
     end
 end
 tmp = mapTo(Morlet(π), false; averagingLength = -0.2)[:, 2]
 p1 = plot([real.(tmp) imag.(tmp)],
-    title = "Morlet",
-    labels = ["real" "imaginary"],
-    ticks = nothing,
-    linewidth = 5)
+    	title = "Morlet",
+    	labels = ["real" "imaginary"],
+    	ticks = nothing,
+    	linewidth = 5)
 tmp = mapTo(paul2, false, averagingLength = -0.5)[:, 2]
 p2 = plot([real.(tmp) imag.(tmp)],
-    title = "Paul 2",
-    labels = ["real" "imaginary"],
-    ticks = nothing,
-    linewidth = 5)
-p3 = plot(mapTo(dog2; averagingLength = -1.5)[:, 2],
-    title = "derivative of gaussians (dog2)",
-    legend = false,
-    ticks = nothing,
-    linewidth = 5)
-p4 = plot(mapTo(cHaar, true; averagingLength = 1)[:, 2],
-    title = "Haar",
-    legend = false,
-    ticks = nothing,
-    linewidth = 5)
-p5 = plot(mapTo(cBeyl, true; d = 1, averagingLength = -0)[:, 2],
-    title = "Beylkyin",
-    legend = false,
-    ticks = nothing,
-    linewidth = 5)
-p6 = plot(mapTo(cVaid, true; d = 1, averagingLength = -0)[:, 2],
-    title = "Vaidyanathan",
-    legend = false,
-    ticks = nothing,
-    linewidth = 5)
-p7 = plot(mapTo(cDb2; d = 1, averagingLength = -0)[:, 2],
-    title = "Daubhechies 2",
-    legend = false,
-    ticks = nothing,
-    linewidth = 5)
-p8 = plot(mapTo(cCoif2, true; d = 1, averagingLength = -0)[:, 2],
-    title = "Coiflet 2",
-    legend = false,
-    ticks = nothing,
-    linewidth = 5)
-p9 = plot(mapTo(cSym4, true; d = 1, averagingLength = -0)[:, 2],
-    title = "Symlet 4",
-    legend = false,
-    ticks = nothing,
-    linewidth = 5)
+    	title = "Paul 2",
+    	labels = ["real" "imaginary"],
+    	ticks = nothing,
+    	linewidth = 5)
+tmpMorse1 = mapTo(Morse, false; β=3, γ=10.0, cf=1.0, averagingLength=-1)[:, 2]
+p3 = plot([real.(tmpMorse1) imag.(tmpMorse1)],
+    	title = "Morse (β=3, γ=10)",
+    	labels = ["real" "imaginary"],
+    	ticks = nothing,
+    	linewidth = 4)
+tmpMorse2 = mapTo(Morse, false; β=1, γ=3.0, cf=1.0, averagingLength=-2)[:, 2] 
+p4 = plot([real.(tmpMorse2) imag.(tmpMorse2)],
+    	title = "Morse (β=1, γ=3)",
+    	labels = ["real" "imaginary"],
+    	ticks = nothing,
+    	linewidth = 4)
+p5 = plot(mapTo(dog2; averagingLength = -1.5)[:, 2],
+    	title = "derivative of gaussians (dog2)",
+    	legend = false,
+    	ticks = nothing,
+    	linewidth = 5)
+p6 = plot(mapTo(cHaar, true; averagingLength = 1)[:, 2],
+    	title = "Haar",
+    	legend = false,
+    	ticks = nothing,
+    	linewidth = 5)
+p7 = plot(mapTo(cBeyl, true; d = 1, averagingLength = -0)[:, 2],
+    	title = "Beylkyin",
+    	legend = false,
+    	ticks = nothing,
+    	linewidth = 5)
+p8 = plot(mapTo(cVaid, true; d = 1, averagingLength = -0)[:, 2],
+	    title = "Vaidyanathan",
+	    legend = false,
+    	ticks = nothing,
+    	linewidth = 5)
+p9 = plot(mapTo(cDb2; d = 1, averagingLength = -0)[:, 2],
+    	title = "Daubhechies 2",
+    	legend = false,
+    	ticks = nothing,
+    	linewidth = 5)
+p10 = plot(mapTo(cCoif2, true; d = 1, averagingLength = -0)[:, 2],
+    	title = "Coiflet 2",
+    	legend = false,
+    	ticks = nothing,
+    	linewidth = 5)
+p11 = plot(mapTo(cSym4, true; d = 1, averagingLength = -0)[:, 2],
+    	title = "Symlet 4",
+    	legend = false,
+    	ticks = nothing,
+    	linewidth = 5)
 k = 0600;
-p10 = plot(mapTo(cBatt4, true, 1024-k:1024+k; d = 1, averagingLength = -1)[:, 2],
-    title = "Battle-Lemarie, 4",
-    legend = false,
-    ticks = nothing,
-    linewidth = 5);
-plot(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, layout = (2, 5), size = 300 .* (5, 2.2))
+p12 = plot(mapTo(cBatt4, true, 1024-k:1024+k; d = 1, averagingLength = -1)[:, 2],
+        title = "Battle-Lemarie, 4",
+        legend = false,
+        ticks = nothing,
+        linewidth = 5);
+plot(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, layout = (3, 4), size = 300 .* (5, 3.2))
 savefig("mothers.svg")#hide
 2047 / 2
 
@@ -250,7 +265,7 @@ p2 = plot(heatmap(identity.(res[:, :, 1])',
 l = @layout [a{0.3h}; b{0.7h}]
 plot(p1, p2, layout = l)
 savefig("multiEx.svg")
-getNOctaves(n, wavelet(cCoif2))
+ContinuousWavelets.getNOctaves(n, wavelet(cCoif2))
 log2(n)
 n / 2
 c = wavelet(cCoif2, β = 1, Q = 1)
@@ -258,7 +273,7 @@ wave, ω = computeWavelets(n, wavelet(cCoif4, β = 1, Q = 1); space = true)
 i = 1;
 count(abs.(wave[:, i]) / norm(wave[:, i]) .> 1e-7);
 plot(wave[1000:1090, end])
-calcDepth(c, n)
+ContinuousWavelets.calcDepth(c, n)
 log2(n)
 log2(length(qmf(c.waveType)))
 log2(n)
