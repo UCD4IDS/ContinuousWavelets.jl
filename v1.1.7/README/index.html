@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>ContinuousWavelets · ContinuousWavelets.jl</title><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.045/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.24/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">ContinuousWavelets.jl</a></span></div><form class="docs-search" action="../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../">basic usage</a></li><li><a class="tocitem" href="../installation/">Install</a></li><li><span class="tocitem">CWT</span><ul><li><a class="tocitem" href="../coreType/">Available Wavelet Families</a></li><li><a class="tocitem" href="../CWTConstruction/">CWT Construction</a></li><li><a class="tocitem" href="../spacing/">Wavelet Frequency Spacing</a></li><li><a class="tocitem" href="../bound/">Boundary Conditions</a></li><li><a class="tocitem" href="../inverse/">Inversion</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>ContinuousWavelets</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>ContinuousWavelets</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/UCD4IDS/ContinuousWavelets.jl/blob/master/docs/src/README.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><pre><code class="language- hljs">DocTestFilters = [
+        r&quot;\@ ContinuousWavelets .*&quot;,
+        r&quot;[ +-][0-9]\.[0-9]{3,5}e-1[5-9]&quot;,
+        r&quot;[ +-][0-9]\.[0-9]{3,5}e-[2-9][0-9]&quot;,
+        r&quot;im {2,7}&quot;,
+    ]</code></pre><h1 id="ContinuousWavelets"><a class="docs-heading-anchor" href="#ContinuousWavelets">ContinuousWavelets</a><a id="ContinuousWavelets-1"></a><a class="docs-heading-anchor-permalink" href="#ContinuousWavelets" title="Permalink"></a></h1><p><a href="https://travis-ci.com/dsweber2/ContinuousWavelets.jl"><img src="https://travis-ci.com/dsweber2/ContinuousWavelets.jl.svg?branch=master" alt="Build Status"/></a> <a href="https://codecov.io/gh/dsweber2/ContinuousWavelets.jl"><img src="https://codecov.io/gh/dsweber2/ContinuousWavelets.jl/branch/master/graph/badge.svg" alt="Coverage"/></a> <a href="https://ucd4ids.github.io/ContinuousWavelets.jl/dev/"><img src="https://img.shields.io/badge/docs-dev-blue.svg" alt/></a></p><p>This package is an offshoot of <a href="https://github.com/JuliaDSP/Wavelets.jl">Wavelets.jl</a> for the continuous wavelets. Thanks to <a href="https://github.com/fgerick">Felix Gerick</a> for the initial implementation there, with extension and further adaptation by David Weber and any other contributors listed on the right. Currently, it implements 1D continuous wavelet transforms with the following mother wavelets:</p><p><img src="https://github.com/UCD4IDS/ContinuousWavelets.jl/blob/master/docs/mothers.svg" alt="Mothers"/></p><p>Which covers several standard continuous wavelet families, both real and analytic, as well as continuous versions of the orthogonal wavelet transforms implemented in <a href="https://github.com/JuliaDSP/Wavelets.jl">Wavelets.jl</a>.</p><h2 id="Basic-Usage"><a class="docs-heading-anchor" href="#Basic-Usage">Basic Usage</a><a id="Basic-Usage-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Usage" title="Permalink"></a></h2><p>Install via the package manager and load with <code>using</code></p><pre><code class="language-julia hljs">julia&gt; Pkg.add(&quot;ContinuousWavelets&quot;)
+julia&gt; using ContinuousWavelets</code></pre><p>Basic usage example on a doppler test function.</p><pre><code class="language-julia-repl hljs">julia&gt; using Random
+
+julia&gt; Random.seed!(1234);
+
+julia&gt; using ContinuousWavelets, Wavelets
+
+julia&gt; n = 2047;
+
+julia&gt; t = range(0, n / 1000, length=n); # 1kHz sampling rate
+
+julia&gt; f = testfunction(n, &quot;Doppler&quot;);
+
+julia&gt; c = wavelet(Morlet(π), β=2);
+
+julia&gt; res = cwt(f, c)
+┌ Warning: the lowest frequency wavelet has more than 1% its max at zero, so it may not be analytic. Think carefully
+│   lowAprxAnalyt = 0.061863
+└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:7
+2047×31 Matrix{ComplexF64}:
+ -1.48637e-6+3.8241e-19im   …  0.000109978+9.67834e-5im
+ -1.48602e-6+5.15534e-19im     -8.24922e-5+0.000130656im
+            ⋮               ⋱             ⋮
+ 0.000435175+2.30636e-19im  …  -2.47195e-6-1.97048e-8im
+ 0.000435027-8.28725e-19im     -2.63499e-6+4.62331e-8im</code></pre><p>As the cwt frame is redundant, there are many choices of dual/inverse frames. There are three available in this package, <code>NaiveDelta()</code>, <code>PenroseDelta()</code>, and <code>DualFrames()</code>. As a toy example, lets knock out the middle time of the bumps function and apply a high pass filter:</p><pre><code class="language-julia hljs">using ContinuousWavelets, Wavelets
+f = testfunction(n, &quot;Bumps&quot;);
+c = wavelet(dog2, β = 2)
+res = cwt(f, c)
+
+# output
+
+2047×27 Matrix{Float64}:
+ 0.000926575  -0.00150445  …  -3.1189e-8   -2.84589e-8
+ 0.000926735  -0.00150491     -2.27135e-8  -1.96595e-8
+ ⋮                         ⋱   ⋮
+ 0.000250708  -2.53146e-6  …  -3.11406e-9  -2.69593e-9
+ 0.000250698  -2.52694e-6     -4.29947e-9  -3.92694e-9</code></pre><pre><code class="language-julia hljs">using ContinuousWavelets, Wavelets
+f = testfunction(n, &quot;Bumps&quot;);
+c = wavelet(dog2, β = 2)
+res = cwt(f, c)
+# dropping the middle peaks
+res[620:1100, :] .= 0
+# and smoothing the remaining peaks
+res[:, 10:end] .= 0
+freqs = getMeanFreq(length(f), c)
+dropped = icwt(res, c, DualFrames())
+round.(dropped,sigdigits=12)
+
+# output
+
+┌ Warning: the canonical dual frame is off by 3.81e6, consider using one of the delta dual frames
+└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:41
+2047-element Vector{Float64}:
+ 0.0069417253841
+ 0.00694223965946
+ ⋮
+ 0.00268854944484
+ 0.00268852311536</code></pre><p>It can also handle collections of examples at the same time, should you need to do a batch of transforms:</p><pre><code class="language-julia-repl hljs">julia&gt; using Wavelets
+
+julia&gt; exs = cat(testfunction(n, &quot;Doppler&quot;), testfunction(n, &quot;Blocks&quot;), testfunction(n, &quot;Bumps&quot;), testfunction(n, &quot;HeaviSine&quot;), dims=2);
+
+julia&gt; c = wavelet(cDb2, β=2, extraOctaves=-0);
+
+julia&gt; res = circshift(cwt(exs, c), (0, 1, 0))
+┌ Warning: the highest frequency wavelet has more than 1% its max at the end, so it may not be analytic. Think carefully
+│   highAprxAnalyt = 0.26753
+└ @ ContinuousWavelets ~/work/ContinuousWavelets.jl/ContinuousWavelets.jl/src/sanityChecks.jl:12
+2047×32×4 Array{Float64, 3}:
+[:, :, 1] =
+ 1.88768e-5  0.000266059  …  4.67422e-5   3.00171e-6
+ 8.31921e-5  0.000266939     1.56546e-5  -4.46452e-5
+ ⋮                        ⋱  ⋮
+ 2.25286e-6  0.00198715   …  4.24046e-6   3.80696e-6
+ 2.64275e-6  0.0019801       4.37922e-6   3.47586e-6
+
+[:, :, 2] =
+  1.82235e-17  0.022676   0.00955726  …   3.2542e-18
+ -1.73557e-18  0.0226846  0.0095044      -4.77282e-18
+  ⋮                                   ⋱
+  1.53669e-18  0.0341524  0.0108042   …   6.05043e-19
+  7.9713e-18   0.0342169  0.0107732       7.14045e-19
+
+[:, :, 3] =
+ -4.25348e-7  0.00596895  …  4.4713e-8   1.86785e-8
+ -4.37683e-7  0.00596787     3.30062e-8  7.83973e-9
+  ⋮                       ⋱  ⋮
+ -9.36725e-8  0.00339937  …  7.99443e-9  4.79906e-9
+ -9.31697e-8  0.00340624     8.3032e-9   4.25503e-9
+
+[:, :, 4] =
+  0.000307892  -0.0150904   -0.0039183   …   0.000301771
+  6.09684e-5   -0.0152542   -0.00405989      8.45675e-5
+  ⋮                                      ⋱
+ -0.000308175  -0.00755455  -0.00156652  …  -0.000594702
+ -0.000378998  -0.00746703  -0.00146187     -0.000516786</code></pre><p>And the plot of these:</p><p>There are also several boundary conditions, depending on the kind of data given; the default <code>SymBoundary()</code> symmetrizes the data, while <code>PerBoundary()</code> assumes it is periodic, and <code>ZPBoundary</code> pads with zeros. All wavelets are stored in the Fourier domain, and all transforms consist of performing an fft (possibly an rfft if the data is real) of the input, pointwise multiplication (equivalent to convolution in the time domain), and then returning to the time domain.</p><p>Perhaps somewhat unusually, the averaging function, or father wavelet, is included as an option (the bottom row for the figure above). This can be either the paired averaging function or uniform in frequency (the <code>Dirac</code> averaging). The frequency coverage of the wavelets can be adjusted both in total frequency range both below by the <code>averagingLength</code> or above by the <code>extraOctaves</code> (caveat emptor with how well they will be defined in that case). The frequency density can be adjusted both in terms of the quality/scale factor <code>Q</code>, as well as how quickly this density falls off as the frequency goes to zero via <code>β</code>. Finally, depending on what kind of norm you want to preserve, <code>p</code> determines the norm preserved in the frequency domain (so <code>p=1</code> maintains the 1-norm in frequency, while <code>p=Inf</code> maintains the 1-norm in time).</p><h2 id="Possible-extensions"><a class="docs-heading-anchor" href="#Possible-extensions">Possible extensions</a><a id="Possible-extensions-1"></a><a class="docs-heading-anchor-permalink" href="#Possible-extensions" title="Permalink"></a></h2><ul><li>Higher dimensional wavelets have yet to be implemented.</li><li>A DCT implementation of the symmetric boundary to halve the space and computational costs.</li></ul></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Wednesday 1 October 2025 18:14">Wednesday 1 October 2025</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
