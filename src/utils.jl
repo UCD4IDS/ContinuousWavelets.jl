@@ -256,31 +256,47 @@ function getUpperBound(c::CWT{W,T,<:Morse,N}, s) where {W,T,N}
 end
 
 """
-    getMeanFreq(Ŵ, fsample=2000) -> arrayOfFreqs
-    #getMeanFreq(Ŵ, ω, fsample, n1) -> arrayOfFreqs
+    getMeanFreq(Ŵ, fsample=2000, decimation=1) -> arrayOfFreqs
 
-Calculate each of the mean frequencies of a collection of analytic or real wavelets `Ŵ`, using the power spectral density.
-`ω` is the raw (fsample-independent) frequency axis used to construct `Ŵ`, and `n1` is the original signal length —
-both are needed to correctly convert `Ŵ`'s row-index axis into real Hz for the given `fsample`.
+PSD-weighted mean frequency of each filter in `Ŵ`.
+
+`decimation` is the cumulative subsampling applied before this bank (1 for the
+first layer, ∏ poolingRate for deeper ones). It sets the bank's true Nyquist:
+without it the row-index axis is stretched to `fsample/2` regardless of the rate
+the filters actually see, inflating every value by the decimation factor.
+
+Note this returns the *centroid* of the power spectrum, which for low-Q banks and
+near-lowpass filters sits well below the peak response — see `getPeakFreq` if you
+want the frequency that maximally excites a filter.
 """
-function getMeanFreq(Ŵ::Array, fsample = 2000)
-    eachNorm = [norm(w, 2)^2 for w in eachcol(Ŵ)]
-    freqs = range(0, fsample / 2, length = size(Ŵ, 1))
-    return map(ŵ -> sum(abs2.(ŵ) .* freqs), eachcol(Ŵ)) ./ eachNorm
-end 
-#=
-function getMeanFreq(Ŵ::Array, ω, fsample, n1)
+function getMeanFreq(Ŵ::Array, fsample = 2000, decimation = 1)
     eachNorm = [norm(w, 2)^2 for w in eachcol(Ŵ)]
-    freqsHz = ω .* (fsample / 2) ./ (n1 >> 1 + 1)
-    return map(ŵ -> sum(abs2.(ŵ) .* freqsHz), eachcol(Ŵ)) ./ eachNorm
-end=#
-
-function getMeanFreq(n1, cw::CWT)
-    Ŵ, ω = computeWavelets(n1, cw)
-    getMeanFreq(Ŵ, cw.fsample)
-    #getMeanFreq(Ŵ, ω, cw.fsample, n1)
+    freqs = range(0, fsample / (2 * decimation), length = size(Ŵ, 1))
+    return map(ŵ -> sum(abs2.(ŵ) .* freqs), eachcol(Ŵ)) ./ eachNorm
 end
 
+function getMeanFreq(n1, cw::CWT, decimation = 1)
+    Ŵ, ω = computeWavelets(n1, cw)
+    getMeanFreq(Ŵ, cw.fsample, decimation)
+end
+
+"""
+    getPeakFreq(Ŵ, fsample=2000, decimation=1) -> arrayOfFreqs
+
+Frequency of each filter's maximum response, rather than the PSD-weighted mean
+returned by `getMeanFreq`. For a signal that maximally excites a given filter,
+this is the frequency to use: the mean is pulled toward DC by the low-frequency
+tail, badly so for low-Q banks and for near-lowpass filters.
+"""
+function getPeakFreq(Ŵ::Array, fsample = 2000, decimation = 1)
+    freqs = range(0, fsample / (2 * decimation), length = size(Ŵ, 1))
+    return map(ŵ -> freqs[argmax(abs2.(ŵ))], eachcol(Ŵ))
+end
+
+function getPeakFreq(n1, cw::CWT, decimation = 1)
+    Ŵ, ω = computeWavelets(n1, cw)
+    getPeakFreq(Ŵ, cw.fsample, decimation)
+end
 
 # orthogonal wavelet utils
 function getContWaveFromOrtho(c, N)
@@ -326,7 +342,6 @@ end
 
 
 # create interpolater for the orthogonal cases
-#genInterp(ψ) = scale(interpolate(ψ, BSpline(Cubic(Reflect(OnGrid())))), 1:length(ψ))
 genInterp(ψ) = linear_interpolation(1:length(ψ),ψ)
 
 
@@ -439,7 +454,6 @@ function caveats(n1, c::CWT; coiTolerance = exp(-2))
     # Fourier equivalent frequencies
     Ŵ, ω = computeWavelets(n1, c)
     freqs = getMeanFreq(Ŵ, c.fsample)
-    #freqs = getMeanFreq(Ŵ, ω, c.fsample, n1)
     coi = directCoiComputation(n1, c; coiTolerance = coiTolerance)
     return sRange, freqs, coi
 end

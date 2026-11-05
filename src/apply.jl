@@ -337,14 +337,24 @@ struct DualFrames <: InverseType end
 struct NaiveDelta <: InverseType end
 struct PenroseDelta <: InverseType end
 
-_backend(x::AbstractArray) = Base.typename(typeof(x)).wrapper
+#= Remedy for an error that emerged from GPU implementation. _backend was not 
+   returning the compute device as expected. To remedy, recurses on `parent`
+   covers for every wrapper that defines it — Base's views, reshapes and reinterprets,
+   LinearAlgebra's Adjoint/Transpose, and package types such as OffsetArrays —
+   and leaves anything that does not define `parent` reporting its own type. =#
+function _unwrapped(x::AbstractArray)
+    p = parent(x)
+    return p === x ? x : _unwrapped(p)
+end
+
+_backend(x::AbstractArray) = Base.typename(typeof(_unwrapped(x))).wrapper
 
 function _checkMatchingDevice(Y::AbstractArray, daughters::AbstractArray)
-    _backend(Y) === _backend(daughters) ||
-        error("cwt: signal is a $(_backend(Y)) but daughters is a " *
-              "$(_backend(daughters)) -- move daughters onto the same " *
-              "device as the signal before calling cwt, e.g. " *
-              "CuArray(daughters) or MtlArray(daughters).")
+    _backend(Y) === _backend(daughters) || error(
+        "cwt: signal is on $(_backend(Y)) but daughters is on " *
+        "$(_backend(daughters)). Put both on the same device: move the signal " *
+        "with Array(Y) or CuArray(Y), or pass daughters yourself via " *
+        "cwt(Y, cWav, daughters).")
     return nothing
 end
 

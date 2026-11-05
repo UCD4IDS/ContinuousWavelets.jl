@@ -41,6 +41,7 @@ export qmf,
     mother,
     father,
     getMeanFreq,
+    getPeakFreq,
     isAnalytic,
     getDualCoverage,
     caveats

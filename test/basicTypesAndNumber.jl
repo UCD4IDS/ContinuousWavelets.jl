@@ -39,3 +39,21 @@
 end
 # xSize = xSizes[3]; boundary = boundaries[3]; s = sVals[end]; β = βs[3]; wave = waveTypes[4]
 # xSize = 33; boundary = SymBoundary(); s = 1; β = 1; wave = dog2
+
+@testset "wrapped CPU inputs" begin
+    x = randn(Float32, 4, 128, 2)
+    X = randn(Float32, 2, 128)
+    with_logger(ConsoleLogger(stderr, Logging.Error)) do
+        v = view(x, 1, :, 1)               # SubArray
+        @test cwt(v, Morlet()) ≈ cwt(collect(v), Morlet())
+
+        t = transpose(X)                   # Transpose, (128, 2)
+        @test cwt(t, Morlet()) ≈ cwt(collect(t), Morlet())
+
+        p = PermutedDimsArray(X, (2, 1))   # PermutedDimsArray, (128, 2)
+        @test cwt(p, Morlet()) ≈ cwt(collect(p), Morlet())
+
+        r = reshape(view(x, 1, :, :), 256) # ReshapedArray over a strided view
+        @test cwt(r, Morlet()) ≈ cwt(collect(r), Morlet())
+    end
+end
