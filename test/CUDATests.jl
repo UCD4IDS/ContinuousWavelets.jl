@@ -102,7 +102,7 @@ using BenchmarkTools
             # to move `daughters` over) should fail fast with a clear message,
             # not the opaque GPU-kernel-compilation KernelError this used to
             # produce.
-            @test_throws "signal is a" cwt(x_gpu, wfc, daughters_cpu)
+            @test_throws "same device" cwt(x_gpu, wfc, daughters_cpu)
 
             # icwt on a fully-GPU forward transform should now work
             # transparently for all three InverseType variants: β/

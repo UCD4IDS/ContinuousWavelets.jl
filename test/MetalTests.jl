@@ -98,7 +98,7 @@ using BenchmarkTools
             daughters_cpu = Float32.(daughters_cpu)
             daughters_mtl = MtlArray(daughters_cpu)
 
-            @test_throws "signal is a" cwt(x_mtl, wfc, daughters_cpu)
+            @test_throws "same device" cwt(x_mtl, wfc, daughters_cpu)
 
             y_mtl = with_logger(ConsoleLogger(stderr, Logging.Error)) do
                 cwt(x_mtl, wfc, daughters_mtl)

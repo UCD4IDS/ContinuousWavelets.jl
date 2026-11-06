@@ -351,10 +351,9 @@ _backend(x::AbstractArray) = Base.typename(typeof(_unwrapped(x))).wrapper
 
 function _checkMatchingDevice(Y::AbstractArray, daughters::AbstractArray)
     _backend(Y) === _backend(daughters) || error(
-        "cwt: signal is on $(_backend(Y)) but daughters is on " *
-        "$(_backend(daughters)). Put both on the same device: move the signal " *
-        "with Array(Y) or CuArray(Y), or pass daughters yourself via " *
-        "cwt(Y, cWav, daughters).")
+        "cwt: signal is on $(_backend(Y)) but daughters is on $(_backend(daughters)). " *
+        "Both must be on the same device: convert the signal with " *
+        "$(_backend(daughters))(Y), or pass daughters yourself via cwt(Y, cWav, daughters).")
     return nothing
 end
 
