@@ -24,7 +24,7 @@ MetalExt = "Metal"
 
 [compat]
 AbstractFFTs = "1.5.0"
-Adapt = "4.7.0"
+Adapt = "4"
 CUDA = "6.2"
 cuFFT = "6.2"
 Documenter = "0.27, 1"
