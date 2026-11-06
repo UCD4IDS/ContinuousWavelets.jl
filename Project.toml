@@ -1,6 +1,6 @@
 name = "ContinuousWavelets"
 uuid = "96eb917e-2868-4417-9cb6-27e7ff17528f"
-version = "1.2.2"
+version = "1.2.3"
 authors = ["dsweber2 <david.weber2@protonmail.com> and contributors"]
 
 [deps]
